@@ -1,0 +1,75 @@
+枪工坊(gunworks) 物品 中文-id 对照表
+========================================
+用途: 物品编辑器里复制粘贴。ID 整串(含 gunworks: 前缀)粘到"ID"框;
+     模板列粘到"模板"框(已注册物品建议照填, 与线上 JSON 保持一致)。
+包目录: UserData/PSApi/packs/gunworks/   (items/ 放 JSON, icons/ 放图标)
+
+────────────────────────────────────────
+【一】已注册 16 件(补形状+贴图)
+────────────────────────────────────────
+中文名            id                              模板
+── 机器 ──
+枪械组装台        gunworks:gw_bench               desequencer
+── 部件 ──
+小机匣            gunworks:part_receiver_s        gun_part
+大机匣            gunworks:part_receiver_l        glock_receiver
+短枪管            gunworks:part_barrel_s          match_barrel
+中枪管            gunworks:part_barrel_m          match_barrel
+长枪管            gunworks:part_barrel_l          match_barrel
+短手柄            gunworks:part_grip_s            grip
+长手柄            gunworks:part_grip_l            stock
+枪机              gunworks:part_bolt              internal_springs
+弹匣              gunworks:part_mag               mag_10mm
+── 成品武器 ──
+组装手枪          gunworks:gw_pistol              handmade_pistol
+组装自动手枪      gunworks:gw_autopistol          heavy_handmade_pistol
+组装冲锋枪        gunworks:gw_smg                 smg
+组装步枪          gunworks:gw_rifle               shotgun
+组装栓动狙击枪    gunworks:gw_bolt_sniper         stun_gun
+组装半自动狙击枪  gunworks:gw_semi_sniper         revolver
+
+※ 重要: 这 16 件的线上 JSON(items/gunworks_bench.json)里还有
+  "test": true(F6 测试分类标记)。编辑器导出的 JSON 没有 test 字段,
+  直接整文件覆盖会丢掉它 → 建议只把导出 JSON 里的 shape 和 icon
+  两段手工合进 gunworks_bench.json, 或覆盖后补回 "test": true。
+
+────────────────────────────────────────
+【二】数据卡+两台机器 8 件(v0.6.0 已注册, 补形状+贴图)
+────────────────────────────────────────
+中文名            id                              模板
+── 机器 ──
+部件打印机        gunworks:part_printer           labeler
+物品分析仪        gunworks:item_analyzer          desequencer
+── 数据卡 ──
+空白数据卡        gunworks:datacard_blank         blank_keycard
+机匣数据卡        gunworks:datacard_receiver      blank_keycard
+枪管数据卡        gunworks:datacard_barrel        blank_keycard
+枪机数据卡        gunworks:datacard_bolt          blank_keycard
+手柄数据卡        gunworks:datacard_grip          blank_keycard
+弹匣数据卡        gunworks:datacard_mag           blank_keycard
+
+── 证书 (v0.7.0 已注册) ──
+仿制证书          gunworks:permit_forged          business_permit
+
+※ 仿制证书带原生次数借作有效期: useCount=3 (3 天), 每晚 -1 归零自毁,
+  满值 300 (底价60+次价80×3); 线上 JSON 在 items/gunworks_permit.json,
+  合并规则同上 (只合 shape+icon, 别整文件覆盖)。
+
+※ 与【一】相同的合并规则: 只合导出 JSON 的 shape+icon 两段, 别整文件覆盖
+  (线上还有 test/useCount/useBaseValue/useValuePerUse 字段, 见
+  items/gunworks_machines.json 与 items/gunworks_datacards.json)。
+※ 五种成品数据卡带原生次数: useCount=5, 满卡值 100 (底价10+次价18×5),
+  每打印一次扣 1, 归零自动销毁; tooltip 自动显示 余/5。
+※ 两台机器已配 machines/printer_analyzer.json (ui=psui) +
+  ui/part_printer.psui / ui/item_analyzer.psui + events/printer|analyzer 脚本,
+  双击出面板, 隔夜结算。
+
+────────────────────────────────────────
+【三】编辑器导出后怎么进包
+────────────────────────────────────────
+1. 导出目录随便选(如桌面), 得到 items/ + icons/ 两个文件夹。
+2. 新物品: JSON 复制进 packs/gunworks/items/, PNG 复制进 packs/gunworks/icons/。
+3. 已注册物品: 见上面 ※, 只合 shape+icon 两段; PNG 直接复制进 icons/。
+4. 文件名已自动取冒号后名部分(gunworks:gw_pistol → gw_pistol.json/.png),
+   与包内现有文件同名即覆盖, 直接对得上。
+5. 重启游戏生效; F12 发放全部注册物品检查贴图/形状。

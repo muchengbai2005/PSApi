@@ -1,0 +1,49 @@
+{
+  "//": "枪械零件 (gunworks v0.8.0) — 组装台主材: 每把枪组装消耗对应零件×1 (槽位/消耗见 events/bench/02_bench.pss)。获取: 老枪(下层枪匠)主售, 老鬼(黑市)备售步枪/狙击零件 (events/cells.pss)。无 template — tags MATERIAL → MaterialDirectory, 模板取目录首个原版 id 兜底, 显式 shape/icon 全覆盖视觉。定价算账 (目标: 部件合计+零件 ≈ 枪售价 55%~70%, 入门枪薄利、狙击厚利): 手枪部件130+65=195/260=75% (利65/晚); 自动手枪 200+65=265/340=78% (利75); 冲锋枪 230+100=330/460=72% (利130); 步枪 290+130=420/560=75% (利140); 栓动狙击 210+185=395/620=64% (利225); 半自动狙击 310+185=495/720=69% (利225)。",
+  "items": [
+    {
+      "id": "gunworks:pistol_parts",
+      "name": "手枪零件",
+      "desc": "弹簧、击针、套筒——手枪的全套内脏。枪械组装台的主材。",
+      "flavor": "油纸包着的小零件, 防锈油味很重。",
+      "value": 65,
+      "tags": ["MATERIAL"],
+      "test": true,
+      "shape": { "w": 2, "h": 1, "cells": [[0, 0], [1, 0]] },
+      "icon": { "file": "pistol_parts.png" }
+    },
+    {
+      "id": "gunworks:smg_parts",
+      "name": "冲锋枪零件",
+      "desc": "复进簧、机针、快慢机——冲锋枪的全套内脏。枪械组装台的主材。",
+      "flavor": "份量不轻, 全是冲压钢。",
+      "value": 100,
+      "tags": ["MATERIAL"],
+      "test": true,
+      "shape": { "w": 2, "h": 1, "cells": [[0, 0], [1, 0]] },
+      "icon": { "file": "smg_parts.png" }
+    },
+    {
+      "id": "gunworks:rifle_parts",
+      "name": "步枪零件",
+      "desc": "导气箍、击发机、枪机框——步枪的全套内脏。枪械组装台的主材。",
+      "flavor": "每一件都按图纸车出来的, 大概。",
+      "value": 130,
+      "tags": ["MATERIAL"],
+      "test": true,
+      "shape": { "w": 2, "h": 1, "cells": [[0, 0], [1, 0]] },
+      "icon": { "file": "rifle_parts.png" }
+    },
+    {
+      "id": "gunworks:sniper_parts",
+      "name": "狙击枪零件",
+      "desc": "精密扳机组、重型击针——狙击枪的全套内脏。枪械组装台的主材。",
+      "flavor": "公差小到让人怀疑来路。",
+      "value": 185,
+      "tags": ["MATERIAL"],
+      "test": true,
+      "shape": { "w": 2, "h": 1, "cells": [[0, 0], [1, 0]] },
+      "icon": { "file": "sniper_parts.png" }
+    }
+  ]
+}

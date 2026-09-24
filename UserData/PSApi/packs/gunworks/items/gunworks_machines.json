@@ -1,0 +1,161 @@
+{
+  "//": "部件打印机 + 物品分析仪 (gunworks v0.6.0)。两台都是机器绑定 PSUI 面板 (machines/*.json ui=psui); 隔夜结算走 events/printer|analyzer/*.pss。v0.8.0 素材合并: shape/icon/tags 显式化 (template 保留作基底, 叠加关系见 gunworks_bench.json 头注)。",
+  "items": [
+    {
+      "id": "gunworks:part_printer",
+      "name": "部件打印机",
+      "desc": "双击打开: 左侧熔化金属锭(1锭=3mB)与供电, 右侧放数据卡选部件隔夜打印",
+      "template": "labeler",
+      "value": 1200,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_printer.png"
+      },
+      "tags": [
+        "LUXURY_ITEM",
+        "MACHINE",
+        "TOOL"
+      ]
+    },
+    {
+      "id": "gunworks:item_analyzer",
+      "name": "物品分析仪",
+      "desc": "双击打开: 放入部件+空白数据卡, 隔夜分析出对应数据卡 (消耗被测部件, 耗电)",
+      "template": "desequencer",
+      "value": 900,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 4,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "icon": {
+        "file": "item_analyzer.png"
+      },
+      "tags": [
+        "LUXURY_ITEM",
+        "MACHINE",
+        "TOOL"
+      ]
+    }
+  ]
+}

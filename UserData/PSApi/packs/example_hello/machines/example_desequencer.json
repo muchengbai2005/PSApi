@@ -1,0 +1,24 @@
+{
+  "//": "示例读卡器 — 基于 desequencer，放宽槽位过滤器 + 多夜进度 + 自定义配方。槽位 0=电池 1=模组 2=芯片槽(可当输入) 3=输入卡槽 4=输出。desequencer 有2个可选输入槽(2和3)，outputSlot恒为4。slotWhitelists 额外放宽槽2的过滤器。",
+  "machines": [
+    {
+      "id": "example_hello:example_desequencer",
+      "itemRef": "example_hello:example_desequencer",
+      "ui": "desequencer",
+      "inputSlot": 3,
+      "inputSlots": [2, 3],
+      "outputSlot": 4,
+      "drawnPower": 10,
+      "batteryPowered": true,
+      "inputWhitelist": ["blank_keycard", "ser_keycard", "sup_keycard", "scrap_metal", "common_ore"],
+      "outputWhitelist": ["blank_keycard", "ser_keycard", "sup_keycard", "newspaper"],
+      "slotWhitelists": [
+        {"slot": 2, "whitelist": ["blank_keycard", "ser_keycard", "sup_keycard", "scrap_metal", "common_ore"]}
+      ],
+      "progress": {
+        "progressPerNight": 34,
+        "progressMax": 100
+      }
+    }
+  ]
+}

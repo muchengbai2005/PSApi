@@ -1,0 +1,23 @@
+# M1 演示: inject.* 物品池注入四通道 (NpcManager Injectors 移植)
+# 物品用本包的 example_hello:example_water; 各注册 1~2 件, 不干扰 E7 剧情演示。
+# 说明:
+#   buy_list   — 任意收购意图客户(BUY/SELLNBUY/WHOLESALE/PROCUREMENT_OFFER)的收购池
+#   sell_shelf — 出售意图客户(SELL/SELLNBUY)的货架原生摆货, 每客户一会话一次
+#   doctor     — 夜间博士商店 (VisitUpgradeMerchant 后注入)
+#   barter     — 野外以物易物商人 (ShowBarter 时注入)
+#
+# 2026-09-18: M1 验收完毕, 演示注册已全部停用 (F6 注入区会显示这些条目, 干扰正常游戏)。
+# 想重测把下面五行取消注释即可。
+
+# inject.buy_list("example_hello:example_water")
+# inject.sell_shelf("example_hello:example_water", 2)
+# inject.doctor("example_hello:example_water")
+# inject.barter("example_hello:example_water", 2)
+
+# 函数形式演示: 现算收购池(按客户现金返回)
+func m1_dynamic_buy(client):
+    if client.cash > 500:
+        return ["example_hello:example_water"]
+    return []
+
+# inject.buy_list(m1_dynamic_buy)

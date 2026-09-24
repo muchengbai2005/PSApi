@@ -1,0 +1,25 @@
+# ===== C# 构建产物 =====
+[Bb]in/
+[Oo]bj/
+_tools/pack_compiler/out/
+
+# ===== Python =====
+__pycache__/
+*.pyc
+
+# ===== 游戏运行时产物（自动生成，勿提交）=====
+UserData/PSApi/logs/
+UserData/PSApi/state/
+UserData/PSApi/ui/
+_tools/item_editor/temp/
+
+# ===== 第三方大文件（超 GitHub 100MB 单文件限制，不入库）=====
+# AssetRipper 请自行从官网下载: https://github.com/AssetRipper/AssetRipper
+_tools/AssetRipper/
+_tools/assetripper.zip
+
+# ===== IDE =====
+.vs/
+.idea/
+*.user
+*.suo

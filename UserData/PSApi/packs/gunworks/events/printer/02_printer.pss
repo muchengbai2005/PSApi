@@ -1,0 +1,225 @@
+# 部件打印机 — 状态机与面板回调 (gunworks v0.6.0; 模式照 bench/02_bench.pss)
+#
+# 状态存 state (按存档槽隔离): key = "printer:<uid>" → {melt_on, liquid, printing, print_id, sel, day}
+#   melt_on: 常开熔炼开关 (隔夜自动把 s_melt 里的金属锭熔成液体)
+#   liquid:  液箱当前 mB (上限 30; 槽内锭不代管液体, 液体只活在 state)
+#   printing/print_id/day: 打印任务 (隔夜完成; 数据卡双锁至完成)
+#   sel:     当前选中的部件下标 (对应 btn_p0..p2)
+# 隔夜遍历清单: state["printer:list"] = [uid...] (句柄不能进 state, uid 可以)。
+#
+# 供电规则 (用户裁定 v0.6.1 单电池): 整台机器一块电池 (s_batt), 同一夜两区都要工作时
+#   打印区优先扣 (10 电/件), 熔化只吃打印剩下的 (2 电/锭), 全部"全有或全无"。
+
+# ---------- 状态存取 ----------
+
+func printer_key(m):
+    return "printer:{m.uid}"
+
+func printer_st(m):
+    var k = printer_key(m)
+    if not state.has(k):
+        state.set(k, {melt_on = false, liquid = 0, printing = false, print_id = "", sel = 0, day = 0})
+    return state.get(k)
+
+func printer_save(m, st):
+    state.set(printer_key(m), st)
+    var lst = state.get("printer:list", [])
+    var uid = m.uid
+    var found = false
+    for u in lst:
+        if u == uid:
+            found = true
+    if not found:
+        push(lst, uid)
+        state.set("printer:list", lst)
+
+# ---------- 工具 ----------
+
+func printer_part_name(id):
+    var n = PRINTER_PART_NAMES[id]
+    if n == null:
+        return id
+    return n
+
+# 当前数据卡的可选部件表; 无卡/卡不对 = null
+func printer_options(m):
+    var card = ui.machine_slot_item(m, "s_card")
+    if card == null:
+        return null
+    return PRINTER_CARD_OPTIONS[card.id]
+
+# ---------- 刷新 (结构恒定: 只改文本/锁, 不增删元素) ----------
+
+func printer_refresh(m):
+    var st = printer_st(m)
+    ui.machine_set_text(m, "lbl_liquid", "金属液: {st.liquid} / {PRINTER_LIQUID_MAX} mB")
+    if st.melt_on:
+        ui.machine_set_text(m, "btn_melt", "常开熔炼: 开")
+    else:
+        ui.machine_set_text(m, "btn_melt", "常开熔炼: 关")
+    var opts = printer_options(m)
+    var i = 0
+    while i < 3:
+        var txt = "—"
+        if opts != null and i < len(opts):
+            var prefix = "　"
+            if i == st.sel:
+                prefix = "▶"
+            txt = prefix + printer_part_name(opts[i])
+        ui.machine_set_text(m, "btn_p{i}", txt)
+        i = i + 1
+    if st.printing:
+        ui.machine_set_text(m, "btn_print", "取消打印")
+        ui.machine_set_text(m, "lbl_status", "打印中: " + printer_part_name(st.print_id) + " (明早完成)")
+        return
+    ui.machine_set_text(m, "btn_print", "开始打印")
+    if opts == null:
+        ui.machine_set_text(m, "lbl_status", "插入数据卡以选择部件 (无卡不打印)")
+        return
+    if st.sel >= len(opts):
+        st.sel = 0
+        printer_save(m, st)
+    var pid = opts[st.sel]
+    ui.machine_set_text(m, "lbl_status", "已选: " + printer_part_name(pid) + " · 需 {PRINTER_PART_COST[pid]}mB 液 / {PRINTER_PRINT_POWER}电")
+
+# ---------- 面板回调 (机器面板回调参数 = {elem, machine} / {elem, value, machine}) ----------
+
+func printer_on_open(a):
+    printer_refresh(a.machine)
+
+func printer_melt_changed(a):
+    printer_refresh(a.machine)
+
+func printer_batt_changed(a):
+    printer_refresh(a.machine)
+
+func printer_melt_toggle(a):
+    var m = a.machine
+    var st = printer_st(m)
+    st.melt_on = not st.melt_on
+    printer_save(m, st)
+    printer_refresh(m)
+
+func printer_card_changed(a):
+    var m = a.machine
+    var st = printer_st(m)
+    st.sel = 0
+    printer_save(m, st)
+    printer_refresh(m)
+
+func printer_pick(a):
+    var m = a.machine
+    var st = printer_st(m)
+    if st.printing:
+        ui.machine_set_text(m, "lbl_status", "打印中, 先[取消打印]才能改选部件")
+        return
+    var opts = printer_options(m)
+    if opts == null:
+        return
+    var i = 0
+    if a.elem == "btn_p1":
+        i = 1
+    if a.elem == "btn_p2":
+        i = 2
+    if i >= len(opts):
+        return
+    st.sel = i
+    printer_save(m, st)
+    printer_refresh(m)
+
+func printer_print(a):
+    var m = a.machine
+    var st = printer_st(m)
+    if st.printing:
+        # 取消: 解锁数据卡, 当晚不打印 (液不动, 卡不扣次)
+        st.printing = false
+        printer_save(m, st)
+        ui.machine_lock(m, "s_card", false)
+        printer_refresh(m)
+        return
+    var opts = printer_options(m)
+    if opts == null:
+        ui.machine_set_text(m, "lbl_status", "没有数据卡, 不能打印")
+        return
+    var pid = opts[st.sel]
+    var cost = PRINTER_PART_COST[pid]
+    if st.liquid < cost:
+        ui.machine_set_text(m, "lbl_status", "金属液不足: 需 {cost}mB, 现有 {st.liquid}mB")
+        return
+    if ui.machine_slot_item(m, "s_out") != null:
+        ui.machine_set_text(m, "lbl_status", "先取走成品槽里的部件")
+        return
+    st.printing = true
+    st.print_id = pid
+    st.day = time.day()
+    printer_save(m, st)
+    ui.machine_lock(m, "s_card", true)
+    printer_refresh(m)
+
+func printer_output_changed(a):
+    return
+
+# ---------- 隔夜结算 (打印优先供电, 熔化吃剩余) ----------
+
+on day_wake():
+    var lst = state.get("printer:list", [])
+    if len(lst) == 0:
+        return
+    var keep = []
+    for uid in lst:
+        var k = "printer:{uid}"
+        if not state.has(k):
+            continue
+        var st = state.get(k)
+        var alive = true
+        var m = null
+        if (st.printing or st.melt_on) and time.day() > st.day:
+            m = ui.machine_find_uid(uid)
+            if m == null:
+                alive = false
+            else:
+                printer_overnight(m, st)
+        if alive:
+            push(keep, uid)
+    state.set("printer:list", keep)
+
+func printer_overnight(m, st):
+    # 1) 打印区优先: 单电池先保打印 (全有或全无)
+    if st.printing:
+        var drawn = false
+        var bp = ui.machine_slot_item(m, "s_batt")
+        if bp != null:
+            drawn = items.power_draw(bp, PRINTER_PRINT_POWER)
+        if drawn:
+            var cost = PRINTER_PART_COST[st.print_id]
+            if cost != null and st.liquid >= cost:
+                st.liquid = st.liquid - cost
+                ui.machine_lock(m, "s_card", false)
+                var card = ui.machine_slot_item(m, "s_card")
+                if card != null:
+                    items.use(card, 1)   # 扣 1 次; 归零原生自动销毁 (价格随次数自动折算, v0.6.1 实测确认)
+                ui.machine_spawn(m, "s_out", st.print_id, 1)
+                st.printing = false
+                st.print_id = ""
+            else:
+                # 液不够(开始时有校验, 理论上到不了这): 不扣白扣的电已扣, 放弃本次, 解锁让玩家处理
+                st.printing = false
+                ui.machine_lock(m, "s_card", false)
+                ui.machine_set_text(m, "lbl_status", "金属液不足, 打印中止 (电已耗)")
+        else:
+            ui.machine_set_text(m, "lbl_status", "电量不足, 今晚未能打印 (明晚重试)")
+    # 2) 熔化区: 吃同一块电池里打印剩下的电; 整堆处理 (堆叠数>剩余容量时跳过该堆)
+    if st.melt_on and st.liquid < PRINTER_LIQUID_MAX:
+        var ingots = ui.machine_slot_items(m, "s_melt")
+        var bm2 = ui.machine_slot_item(m, "s_batt")
+        for it in ingots:
+            if st.liquid < PRINTER_LIQUID_MAX and bm2 != null:
+                var n = it.count
+                var capn = (PRINTER_LIQUID_MAX - st.liquid) / PRINTER_MB_PER_INGOT
+                if n <= capn:
+                    if items.power_draw(bm2, PRINTER_MELT_POWER * n):
+                        items.consume(it)
+                        st.liquid = st.liquid + PRINTER_MB_PER_INGOT * n
+    st.day = time.day()
+    printer_save(m, st)
+    printer_refresh(m)

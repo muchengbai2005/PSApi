@@ -1,0 +1,39 @@
+# e5_demo.pss — E5 演示: items / quality / machine 三命名空间 (跨模块调 PSApi.Items)
+# 触发点: shop_opened 每天开张一次 (v0.6.0 曾挂 street_flyer, 但该事件 state 防重已记账不再排队,
+# 演示触发不到 — 改每日开张触发, 想重测删掉 state 记录或等第二天)。
+
+on shop_opened():
+    var key = "e5_demo_day" + str(time.day())
+    if state.has(key):
+        return
+    state.set(key, true)
+
+    # 1) items 每日赠报已于 E5 验收后停用 (2026-09-17, 与 U3 自动赠报演示混淆)。
+    #    想重测 items.give/has/value 取消下面四行注释即可:
+    # var ok = items.give("game:newspaper", 2)
+    # var has2 = items.has("game:newspaper", 2)
+    # var price = items.value("game:newspaper")
+    # log.info("[e5] 每日赠报: give={ok} has(>=2)={has2} 单价={price}")
+
+    # 2) quality: 发 1 块废金属, 打 example_hello 的"纯净"品质层, price_factor 前后对比
+    items.give("game:scrap_metal", 1)
+    var scrap = items.find("game:scrap_metal")
+    if scrap != null:
+        var before = quality.price_factor(scrap)
+        var setok = quality.set(scrap, "example_hello:q_pure")
+        var after = quality.price_factor(scrap)
+        var q = quality.get(scrap)
+        log.info("[e5] 品质演示: set={setok} 品质={q} price_factor {before} -> {after}")
+    else:
+        log.warn("[e5] 品质演示跳过: 背包里没找到 scrap_metal")
+
+    # 3) machine: 找店里放着的示例读卡器(进度机)看真进度; 批次机 progress 返回 -1 是预期
+    var mach = machine.find("example_hello:example_desequencer")
+    if mach == null:
+        mach = machine.find("example_hello:example_processor")
+    if mach != null:
+        var prog = machine.progress(mach)
+        var prod = machine.producing(mach)
+        log.info("[e5] 机器: id={mach.id} progress={prog} producing={prod} (progress=-1 表示批次机, 无多夜进度配置)")
+    else:
+        log.info("[e5] 未找到示例机器: 店里放一台 example_desequencer/example_processor 即可看到进度")

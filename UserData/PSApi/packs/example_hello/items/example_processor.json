@@ -1,0 +1,20 @@
+{
+  "//": "PS-API v0.6.0 验证机: ui=custom 自装配窗口机器 (CustomMachineFactory, 不调原版工厂)。图标复用包内 mcb_machine_spp.png。",
+  "items": [
+    {
+      "id": "example_hello:example_processor",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例加工机",
+      "desc": "PS-API 自定义机器验证: 自装配 PixelWindow+GridPixelElement+GameSlotInventory 窗口 (2列: 输入/产出), 免电, 隔夜加工。",
+      "value": 300,
+      "types": ["MACHINE"],
+      "shape": {
+        "w": 2,
+        "h": 2,
+        "cells": [ [0, 0], [0, 1], [1, 0], [1, 1] ]
+      },
+      "icon": { "file": "mcb_machine_spp.png" }
+    }
+  ]
+}

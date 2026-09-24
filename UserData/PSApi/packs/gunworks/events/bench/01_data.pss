@@ -1,0 +1,59 @@
+# 枪械组装台 — 静态配方数据 (模板包: 配方就是脚本里的表, 改表即改配方)
+# 部件槽位固定: 0=机匣 1=枪管 2=手柄 3=枪机 4=弹匣 (面板结构恒定, 见 ui/gun_bench.psui 头部注释)
+# v0.8.0: 零件槽 s5 (BENCH_PARTS_SLOT) — 每把枪消耗对应枪械零件×1, 隔夜随部件一起消耗
+# 武器键是单词 (按钮 id = btn_w_<键>, bench_pick 按 split("_")[2] 解析)
+
+var BENCH_SLOTS = ["s0", "s1", "s2", "s3", "s4"]
+var BENCH_SLOT_NAMES = ["机匣", "枪管", "手柄", "枪机", "弹匣"]
+var BENCH_PARTS_SLOT = "s5"
+var BENCH_OUTPUT_SLOT = "sout"
+
+var BENCH_WEAPONS = ["pistol", "autopistol", "smg", "rifle", "bolt", "semi"]
+var BENCH_WEAPON_NAMES = {
+    pistol = "手枪", autopistol = "自动手枪", smg = "冲锋枪",
+    rifle = "步枪", bolt = "栓动狙击枪", semi = "半自动狙击枪",
+}
+# 武器一句话描述 (面板底部 lbl_desc 行: "<武器名> · <描述>")
+var BENCH_WEAPON_DESC = {
+    pistol = "单发装填、便宜、应急",
+    autopistol = "自动泼洒, 近身压制的口袋火力",
+    smg = "射速拉满, 近距离扫射利器",
+    rifle = "中坚全能, 中远距离稳定输出",
+    bolt = "拉栓一击制胜, 慢而致命",
+    semi = "连发狙击, 高精度高射速的顶级货",
+}
+var BENCH_WEAPON_OUTPUT = {
+    pistol = "gunworks:gw_pistol", autopistol = "gunworks:gw_autopistol",
+    smg = "gunworks:gw_smg", rifle = "gunworks:gw_rifle",
+    bolt = "gunworks:gw_bolt_sniper", semi = "gunworks:gw_semi_sniper",
+}
+
+# 配方: 每槽位一个部件 id; null = 该武器不需要此槽 (槽位显示"不需要"并锁定)
+var BENCH_RECIPES = {
+    pistol =     ["gunworks:part_receiver_s", "gunworks:part_barrel_s", "gunworks:part_grip_s", null, null],
+    autopistol = ["gunworks:part_receiver_s", "gunworks:part_barrel_s", "gunworks:part_grip_s", "gunworks:part_bolt", null],
+    smg =        ["gunworks:part_receiver_s", "gunworks:part_barrel_s", "gunworks:part_grip_s", "gunworks:part_bolt", "gunworks:part_mag"],
+    rifle =      ["gunworks:part_receiver_l", "gunworks:part_barrel_m", "gunworks:part_grip_l", "gunworks:part_bolt", "gunworks:part_mag"],
+    bolt =       ["gunworks:part_receiver_l", "gunworks:part_barrel_l", "gunworks:part_grip_l", null, null],
+    semi =       ["gunworks:part_receiver_l", "gunworks:part_barrel_l", "gunworks:part_grip_l", "gunworks:part_bolt", "gunworks:part_mag"],
+}
+
+# 部件显示名 (与 BENCH_PARTS_ALL 同序)
+var BENCH_PARTS_ALL = [
+    "gunworks:part_receiver_s", "gunworks:part_receiver_l",
+    "gunworks:part_barrel_s", "gunworks:part_barrel_m", "gunworks:part_barrel_l",
+    "gunworks:part_grip_s", "gunworks:part_grip_l",
+    "gunworks:part_bolt", "gunworks:part_mag",
+]
+var BENCH_PART_NAMES = ["小机匣", "大机匣", "短枪管", "中枪管", "长枪管", "短手柄", "长手柄", "枪机", "弹匣"]
+
+# v0.8.0: 每把枪所需枪械零件 (零件槽 s5; 两把狙击共用狙击枪零件)
+var BENCH_WEAPON_PARTS = {
+    pistol = "gunworks:pistol_parts", autopistol = "gunworks:pistol_parts",
+    smg = "gunworks:smg_parts", rifle = "gunworks:rifle_parts",
+    bolt = "gunworks:sniper_parts", semi = "gunworks:sniper_parts",
+}
+var BENCH_WEAPON_PARTS_NAMES = {
+    pistol = "手枪零件", autopistol = "手枪零件", smg = "冲锋枪零件",
+    rifle = "步枪零件", bolt = "狙击枪零件", semi = "狙击枪零件",
+}

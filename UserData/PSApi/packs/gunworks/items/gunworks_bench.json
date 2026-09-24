@@ -1,0 +1,908 @@
+{
+  "//": "枪械组装台 + 9 部件 + 6 组装枪 (16 测试物品, test: true → F6 '测试'分类)。v0.8.0 素材合并: shape/icon/tags/contraband 显式化 (物品编辑器 temp 素材); template 保留作基底 — 显式 shape/icon 覆盖克隆结果 (ItemStore: shape 显式优先, icon 自定义键优先), tags 与 template 类型合并 (merge 模式), contraband 显式等级走官方 InitContrabandItem。v0.9.0: 补齐 temp 导出遗漏的 3 项 tags — gw_semi_sniper=[FIREARM,WEAPON](对照其他 5 枪), part_barrel_l/part_bolt=[GUN_MOD,MATERIAL](对照其他 7 部件; 任务单原写 [MATERIAL], 按 sibling 一致性补齐 GUN_MOD)。",
+  "items": [
+    {
+      "id": "gunworks:gw_bench",
+      "name": "枪械组装台",
+      "desc": "双击打开组装面板: 选武器 → 放部件 → 开始组装 → 过一夜取成品",
+      "template": "desequencer",
+      "value": 500,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 6,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_bench.png"
+      },
+      "tags": [
+        "LUXURY_ITEM",
+        "MACHINE",
+        "TOOL"
+      ]
+    },
+    {
+      "id": "gunworks:part_receiver_s",
+      "name": "小机匣",
+      "desc": "手枪/冲锋枪用小型机匣",
+      "template": "gun_part",
+      "value": 60,
+      "test": true,
+      "shape": {
+        "w": 3,
+        "h": 2,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_receiver_s.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_receiver_l",
+      "name": "大机匣",
+      "desc": "步枪/狙击枪用大型机匣",
+      "template": "glock_receiver",
+      "value": 90,
+      "test": true,
+      "shape": {
+        "w": 5,
+        "h": 2,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_receiver_l.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_barrel_s",
+      "name": "短枪管",
+      "desc": "手枪/冲锋枪用短枪管",
+      "template": "match_barrel",
+      "value": 45,
+      "test": true,
+      "shape": {
+        "w": 2,
+        "h": 1,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_barrel_s.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_barrel_m",
+      "name": "中枪管",
+      "desc": "步枪用中长枪管",
+      "template": "match_barrel",
+      "value": 60,
+      "test": true,
+      "shape": {
+        "w": 3,
+        "h": 1,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_barrel_m.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_barrel_l",
+      "name": "长枪管",
+      "desc": "狙击枪用长枪管",
+      "template": "match_barrel",
+      "value": 80,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 1,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_barrel_l.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_grip_s",
+      "name": "短手柄",
+      "desc": "手枪/冲锋枪用短手柄",
+      "template": "grip",
+      "value": 25,
+      "test": true,
+      "shape": {
+        "w": 2,
+        "h": 1,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_grip_s.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_grip_l",
+      "name": "长手柄",
+      "desc": "步枪/狙击枪用长手柄(枪托)",
+      "template": "stock",
+      "value": 40,
+      "test": true,
+      "shape": {
+        "w": 3,
+        "h": 2,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_grip_l.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_bolt",
+      "name": "枪机",
+      "desc": "自动/半自动武器的枪机组件",
+      "template": "internal_springs",
+      "value": 70,
+      "test": true,
+      "shape": {
+        "w": 2,
+        "h": 1,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_bolt.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:part_mag",
+      "name": "弹匣",
+      "desc": "通用弹匣",
+      "template": "mag_10mm",
+      "value": 30,
+      "test": true,
+      "shape": {
+        "w": 1,
+        "h": 2,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "icon": {
+        "file": "part_mag.png"
+      },
+      "tags": [
+        "GUN_MOD",
+        "MATERIAL"
+      ]
+    },
+    {
+      "id": "gunworks:gw_pistol",
+      "name": "组装手枪",
+      "desc": "单发装填、便宜、应急",
+      "template": "handmade_pistol",
+      "value": 260,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_pistol.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "low"
+    },
+    {
+      "id": "gunworks:gw_autopistol",
+      "name": "组装自动手枪",
+      "desc": "自动泼洒, 近身压制的口袋火力",
+      "template": "heavy_handmade_pistol",
+      "value": 340,
+      "test": true,
+      "shape": {
+        "w": 5,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_autopistol.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "mid"
+    },
+    {
+      "id": "gunworks:gw_smg",
+      "name": "组装冲锋枪",
+      "desc": "射速拉满, 近距离扫射利器",
+      "template": "smg",
+      "value": 460,
+      "test": true,
+      "shape": {
+        "w": 4,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_smg.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "mid"
+    },
+    {
+      "id": "gunworks:gw_rifle",
+      "name": "组装步枪",
+      "desc": "中坚全能, 中远距离稳定输出",
+      "template": "shotgun",
+      "value": 560,
+      "test": true,
+      "shape": {
+        "w": 8,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_rifle.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "high"
+    },
+    {
+      "id": "gunworks:gw_bolt_sniper",
+      "name": "组装栓动狙击枪",
+      "desc": "拉栓一击制胜, 慢而致命",
+      "template": "stun_gun",
+      "value": 620,
+      "test": true,
+      "shape": {
+        "w": 10,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            9,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_bolt_sniper.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "critical"
+    },
+    {
+      "id": "gunworks:gw_semi_sniper",
+      "name": "组装半自动狙击枪",
+      "desc": "连发狙击, 高精度高射速的顶级货",
+      "template": "revolver",
+      "value": 720,
+      "test": true,
+      "shape": {
+        "w": 10,
+        "h": 3,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            9,
+            0
+          ]
+        ]
+      },
+      "icon": {
+        "file": "gw_semi_sniper.png"
+      },
+      "tags": [
+        "FIREARM",
+        "WEAPON"
+      ],
+      "contraband": "critical"
+    }
+  ]
+}

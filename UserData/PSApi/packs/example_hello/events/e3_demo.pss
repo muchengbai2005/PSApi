@@ -1,0 +1,37 @@
+# e3_demo.pss — E3 演示: bus.emit 自定义事件 + store_event 蓝图池注入
+
+# ---- 自定义事件: 夜间结算每 3 天发一次 night_beacon, 订阅方计数存档 ----
+
+on night_services():
+    if time.day() % 3 == 0:
+        bus.emit("example_hello:night_beacon", {day = time.day()})
+
+# 字符串形式 on: 自定义事件名带 ':', 原样订阅(不过别名表)
+on "example_hello:night_beacon":
+    var n = state.get("beacon_count", 0) + 1
+    state.set("beacon_count", n)
+    log.info("收到 night_beacon(第 {n} 次): day={event.day}")
+
+# ---- 商店事件: 注册街头传单(normal 池), 首次开店立即激活一次(state 防重复) ----
+
+store_event.register("example_hello:street_flyer", {
+    pool = "normal",
+    odd = 20,
+    name = "街头传单",
+    description = "有人在附近派发传单, 顾客议论纷纷。",
+    duration = 1,
+    slip = true,
+})
+
+on shop_opened():
+    if not state.has("flyer_queued"):
+        state.set("flyer_queued", true)
+        store_event.queue("example_hello:street_flyer")
+        log.info("街头传单事件已激活(store_event.queue)")
+
+# 事件开始/结束回调(GameHooks 在 day_wake 做激活差集, 免 patch)
+on store_event_started():
+    log.info("商店事件开始: {event.event_id}")
+
+on store_event_ended():
+    log.info("商店事件结束: {event.event_id}")

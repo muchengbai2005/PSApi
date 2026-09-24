@@ -1,0 +1,28 @@
+# e2_demo.pss — E2 演示: state(存档槽隔离 KV) / time / player / rep / power / crime
+# 加载即输出一次 state 自证; 事件 handler 演示"每周五津贴"与"每晚下层区声望"。
+
+# state 读写自证(顶层立即执行; 换存档槽后此处值独立)
+var boot_seen = state.get("e2_boot_seen", 0)
+state.set("e2_boot_seen", boot_seen + 1)
+state.set("e2_last_load", {"tags": ["e2", "demo"], "ok": true})
+log.info("e2_demo 加载: 本槽第 {state.get('e2_boot_seen')} 次启动; state 回读 = {state.get('e2_last_load')}")
+log.info("state.has/del 自证: has(e2_last_load)={state.has('e2_last_load')}")
+
+# 每周五醒来 +100 块(每周五只加一次, 用 state 记账)
+on day_wake():
+    if time.weekday() == 4:
+        var paid_day = state.get("friday_paid_day", -1)
+        if paid_day != time.rel_day():
+            player.add_cash(100)
+            state.set("friday_paid_day", time.rel_day())
+            log.info("周五津贴 +100, 现金 {player.cash()}")
+
+# 每晚夜间结算: 下层区声望 +20
+on night_services():
+    rep.add("ll", 20)
+    log.info("下层区声望 +20 → {rep.get('ll')}")
+
+# 读档/新开: 打印存档槽与 run_id
+on game_loaded():
+    log.info("游戏已加载: 槽位 {event.save_slot}, run={event.run_id}, 第 {time.rel_day()} 天(周{time.weekday() + 1}), 现金 {player.cash()}")
+    log.info("势力快照: rev={power.get('rev')} sec={power.get('sec')} bm={power.get('bm')} 下层动荡={power.get('lower_unrest')} 上层友好={power.get('upper_friend')}")

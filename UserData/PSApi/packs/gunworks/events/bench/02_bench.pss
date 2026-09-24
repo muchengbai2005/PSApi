@@ -1,0 +1,224 @@
+# 枪械组装台 — 状态机与面板回调 (v1.4.0 机器绑定面板模板)
+#
+# 状态存 state (按存档槽隔离): key = "bench:<uid>" → {weapon, status, day}
+#   status: idle (可放部件/可切换) → assembling (锁料, 过一夜) → done (成品可取, 取走回 idle)
+# 槽内物品 (部件/预览/成品) 不进 state —— 它们挂在机器物品树上, 随存档原生序列化。
+# 隔夜遍历清单: state["bench:list"] = [uid...] (句柄不能进 state, uid 可以;
+#   用 ui.machine_find_uid(uid) 找回机器)。
+
+# ---------- 状态存取 ----------
+
+func bench_key(m):
+    return "bench:{m.uid}"
+
+func bench_st(m):
+    var k = bench_key(m)
+    if not state.has(k):
+        state.set(k, {weapon = "pistol", status = "idle", day = 0})
+    return state.get(k)
+
+func bench_save(m, st):
+    state.set(bench_key(m), st)
+    var lst = state.get("bench:list", [])
+    var uid = m.uid
+    var found = false
+    for u in lst:
+        if u == uid:
+            found = true
+    if not found:
+        push(lst, uid)
+        state.set("bench:list", lst)
+
+# ---------- 工具 ----------
+
+func bench_part_name(id):
+    var i = 0
+    while i < len(BENCH_PARTS_ALL):
+        if BENCH_PARTS_ALL[i] == id:
+            return BENCH_PART_NAMES[i]
+        i = i + 1
+    return id
+
+# 缺料检查 (v0.8.0): 逐槽校验精确 id — 静态白名单是并集, 防"大机匣混进手枪槽"。
+# 返回第一个缺失的部件/零件显示名; 全齐 = null (零件槽 s5 在最后查)
+func bench_missing(m, st):
+    var parts = BENCH_RECIPES[st.weapon]
+    var i = 0
+    while i < 5:
+        if parts[i] != null:
+            var it = ui.machine_slot_item(m, BENCH_SLOTS[i])
+            if it == null:
+                return bench_part_name(parts[i])
+            if it.id != parts[i]:
+                return bench_part_name(parts[i])
+        i = i + 1
+    var pit = ui.machine_slot_item(m, BENCH_PARTS_SLOT)
+    if pit == null:
+        return BENCH_WEAPON_PARTS_NAMES[st.weapon]
+    if pit.id != BENCH_WEAPON_PARTS[st.weapon]:
+        return BENCH_WEAPON_PARTS_NAMES[st.weapon]
+    return null
+
+# 部件+零件是否放齐
+func bench_parts_complete(m, st):
+    return bench_missing(m, st) == null
+
+# ---------- 布局/锁 (结构恒定: 只改槽名/白名单/锁, 不增删元素) ----------
+
+func bench_apply(m):
+    var st = bench_st(m)
+    var parts = BENCH_RECIPES[st.weapon]
+    var busy = st.status != "idle"
+    var i = 0
+    while i < 5:
+        var slot = BENCH_SLOTS[i]
+        if parts[i] == null:
+            ui.machine_set_text(m, "lbl_" + slot, "—")
+            ui.machine_lock(m, slot, true)
+        else:
+            ui.machine_set_text(m, "lbl_" + slot, bench_part_name(parts[i]))
+            ui.machine_set_whitelist(m, slot, [parts[i]])
+            ui.machine_lock(m, slot, busy)
+        i = i + 1
+    # v0.8.0: 零件槽 (每枪固定一种零件, 忙时锁定)
+    ui.machine_set_text(m, "lbl_s5", BENCH_WEAPON_PARTS_NAMES[st.weapon])
+    ui.machine_set_whitelist(m, BENCH_PARTS_SLOT, [BENCH_WEAPON_PARTS[st.weapon]])
+    ui.machine_lock(m, BENCH_PARTS_SLOT, busy)
+    # 武器按钮高亮: 图元按钮无样式, 玩文本 — 选中 "▶ 手枪", 未选中全角空格对齐
+    var wi = 0
+    while wi < 6:
+        var wkey = BENCH_WEAPONS[wi]
+        var prefix = "　"
+        if wkey == st.weapon:
+            prefix = "▶"
+        ui.machine_set_text(m, "btn_w_" + wkey, prefix + BENCH_WEAPON_NAMES[wkey])
+        wi = wi + 1
+    # 底部描述行: "<武器名> · <一句话描述>"
+    ui.machine_set_text(m, "lbl_desc", BENCH_WEAPON_NAMES[st.weapon] + " · " + BENCH_WEAPON_DESC[st.weapon])
+    # 输出槽: 仅 done 时可取 (插入永远被占位白名单拒; 预览/成品由 spawn 直入)
+    ui.machine_lock(m, BENCH_OUTPUT_SLOT, st.status != "done")
+    bench_refresh(m)
+
+# 文本 + 输出槽预览管理 (idle 才管理预览; assembling/done 由流程控制)
+func bench_refresh(m):
+    var st = bench_st(m)
+    if st.status == "assembling":
+        ui.machine_set_text(m, "btn_assemble", "取消组装")
+        ui.machine_set_text(m, "lbl_status", "组装中: " + BENCH_WEAPON_NAMES[st.weapon] + " (明早完成)")
+        return
+    ui.machine_set_text(m, "btn_assemble", "开始组装")
+    if st.status == "done":
+        ui.machine_set_text(m, "lbl_status", BENCH_WEAPON_NAMES[st.weapon] + " 已完成 — 取走成品才能装下一把")
+        return
+    if bench_parts_complete(m, st):
+        if ui.machine_slot_item(m, BENCH_OUTPUT_SLOT) == null:
+            ui.machine_spawn(m, BENCH_OUTPUT_SLOT, BENCH_WEAPON_OUTPUT[st.weapon], 1)
+        ui.machine_lock(m, BENCH_OUTPUT_SLOT, true)
+        ui.machine_set_text(m, "lbl_status", "部件已齐: 点[开始组装], 过一夜完成")
+    else:
+        if ui.machine_slot_item(m, BENCH_OUTPUT_SLOT) != null:
+            ui.machine_clear(m, BENCH_OUTPUT_SLOT)
+        ui.machine_set_text(m, "lbl_status", "还缺: " + bench_missing(m, st) + " (当前: " + BENCH_WEAPON_NAMES[st.weapon] + ")")
+
+# ---------- 面板回调 (机器面板回调参数 = {elem, machine} / {elem, value, machine}) ----------
+
+func bench_on_open(a):
+    bench_apply(a.machine)
+
+func bench_pick(a):
+    var m = a.machine
+    var st = bench_st(m)
+    if st.status == "assembling":
+        ui.machine_set_text(m, "lbl_status", "组装中, 先[取消组装]才能切换武器")
+        return
+    if st.status == "done":
+        ui.machine_set_text(m, "lbl_status", "先取走成品才能切换武器")
+        return
+    var i = 0
+    while i < 5:
+        if ui.machine_slot_item(m, BENCH_SLOTS[i]) != null:
+            ui.machine_set_text(m, "lbl_status", "部件槽还有部件, 全部取回才能切换武器")
+            return
+        i = i + 1
+    if ui.machine_slot_item(m, BENCH_PARTS_SLOT) != null:
+        ui.machine_set_text(m, "lbl_status", "零件槽还有零件, 取回才能切换武器")
+        return
+    st.weapon = split(a.elem, "_")[2]
+    bench_save(m, st)
+    if ui.machine_slot_item(m, BENCH_OUTPUT_SLOT) != null:
+        ui.machine_clear(m, BENCH_OUTPUT_SLOT)
+    bench_apply(m)
+
+func bench_parts_changed(a):
+    bench_refresh(a.machine)
+
+func bench_output_changed(a):
+    var m = a.machine
+    var st = bench_st(m)
+    if st.status == "done":
+        if ui.machine_slot_item(m, BENCH_OUTPUT_SLOT) == null:
+            st.status = "idle"
+            bench_save(m, st)
+            bench_apply(m)
+
+func bench_assemble(a):
+    var m = a.machine
+    var st = bench_st(m)
+    if st.status == "assembling":
+        # 取消: 解锁, 当晚不组装 (部件保留在槽里, 预览随之恢复)
+        st.status = "idle"
+        bench_save(m, st)
+        bench_apply(m)
+        return
+    if st.status == "done":
+        ui.machine_set_text(m, "lbl_status", "先取走成品再组装下一把")
+        return
+    if not bench_parts_complete(m, st):
+        ui.machine_set_text(m, "lbl_status", "缺少" + bench_missing(m, st) + ", 不能开始组装")
+        return
+    st.status = "assembling"
+    st.day = time.day()
+    bench_save(m, st)
+    bench_apply(m)
+
+# ---------- 隔夜完成 ----------
+
+on day_wake():
+    var lst = state.get("bench:list", [])
+    if len(lst) == 0:
+        return
+    var keep = []
+    for uid in lst:
+        var k = "bench:{uid}"
+        if not state.has(k):
+            continue
+        var st = state.get(k)
+        var alive = true
+        if st.status == "assembling" and time.day() > st.day:
+            var m = ui.machine_find_uid(uid)
+            if m == null:
+                alive = false
+            else:
+                bench_finish(m, st)
+        if alive:
+            push(keep, uid)
+    state.set("bench:list", keep)
+
+func bench_finish(m, st):
+    # 消耗全部部件 + 零件×1 (先解锁再销毁, 与 ProgressRecipeService 锁料消耗同次序)
+    var parts = BENCH_RECIPES[st.weapon]
+    var i = 0
+    while i < 5:
+        if parts[i] != null:
+            ui.machine_lock(m, BENCH_SLOTS[i], false)
+            var it = ui.machine_slot_item(m, BENCH_SLOTS[i])
+            if it != null:
+                items.consume(it)
+        i = i + 1
+    ui.machine_lock(m, BENCH_PARTS_SLOT, false)
+    var pit = ui.machine_slot_item(m, BENCH_PARTS_SLOT)
+    if pit != null:
+        items.consume(pit)
+    st.status = "done"
+    bench_save(m, st)
+    bench_apply(m)

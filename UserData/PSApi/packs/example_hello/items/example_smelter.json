@@ -1,0 +1,13 @@
+{
+  "//": "PS-API P2 测试: 示例熔炉机器物品(配合 machines/ + recipes/, 字段规范见 _api_design/items/07+09)",
+  "items": [
+    {
+      "id": "example_hello:example_smelter",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例熔炉",
+      "desc": "PS-API 注册的测试熔炉, 由原版 Furnace 工厂桥接创建。",
+      "value": 400
+    }
+  ]
+}

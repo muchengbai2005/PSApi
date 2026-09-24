@@ -1,0 +1,14 @@
+{
+  "//": "PS-API P2 测试配方：单材料炉格限制。game:前缀 = 原版物品 (v0.3.2 起支持)。v0.6.1 精简: 只保留基线回归配方。",
+  "recipes": [
+    {
+      "id": "example_hello:test_smelt_newspaper",
+      "machine": "example_hello:example_smelter",
+      "output": { "id": "game:newspaper", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2, "display": "废金属" } ],
+      "qualityRule": "none",
+      "customName": "测试熔炼：报纸",
+      "description": "2 废金属→1 报纸 (基线回归)"
+    }
+  ]
+}

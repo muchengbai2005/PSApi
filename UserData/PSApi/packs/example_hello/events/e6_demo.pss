@@ -1,0 +1,70 @@
+# e6_demo.pss — E6 演示: ui.open/close + on_click/on_change 调本包函数 (驱动 e6_panel.psui)
+# U2: set_text/set_progress 动态回写面板
+# U3: 四交互控件 (toggle/slider/dropdown/input) on_change 收 dict {elem, value};
+#     on_window_closed(panel_id) 窗口任何路径关闭时回调 (可选约定)
+
+var e6_opened = false
+var e6_auto = false
+var e6_count = 1
+var e6_item = "game:newspaper"
+var e6_news_count = 0
+var e6_progress = 0.0
+
+# ---- on_change 回调 (ev = {elem=元素id, value=新值}) ----
+
+func e6_auto_changed(ev):
+    e6_auto = ev.value
+    log.info("[e6] 自动赠报: {e6_auto} (elem={ev.elem})")
+
+func e6_count_changed(ev):
+    e6_count = int(ev.value)
+    log.info("[e6] 每次份数: {e6_count} (elem={ev.elem})")
+
+func e6_item_changed(ev):
+    if ev.value == 0:
+        e6_item = "game:newspaper"
+    else:
+        e6_item = "game:scrap_metal"
+    log.info("[e6] 赠品选择: [{ev.value}] {e6_item} (elem={ev.elem})")
+
+func e6_slogan_changed(ev):
+    if len(ev.value) > 0:
+        ui.set_text("title_lbl", ev.value)
+    log.info("[e6] 标语: '{ev.value}' (elem={ev.elem})")
+
+# ---- 按钮回调 ----
+
+# 发当前选中的赠品 x 当前份数 + 进度条 +10% (满 1.0 归零循环) + 标题实时计数
+func e6_give_news():
+    var ok = items.give(e6_item, e6_count)
+    e6_news_count += e6_count
+    e6_progress += 0.1
+    if e6_progress > 1.0:
+        e6_progress = 0.0
+    ui.set_text("title_lbl", "已发赠品 {e6_news_count} 份")
+    var pct = floor(e6_progress * 100)
+    ui.set_progress("progress_bar", e6_progress, "备货 {pct}%")
+    log.info("[e6] 发放: {e6_item} x{e6_count} give={ok} 累计={e6_news_count} 进度={pct}%")
+
+func e6_close_panel():
+    ui.close()
+    log.info("[e6] 面板已关闭 (脚本 ui.close)")
+
+# ---- 窗口关闭回调 (X/Esc/脚本 close 任何路径都触发) ----
+# 关面板 = 停自动赠报, 避免面板已关后 shop_opened 再触发 ui.* 抛"没有打开的面板"
+func on_window_closed(panel_id):
+    e6_opened = false
+    e6_auto = false
+    log.info("[e6] on_window_closed: {panel_id} (自动赠报已停止)")
+
+# ---- 事件 ----
+
+# 首次开店自动开面板 (open 幂等, 重复 open 只置顶); 面板开着且勾了自动赠报则直接发
+on shop_opened():
+    if not e6_opened:
+        ui.open("example_hello:e6_panel")
+        e6_opened = true
+        log.info("[e6] 面板已打开 (ui.open)")
+    if e6_auto:
+        var ok = items.give(e6_item, e6_count)
+        log.info("[e6] 开店自动赠报: {e6_item} x{e6_count} give={ok}")

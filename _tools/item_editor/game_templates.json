@@ -1,0 +1,1454 @@
+[
+ {
+  "id": "advanced_flux_agent",
+  "name": "助熔剂（高级）"
+ },
+ {
+  "id": "alarm_module_transmitter",
+  "name": "警报传输模组"
+ },
+ {
+  "id": "ammo_display",
+  "name": "弹药显示器"
+ },
+ {
+  "id": "animal_cage",
+  "name": "动物笼"
+ },
+ {
+  "id": "aquascan",
+  "name": "水质扫描仪"
+ },
+ {
+  "id": "armor_lining",
+  "name": "棉绒衬层"
+ },
+ {
+  "id": "aug_chip",
+  "name": "Augmentation Chip"
+ },
+ {
+  "id": "aug_id_guide",
+  "name": "改造体鉴别指南"
+ },
+ {
+  "id": "aug_scanner",
+  "name": "改造体扫描仪"
+ },
+ {
+  "id": "back_inv_save_bag",
+  "name": "Back Inv Save Bag"
+ },
+ {
+  "id": "backpack_large",
+  "name": "背包（大）"
+ },
+ {
+  "id": "backpack_large_military",
+  "name": "大型军用背包"
+ },
+ {
+  "id": "backpack_medium",
+  "name": "背包（基础）"
+ },
+ {
+  "id": "backpack_medium_military",
+  "name": "背包（军用）"
+ },
+ {
+  "id": "backpack_small",
+  "name": "背包（小）"
+ },
+ {
+  "id": "bandage_item",
+  "name": "基础绷带"
+ },
+ {
+  "id": "barrel",
+  "name": "可接式加长枪管"
+ },
+ {
+  "id": "beerCase",
+  "name": "一箱红魔啤酒"
+ },
+ {
+  "id": "bipod",
+  "name": "两脚架"
+ },
+ {
+  "id": "birth_control_pill",
+  "name": "避孕药"
+ },
+ {
+  "id": "black_injector",
+  "name": "赛纳普斯注射器"
+ },
+ {
+  "id": "black_lamp",
+  "name": "暗灯"
+ },
+ {
+  "id": "blank_keycard",
+  "name": "一次性钥匙卡（空白）"
+ },
+ {
+  "id": "blank_module",
+  "name": "空白模组"
+ },
+ {
+  "id": "blood_bag",
+  "name": "血袋"
+ },
+ {
+  "id": "bloomberry_seed",
+  "name": "花莓种子"
+ },
+ {
+  "id": "blue_blood_bag",
+  "name": "一袋“蓝血”"
+ },
+ {
+  "id": "bottle_hot_sauce",
+  "name": "辣酱"
+ },
+ {
+  "id": "bottle_printer",
+  "name": "水瓶打印机"
+ },
+ {
+  "id": "bottled_water",
+  "name": "瓶装水（标准）"
+ },
+ {
+  "id": "bottled_water_premium",
+  "name": "瓶装泉水"
+ },
+ {
+  "id": "box_cutter",
+  "name": "美工刀"
+ },
+ {
+  "id": "box_dispenser",
+  "name": "Box Dispenser"
+ },
+ {
+  "id": "box_tampon",
+  "name": "一盒帕克斯卫生棉条"
+ },
+ {
+  "id": "business_permit",
+  "name": "营业许可证"
+ },
+ {
+  "id": "c4",
+  "name": "塑性炸药"
+ },
+ {
+  "id": "c4_set",
+  "name": "塑性炸药（已激活）"
+ },
+ {
+  "id": "caffeine_pill",
+  "name": "咖啡因药片"
+ },
+ {
+  "id": "canister_mbs",
+  "name": "MBS神经毒气"
+ },
+ {
+  "id": "card_brewer",
+  "name": "名片（红魔鬼酿酒厂）"
+ },
+ {
+  "id": "card_chem",
+  "name": "名片（化学家）"
+ },
+ {
+  "id": "card_mining",
+  "name": "名片（GP采矿合作社）"
+ },
+ {
+  "id": "card_pharma",
+  "name": "名片（药商）"
+ },
+ {
+  "id": "card_rev",
+  "name": "名片（绿）"
+ },
+ {
+  "id": "cassette1",
+  "name": "音乐磁带 - 毅力 （完好）"
+ },
+ {
+  "id": "cassette1d",
+  "name": "音乐磁带 - 毅力 （损坏）"
+ },
+ {
+  "id": "cassette1l",
+  "name": "音乐磁带 - 毅力 （受损）"
+ },
+ {
+  "id": "cassette2",
+  "name": "音乐磁带 - 数据领域 （完好）"
+ },
+ {
+  "id": "cassette2d",
+  "name": "音乐磁带 - 数据领域 （损坏）"
+ },
+ {
+  "id": "cassette2l",
+  "name": "音乐磁带 - 数据领域 （受损）"
+ },
+ {
+  "id": "cassette3",
+  "name": "音乐磁带 - 高风险 （完好）"
+ },
+ {
+  "id": "cassette3d",
+  "name": "音乐磁带 - 高风险 （损坏）"
+ },
+ {
+  "id": "cassette3l",
+  "name": "音乐磁带 - 高风险 （受损）"
+ },
+ {
+  "id": "cassette4",
+  "name": "音乐磁带 - 星尘 （完好）"
+ },
+ {
+  "id": "cassette4d",
+  "name": "音乐磁带 - 星尘 （损坏）"
+ },
+ {
+  "id": "cassette4l",
+  "name": "音乐磁带 - 星尘 （受损）"
+ },
+ {
+  "id": "cassette5",
+  "name": "音乐磁带 - 余晖 （完好）"
+ },
+ {
+  "id": "cassette5d",
+  "name": "音乐磁带 - 余晖 （损坏）"
+ },
+ {
+  "id": "cassette5l",
+  "name": "音乐磁带 - 余晖 （受损）"
+ },
+ {
+  "id": "cassette6",
+  "name": "音乐磁带 - 太空飞行 （完好）"
+ },
+ {
+  "id": "cassette6d",
+  "name": "音乐磁带 - 太空飞行 （损坏）"
+ },
+ {
+  "id": "cassette6l",
+  "name": "音乐磁带 - 太空飞行 （受损）"
+ },
+ {
+  "id": "cassette7",
+  "name": "音乐磁带 - 暗物质 （完好）"
+ },
+ {
+  "id": "cassette7d",
+  "name": "音乐磁带 - 暗物质 （损坏）"
+ },
+ {
+  "id": "cassette7l",
+  "name": "音乐磁带 - 暗物质 （受损）"
+ },
+ {
+  "id": "cassette_player",
+  "name": "磁带播放器"
+ },
+ {
+  "id": "cat_bar",
+  "name": "猫咪巧克力棒"
+ },
+ {
+  "id": "cert1",
+  "name": "鉴定委员会初级证书"
+ },
+ {
+  "id": "chem_module",
+  "name": "化学设备模块"
+ },
+ {
+  "id": "cigarette_color",
+  "name": "海明威色卡"
+ },
+ {
+  "id": "cigarette_guide",
+  "name": "海明威鉴定指南"
+ },
+ {
+  "id": "cmd_keycard",
+  "name": "一次性钥匙卡（指挥）"
+ },
+ {
+  "id": "coffee_bean",
+  "name": "咖啡豆"
+ },
+ {
+  "id": "combat_knife",
+  "name": "战斗匕首"
+ },
+ {
+  "id": "combat_machete",
+  "name": "战斗砍刀"
+ },
+ {
+  "id": "common_chemical",
+  "name": "化学用品（普通）"
+ },
+ {
+  "id": "common_electronic",
+  "name": "电子元件（普通）"
+ },
+ {
+  "id": "common_medical",
+  "name": "医疗用品（普通）"
+ },
+ {
+  "id": "common_ore",
+  "name": "金属矿石"
+ },
+ {
+  "id": "compensator",
+  "name": "枪口补偿器"
+ },
+ {
+  "id": "crowbar",
+  "name": "撬棍"
+ },
+ {
+  "id": "crypto_module_cmd",
+  "name": "密码解序器芯片（指挥）"
+ },
+ {
+  "id": "crypto_module_eng",
+  "name": "密码解序器芯片（工程）"
+ },
+ {
+  "id": "crypto_module_med",
+  "name": "密码解序器芯片（医疗）"
+ },
+ {
+  "id": "crypto_module_sec",
+  "name": "密码解序器芯片（治安）"
+ },
+ {
+  "id": "crypto_module_ser",
+  "name": "密码解序器芯片（服务）"
+ },
+ {
+  "id": "crypto_module_sup",
+  "name": "密码解序器芯片（补给）"
+ },
+ {
+  "id": "cup_noodle",
+  "name": "速食拉面"
+ },
+ {
+  "id": "deed",
+  "name": "产权契据"
+ },
+ {
+  "id": "desequencer",
+  "name": "密码解序器"
+ },
+ {
+  "id": "dossier",
+  "name": "档案箱"
+ },
+ {
+  "id": "drain",
+  "name": "排水口"
+ },
+ {
+  "id": "dream_cap",
+  "name": "梦幻菌盖"
+ },
+ {
+  "id": "dream_cap_seed",
+  "name": "梦幻菌盖孢子"
+ },
+ {
+  "id": "dream_dust",
+  "name": "一小瓶“梦尘”"
+ },
+ {
+  "id": "empty_beer_bottle",
+  "name": "空啤酒瓶"
+ },
+ {
+  "id": "energy_credit",
+  "name": "能量电池"
+ },
+ {
+  "id": "energy_credit_breeder",
+  "name": "自充电能量电池"
+ },
+ {
+  "id": "energy_credit_ext",
+  "name": "能量电池（2型）"
+ },
+ {
+  "id": "energy_drink",
+  "name": "能量饮料"
+ },
+ {
+  "id": "eng_box",
+  "name": "工程铸造厂物资箱"
+ },
+ {
+  "id": "eng_keycard",
+  "name": "一次性钥匙卡（工程）"
+ },
+ {
+  "id": "evidence_box",
+  "name": "治安部物证柜"
+ },
+ {
+  "id": "exchange_directive",
+  "name": "地下交易所清单"
+ },
+ {
+  "id": "expedition_box",
+  "name": "远征补给箱"
+ },
+ {
+  "id": "expedition_log",
+  "name": "远征日志"
+ },
+ {
+  "id": "fanny_pack",
+  "name": "腰包"
+ },
+ {
+  "id": "fanta_pill",
+  "name": "芬太片"
+ },
+ {
+  "id": "fat_meat",
+  "name": "动物脂肪"
+ },
+ {
+  "id": "faucet",
+  "name": "水龙头"
+ },
+ {
+  "id": "feces_large",
+  "name": "动物粪便（大）"
+ },
+ {
+  "id": "feces_medium",
+  "name": "动物粪便"
+ },
+ {
+  "id": "feces_small",
+  "name": "动物粪便（小）"
+ },
+ {
+  "id": "fillerweed",
+  "name": "填充草"
+ },
+ {
+  "id": "fillerweed_seed",
+  "name": "填料草种子"
+ },
+ {
+  "id": "flashbang_grenade",
+  "name": "闪光弹"
+ },
+ {
+  "id": "flashlight",
+  "name": "手电筒"
+ },
+ {
+  "id": "flux_agent",
+  "name": "助熔剂（基础）"
+ },
+ {
+  "id": "food_stamp",
+  "name": "食品券"
+ },
+ {
+  "id": "fuel_guide",
+  "name": "等离子燃料匣鉴定指南"
+ },
+ {
+  "id": "furnace",
+  "name": "熔炉"
+ },
+ {
+  "id": "furnace_module_blast",
+  "name": "熔炉模组（高炉）"
+ },
+ {
+  "id": "furnace_module_junk",
+  "name": "熔炉模组（垃圾处理）"
+ },
+ {
+  "id": "galaxy_blend",
+  "name": "繁星果糊"
+ },
+ {
+  "id": "gene_scanner",
+  "name": "基因扫描仪"
+ },
+ {
+  "id": "gl",
+  "name": "下挂式25毫米榴弹发射器"
+ },
+ {
+  "id": "glass_shard",
+  "name": "碎玻璃"
+ },
+ {
+  "id": "glass_shard_shiv",
+  "name": "玻璃刀"
+ },
+ {
+  "id": "glock_receiver",
+  "name": "哨兵3型。"
+ },
+ {
+  "id": "grip",
+  "name": "前握把"
+ },
+ {
+  "id": "grip_gel",
+  "name": "触觉记忆握把凝胶"
+ },
+ {
+  "id": "gun_part",
+  "name": "枪械零件"
+ },
+ {
+  "id": "hand",
+  "name": "仿生机械手"
+ },
+ {
+  "id": "hand_guide",
+  "name": "仿生机械手鉴定指南"
+ },
+ {
+  "id": "handmade_pistol",
+  "name": "“巢火”紧凑型手枪"
+ },
+ {
+  "id": "handnote",
+  "name": "手写便签"
+ },
+ {
+  "id": "hatchet",
+  "name": "短柄斧"
+ },
+ {
+  "id": "heavy_handmade_pistol",
+  "name": "“铁铸10”重型手枪"
+ },
+ {
+  "id": "heavy_pistol_ammo",
+  "name": "10毫米弹药"
+ },
+ {
+  "id": "heavy_pistol_ammo_nl",
+  "name": "10毫米弹药（非致命）"
+ },
+ {
+  "id": "heavy_pistol_ammo_p",
+  "name": "10毫米弹药（穿甲弹）"
+ },
+ {
+  "id": "hemostatic_bandage_item",
+  "name": "止血绷带"
+ },
+ {
+  "id": "hidden_save_bag",
+  "name": "Hidden Save Bag"
+ },
+ {
+  "id": "hydroreed_seed",
+  "name": "水芦种子"
+ },
+ {
+  "id": "ingot_book",
+  "name": "冶金手册"
+ },
+ {
+  "id": "injector_guide",
+  "name": "免疫宁检测指南"
+ },
+ {
+  "id": "intel_sec",
+  "name": "治安部档案"
+ },
+ {
+  "id": "internal_springs",
+  "name": "高耐久内部弹簧"
+ },
+ {
+  "id": "joe_card",
+  "name": "名片（乔·王尔德）"
+ },
+ {
+  "id": "junk",
+  "name": "垃圾"
+ },
+ {
+  "id": "kitchen_cleaver",
+  "name": "切肉刀"
+ },
+ {
+  "id": "kitchen_knife",
+  "name": "厨刀"
+ },
+ {
+  "id": "kotton_fabric",
+  "name": "韧棉织物"
+ },
+ {
+  "id": "kotton_fiber",
+  "name": "棉绒纤维"
+ },
+ {
+  "id": "kotton_seed",
+  "name": "韧棉种子"
+ },
+ {
+  "id": "labeler",
+  "name": "标签打印机"
+ },
+ {
+  "id": "labeler_blue",
+  "name": "蓝色标签打印机"
+ },
+ {
+  "id": "large_bottled_water",
+  "name": "瓶装水（大）"
+ },
+ {
+  "id": "large_purple_injector",
+  "name": "免疫宁注射器"
+ },
+ {
+  "id": "laser",
+  "name": "激光瞄具"
+ },
+ {
+  "id": "laser2",
+  "name": "目标捕获装置"
+ },
+ {
+  "id": "laser_toy",
+  "name": "玩具激光笔"
+ },
+ {
+  "id": "li_eat_snackbar",
+  "name": "轻食能量棒"
+ },
+ {
+  "id": "livestock_feed_dispenser",
+  "name": "牲畜饲料分配器"
+ },
+ {
+  "id": "logo_checker",
+  "name": "共和国标志校验卡"
+ },
+ {
+  "id": "machine_bay",
+  "name": "机器区"
+ },
+ {
+  "id": "machine_bay_ext",
+  "name": "机器区（扩建）"
+ },
+ {
+  "id": "mag_10mm",
+  "name": "10毫米弹匣"
+ },
+ {
+  "id": "mag_10mm_ext",
+  "name": "10毫米加长弹匣"
+ },
+ {
+  "id": "mag_10mm_high",
+  "name": "10毫米大容量弹匣"
+ },
+ {
+  "id": "mag_10mm_smg",
+  "name": "10毫米冲锋枪弹匣"
+ },
+ {
+  "id": "mag_10mm_smg_box",
+  "name": "10毫米冲锋枪弹鼓"
+ },
+ {
+  "id": "mag_10mm_smg_high",
+  "name": "10毫米冲锋枪大容量弹匣"
+ },
+ {
+  "id": "mag_22",
+  "name": ".22弹匣"
+ },
+ {
+  "id": "mag_22_ext",
+  "name": ".22加长弹匣"
+ },
+ {
+  "id": "mag_22_high",
+  "name": ".22大容量弹匣"
+ },
+ {
+  "id": "magnifier",
+  "name": "放大镜"
+ },
+ {
+  "id": "makeshift_storage_bay",
+  "name": "简易储物舱"
+ },
+ {
+  "id": "match_barrel",
+  "name": "比赛级枪管"
+ },
+ {
+  "id": "meal_cap",
+  "name": "食用菌盖"
+ },
+ {
+  "id": "meat_scrap",
+  "name": "动物下水"
+ },
+ {
+  "id": "med_bottle_blue",
+  "name": "一瓶碱性溶液"
+ },
+ {
+  "id": "med_bottle_orange",
+  "name": "一瓶还原剂"
+ },
+ {
+  "id": "med_bottle_red",
+  "name": "一瓶酸性溶液"
+ },
+ {
+  "id": "med_bottle_small_pink",
+  "name": "一瓶脂键剂"
+ },
+ {
+  "id": "med_bottle_violet",
+  "name": "一瓶N-羟甲基碱"
+ },
+ {
+  "id": "med_box",
+  "name": "医疗舱物资箱"
+ },
+ {
+  "id": "med_keycard",
+  "name": "一次性钥匙卡（医疗）"
+ },
+ {
+  "id": "mentor_contract",
+  "name": "租赁协议"
+ },
+ {
+  "id": "metal_ingot",
+  "name": "金属锭"
+ },
+ {
+  "id": "metal_scanner",
+  "name": "拾荒扫描仪"
+ },
+ {
+  "id": "mini_bottle",
+  "name": "瓶装水（微型）"
+ },
+ {
+  "id": "mirage_projector",
+  "name": "幻影投影仪"
+ },
+ {
+  "id": "module_bay_expansion_kit",
+  "name": "模组舱扩建套件"
+ },
+ {
+  "id": "module_extractor",
+  "name": "模组提取器（基础）"
+ },
+ {
+  "id": "module_extractor_advanced",
+  "name": "模组提取器（高级）"
+ },
+ {
+  "id": "moisture_farm",
+  "name": "水分收集器"
+ },
+ {
+  "id": "morsel",
+  "name": "Morsel"
+ },
+ {
+  "id": "mouse_trap",
+  "name": "捕鼠夹"
+ },
+ {
+  "id": "mymod_auto_distiller",
+  "name": "自动蒸馏机"
+ },
+ {
+  "id": "mymod_module_overdrive",
+  "name": "超载模块"
+ },
+ {
+  "id": "mymod_multi_scanner",
+  "name": "多频扫描仪"
+ },
+ {
+  "id": "mymod_protein_bar",
+  "name": "合成蛋白棒"
+ },
+ {
+  "id": "mymod_scrap_smg",
+  "name": "废土冲锋枪"
+ },
+ {
+  "id": "neuroactive_perfume",
+  "name": "“同步”神经活性香水"
+ },
+ {
+  "id": "newspaper",
+  "name": "报纸"
+ },
+ {
+  "id": "nightmare_cap",
+  "name": "噩梦菌盖"
+ },
+ {
+  "id": "nightmare_dust",
+  "name": "一小瓶“梦魇尘”"
+ },
+ {
+  "id": "node_medium",
+  "name": "节点（中）"
+ },
+ {
+  "id": "node_small",
+  "name": "节点（小）"
+ },
+ {
+  "id": "nuclear_waste",
+  "name": "放射性废料"
+ },
+ {
+  "id": "nudka",
+  "name": "努特加"
+ },
+ {
+  "id": "nutrient_tablet",
+  "name": "水培营养片"
+ },
+ {
+  "id": "nutrient_tablet_container",
+  "name": "水培营养片药瓶"
+ },
+ {
+  "id": "nutrifruit",
+  "name": "营养果"
+ },
+ {
+  "id": "nutrifruit_seed",
+  "name": "营养果种子"
+ },
+ {
+  "id": "nutrifruit_seed_packet",
+  "name": "一包营养果种子"
+ },
+ {
+  "id": "nuts_metal",
+  "name": "金属螺丝"
+ },
+ {
+  "id": "pack_condom",
+  "name": "一盒瑞克斯避孕套"
+ },
+ {
+  "id": "packet_red_cigarette",
+  "name": "一包海明威香烟"
+ },
+ {
+  "id": "paper_towel",
+  "name": "一卷纸巾"
+ },
+ {
+  "id": "phagimycin_pill",
+  "name": "噬菌霉素药片"
+ },
+ {
+  "id": "pheromone_perfume",
+  "name": "“本源”费洛蒙香水"
+ },
+ {
+  "id": "pink_alt_injector",
+  "name": "奥克莫吸注射器"
+ },
+ {
+  "id": "pink_injector",
+  "name": "奥克西莫注射器"
+ },
+ {
+  "id": "pipe_weapon",
+  "name": "铅管"
+ },
+ {
+  "id": "pistol_switch",
+  "name": "手枪全自动阻铁"
+ },
+ {
+  "id": "plasma_fuel",
+  "name": "等离子燃料匣"
+ },
+ {
+  "id": "plastic_bag",
+  "name": "bag"
+ },
+ {
+  "id": "portable_water_purifier",
+  "name": "海德拉科技微型净水器"
+ },
+ {
+  "id": "postit",
+  "name": "便利贴"
+ },
+ {
+  "id": "powerblock",
+  "name": "能量阵列"
+ },
+ {
+  "id": "printed_gun",
+  "name": "“解放者”3D打印手枪"
+ },
+ {
+  "id": "printer_plastic",
+  "name": "3D打印耗材"
+ },
+ {
+  "id": "processed_cheese",
+  "name": "合成奶酪"
+ },
+ {
+  "id": "processed_juice",
+  "name": "代糖果汁"
+ },
+ {
+  "id": "processed_meat",
+  "name": "“泥炭”合成肉"
+ },
+ {
+  "id": "processed_milk",
+  "name": "碳酸代乳"
+ },
+ {
+  "id": "procurement_slip",
+  "name": "采购单"
+ },
+ {
+  "id": "pure_white_injector",
+  "name": "纳洛通注射器"
+ },
+ {
+  "id": "rare_electronic",
+  "name": "电子元件（稀有）"
+ },
+ {
+  "id": "rare_ore",
+  "name": "稀有金属矿石"
+ },
+ {
+  "id": "rat",
+  "name": "老鼠"
+ },
+ {
+  "id": "raw_meat",
+  "name": "生肉（标准）"
+ },
+ {
+  "id": "rds",
+  "name": "红点瞄具"
+ },
+ {
+  "id": "rds_makeshift",
+  "name": "简易红点瞄具"
+ },
+ {
+  "id": "recharger",
+  "name": "充能器"
+ },
+ {
+  "id": "red_beer",
+  "name": "红魔鬼啤酒"
+ },
+ {
+  "id": "restricted_chemical",
+  "name": "化学用品（管制）"
+ },
+ {
+  "id": "restricted_medical",
+  "name": "医疗用品（管制）"
+ },
+ {
+  "id": "rev_codeword",
+  "name": "暗号清单"
+ },
+ {
+  "id": "revolver",
+  "name": "兰斯韦尔左轮手枪"
+ },
+ {
+  "id": "ribwich",
+  "name": "包装肋排三明治"
+ },
+ {
+  "id": "ribwich_guide",
+  "name": "肋排堡鉴定指南"
+ },
+ {
+  "id": "rubbing_alcohol",
+  "name": "医用酒精"
+ },
+ {
+  "id": "salve",
+  "name": "南丁格尔软膏"
+ },
+ {
+  "id": "satchel",
+  "name": "挎包（小）"
+ },
+ {
+  "id": "save_bag",
+  "name": "Save Bag"
+ },
+ {
+  "id": "scav_token",
+  "name": "拾荒者信物"
+ },
+ {
+  "id": "sci_keycard",
+  "name": "一次性钥匙卡（研发）"
+ },
+ {
+  "id": "scrap_metal",
+  "name": "废金属"
+ },
+ {
+  "id": "scratcher",
+  "name": "刮刮乐彩票"
+ },
+ {
+  "id": "scratcher_stack",
+  "name": "一叠刮刮乐彩票（5张）"
+ },
+ {
+  "id": "screwdriver",
+  "name": "螺丝刀"
+ },
+ {
+  "id": "sec_box",
+  "name": "治安部物资箱"
+ },
+ {
+  "id": "sec_keycard",
+  "name": "一次性钥匙卡（治安）"
+ },
+ {
+  "id": "sec_slip",
+  "name": "事件回执单"
+ },
+ {
+  "id": "security_alarm",
+  "name": "警报系统"
+ },
+ {
+  "id": "ser_keycard",
+  "name": "一次性钥匙卡（服务）"
+ },
+ {
+  "id": "serum_green",
+  "name": "牲畜免疫血清"
+ },
+ {
+  "id": "serum_red",
+  "name": "牲畜类固醇血清"
+ },
+ {
+  "id": "service_box",
+  "name": "后勤服务部物资箱"
+ },
+ {
+  "id": "shampoo",
+  "name": "一瓶四合一洗涤剂"
+ },
+ {
+  "id": "short_stock",
+  "name": "圆盾短枪托"
+ },
+ {
+  "id": "shotgun",
+  "name": "“壁垒”双动式霰弹枪"
+ },
+ {
+  "id": "showcase_save_bag",
+  "name": "Hidden Save Bag"
+ },
+ {
+  "id": "sign_food",
+  "name": "食品霓虹灯牌"
+ },
+ {
+  "id": "sign_household",
+  "name": "日用品霓虹灯牌"
+ },
+ {
+  "id": "sign_material",
+  "name": "材料霓虹灯牌"
+ },
+ {
+  "id": "sign_medical",
+  "name": "医疗霓虹灯牌"
+ },
+ {
+  "id": "sign_water",
+  "name": "水霓虹灯牌"
+ },
+ {
+  "id": "silencer",
+  "name": "消音器"
+ },
+ {
+  "id": "silencer2",
+  "name": "夜枭消音器"
+ },
+ {
+  "id": "silencer_makeshift",
+  "name": "简易消音器"
+ },
+ {
+  "id": "skincare_cream",
+  "name": "“永恒”焕活精华"
+ },
+ {
+  "id": "skinning_knife",
+  "name": "剥皮刀"
+ },
+ {
+  "id": "slip",
+  "name": "单据"
+ },
+ {
+  "id": "small_bottled_water",
+  "name": "瓶装水（小）"
+ },
+ {
+  "id": "small_morsel",
+  "name": "Small Morsel"
+ },
+ {
+  "id": "small_pistol_ammo",
+  "name": ".22 SR弹药"
+ },
+ {
+  "id": "small_pistol_ammo_nl",
+  "name": ".22 SR弹药（非致命）"
+ },
+ {
+  "id": "small_pistol_ammo_p",
+  "name": ".22 SR弹药（穿甲）"
+ },
+ {
+  "id": "small_raw_meat",
+  "name": "生肉（小）"
+ },
+ {
+  "id": "smelling_salt",
+  "name": "嗅盐"
+ },
+ {
+  "id": "smg",
+  "name": "“维和者”重型冲锋枪"
+ },
+ {
+  "id": "smoke_grenade",
+  "name": "烟雾弹"
+ },
+ {
+  "id": "smuggler_bay",
+  "name": "走私者暗格"
+ },
+ {
+  "id": "smuggler_bay_mini",
+  "name": "迷你走私舱"
+ },
+ {
+  "id": "smuggler_bay_mod",
+  "name": "走私者暗格（改进）"
+ },
+ {
+  "id": "soda_red",
+  "name": "汽水"
+ },
+ {
+  "id": "sold_save_bag",
+  "name": "Hidden Save Bag"
+ },
+ {
+  "id": "stamp_guide",
+  "name": "食品券鉴定手册"
+ },
+ {
+  "id": "stock",
+  "name": "守护者枪托"
+ },
+ {
+  "id": "storage_bay",
+  "name": "储藏区"
+ },
+ {
+  "id": "storage_bay_chem",
+  "name": "化学家储物舱"
+ },
+ {
+  "id": "storage_bay_gun",
+  "name": "枪匠储物舱"
+ },
+ {
+  "id": "storage_bay_large",
+  "name": "储藏区（扩建）"
+ },
+ {
+  "id": "stun_baton",
+  "name": "眩晕警棍"
+ },
+ {
+  "id": "stun_gun",
+  "name": "“脉冲卫士”电击枪"
+ },
+ {
+  "id": "sup_keycard",
+  "name": "一次性钥匙卡（补给）"
+ },
+ {
+  "id": "surgery_tool",
+  "name": "外科手术工具套装"
+ },
+ {
+  "id": "system_capped_neural_core",
+  "name": "神经核心模组（受限）"
+ },
+ {
+  "id": "system_module_corrupt",
+  "name": "损坏模组"
+ },
+ {
+  "id": "system_module_eco",
+  "name": "环保模组"
+ },
+ {
+  "id": "system_module_efficiancy",
+  "name": "效率模组"
+ },
+ {
+  "id": "system_module_fineness",
+  "name": "精炼模组"
+ },
+ {
+  "id": "system_module_overclock",
+  "name": "超频模组"
+ },
+ {
+  "id": "system_module_performance",
+  "name": "性能模组"
+ },
+ {
+  "id": "system_module_quality",
+  "name": "质量模组"
+ },
+ {
+  "id": "system_module_ruined",
+  "name": "报废模组"
+ },
+ {
+  "id": "system_module_streamlining",
+  "name": "优化模组"
+ },
+ {
+  "id": "system_uncapped_neural_core",
+  "name": "神经核心模组（无限制）"
+ },
+ {
+  "id": "tazer",
+  "name": "电击枪"
+ },
+ {
+  "id": "test_gizmo",
+  "name": "Test Gizmo"
+ },
+ {
+  "id": "toilet_paper",
+  "name": "一卷厕纸"
+ },
+ {
+  "id": "toolbox",
+  "name": "工具箱"
+ },
+ {
+  "id": "toothpaste",
+  "name": "一支牙膏"
+ },
+ {
+  "id": "topical_bandage_item",
+  "name": "外用药膏绷带"
+ },
+ {
+  "id": "trashcan",
+  "name": "垃圾桶"
+ },
+ {
+  "id": "trigger_group",
+  "name": "调校扳机组件"
+ },
+ {
+  "id": "turbo_booster",
+  "name": "一次性涡轮增压器"
+ },
+ {
+  "id": "turbo_booster_adv",
+  "name": "高级涡轮增压器"
+ },
+ {
+  "id": "tutorial_book",
+  "name": "导师手册"
+ },
+ {
+  "id": "tutorial_page",
+  "name": "Title"
+ },
+ {
+  "id": "unlicensed_phagimycin_pill",
+  "name": "无证噬菌霉素药片"
+ },
+ {
+  "id": "uv_filter",
+  "name": "紫外线灯"
+ },
+ {
+  "id": "vacuum_robot",
+  "name": "清洁机器人"
+ },
+ {
+  "id": "wanted_paper",
+  "name": "治安部通缉名单"
+ },
+ {
+  "id": "water_filter",
+  "name": "滤水器"
+ },
+ {
+  "id": "water_filter_adv",
+  "name": "高级滤水器"
+ },
+ {
+  "id": "water_guide",
+  "name": "水资源交易手册"
+ },
+ {
+  "id": "water_jug",
+  "name": "桶装水"
+ },
+ {
+  "id": "water_pitcher",
+  "name": "Water Pitcher"
+ },
+ {
+  "id": "water_purifier",
+  "name": "净水器"
+ },
+ {
+  "id": "water_ration",
+  "name": "密封水配给包（标准）"
+ },
+ {
+  "id": "water_ration_small",
+  "name": "密封水配给包（小）"
+ },
+ {
+  "id": "water_tablet",
+  "name": "净水药片"
+ },
+ {
+  "id": "water_tablet_container",
+  "name": "一瓶净水药片"
+ },
+ {
+  "id": "water_test_container",
+  "name": "水质检测试剂盒"
+ },
+ {
+  "id": "water_test_strip",
+  "name": "水质检测试纸"
+ },
+ {
+  "id": "welder",
+  "name": "等离子切割机"
+ },
+ {
+  "id": "wine_berry",
+  "name": "荧光莓"
+ },
+ {
+  "id": "wine_book",
+  "name": "荧光莓果酿发酵指南"
+ },
+ {
+  "id": "wine_bottle",
+  "name": "酒瓶"
+ },
+ {
+  "id": "wine_rack",
+  "name": "催陈器"
+ },
+ {
+  "id": "wine_superyeast",
+  "name": "超级酵母"
+ },
+ {
+  "id": "wine_yeast",
+  "name": "酵母"
+ },
+ {
+  "id": "wine_yeast_infinite",
+  "name": "酵母生物反应器"
+ },
+ {
+  "id": "wine_yeast_red",
+  "name": "合成酵母"
+ },
+ {
+  "id": "wire",
+  "name": "线缆"
+ },
+ {
+  "id": "wire_cutter",
+  "name": "剪线钳"
+ },
+ {
+  "id": "zerochew",
+  "name": "一板零嚼"
+ },
+ {
+  "id": "zyanide_pill",
+  "name": "氰化物药片"
+ }
+]

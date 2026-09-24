@@ -1,0 +1,15 @@
+{
+  "//": "部件打印机 + 物品分析仪机器声明 (gunworks v0.6.0): ui=psui → 窗口由 PSApi.Events 装配; 槽内物品随机器子物品序列化进存档。",
+  "machines": [
+    {
+      "id": "gunworks:part_printer",
+      "ui": "psui",
+      "panel": "part_printer"
+    },
+    {
+      "id": "gunworks:item_analyzer",
+      "ui": "psui",
+      "panel": "item_analyzer"
+    }
+  ]
+}

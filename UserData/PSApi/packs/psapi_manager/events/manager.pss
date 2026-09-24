@@ -1,0 +1,287 @@
+# manager.pss — PSApi 管理面板逻辑 (M3: NpcManager ManagerWindow.cs 的 PSUI 复刻)
+# 骨架 = ui/manager.psui; 本脚本 = on_build 动态填充 + 交互回调 + tick 1Hz 签名式刷新。
+# 与 NpcManager 的形态偏差(设计定案):
+#   · "注入清单" = 脚本 inject.* 注册的运行时查看 + 开关/数量覆盖(inject.tune), 不写回包文件
+#   · "标记注入" → "补单"(inject.force_client 立即对该客户注入买池+货架)
+#   · 浏览器"测试"分类 = 第 29 类 (Items v0.8.0): 包物品在 items/*.json 标 "test": true 即归入,
+#     该分类只含标记物品 (gunworks 组装台 16 件演示)
+
+var g_cat = -1            # 当前分类 (-1=全部, 0..29=分类下标)
+var g_search = ""         # 搜索框草稿(输入即存)
+var g_applied = ""        # 已应用搜索词(点搜索按钮才过滤)
+var g_page = 0
+var g_show_queue = false
+var g_queue_sig = ""
+var PAGE_SIZE = 14
+
+var CATS = ["杂项", "工具", "药品", "食物", "酒类", "水培", "畜牧", "材料", "枪械", "枪械配件",
+    "近战武器", "爆炸物", "护甲", "容器", "家具", "模块", "Mod物品", "站台机械", "废弃机械", "钥匙",
+    "器官", "便利设施", "建造", "装备", "飞船", "飞船系统", "技师背包", "玩家能力", "未使用", "测试"]
+
+func cat_label(i):
+    if i >= 0 and i < len(CATS):
+        return CATS[i]
+    return "?"
+
+# ============ on_build: 动态区填充(构建期, Show 前) ============
+
+func build_panel():
+    refresh_texts()
+    fill_browser()
+    fill_inject()
+    fill_client()
+    fill_queue()
+
+func refresh_texts():
+    var st = shop.status()
+    if not st.in_game:
+        ui.set_text("status_lbl", "状态: 不在对局中(进入对局后生效)")
+        ui.set_text("attract_lbl", "")
+        return
+    var cur = "无"
+    if len(st.current_name) > 0:
+        cur = "{st.current_name} [{st.current_intent}]"
+    ui.set_text("status_lbl", "距交租: {st.day_until_rent} 天 | 今日待客队列: {st.queue} 位 | 当前客户: {cur}")
+    var at = shop.attract()
+    if at == null:
+        ui.set_text("attract_lbl", "")
+        return
+    var tier = "0档"
+    if at.t3 >= 0 and at.value >= at.t3:
+        tier = "3档(≥{at.t3})"
+    elif at.t2 >= 0 and at.value >= at.t2:
+        tier = "2档(≥{at.t2})"
+    elif at.t1 >= 0 and at.value >= at.t1:
+        tier = "1档(≥{at.t1})"
+    elif at.t1 >= 0:
+        tier = "0档(<{at.t1})"
+    ui.set_text("attract_lbl", "商店吸引力: {at.value} → 常客档位: {tier} | 随机客户生成率: {at.spawn_chance} | 今日已接待常客: {at.normal_count}")
+    ui.set_pref_size("attract_lbl", -1, 38)
+
+func fill_browser():
+    var r = items.browse(g_cat, g_applied, g_page, PAGE_SIZE)
+    g_page = r.page
+    ui.build_begin("browse_list")
+    if r.total == 0:
+        ui.build_label("(无匹配物品) 换个分类或搜索词试试")
+    else:
+        for it in r.items:
+            var val = ""
+            if it.value > 0:
+                val = " ¥{it.value}"
+            ui.build_row()
+            ui.build_label("{it.name} [{cat_label(it.cat)}]{val} · {it.id}")
+            ui.build_button("拿取", "on_take", {arg = it.id, tooltip = "发 1 件到背包(后仓)"})
+            ui.build_end()
+    ui.build_end()
+    ui.set_text("page_info", "  第 {r.page + 1}/{r.pages} 页 · {r.total} 项  ")
+
+func fill_inject():
+    var entries = inject.list()
+    ui.set_text("inject_head", "—— 注入注册 ({len(entries)}) —— [－][＋]调数量 [启用/禁用]开关(仅本次会话)")
+    ui.build_begin("inject_list")
+    if len(entries) == 0:
+        ui.build_label("(无注册) 内容包可用 inject.buy_list / sell_shelf / doctor / barter 注册")
+    else:
+        for e in entries:
+            ui.build_row()
+            var mark = "√"
+            if not e.enabled:
+                mark = "×"
+            var desc = "{mark}[{e.channel}] {e.id}"
+            if e.count > 0:
+                desc = desc + " ×{e.count}"
+            if e.chance > 0 and e.chance < 100:
+                desc = desc + " {e.chance}%"
+            if len(e.pack) > 0:
+                desc = desc + " ({e.pack})"
+            ui.build_label(desc)
+            if not e.dynamic and e.count > 0:
+                ui.build_button("－", "on_tune_dec", {arg = e.idx})
+                ui.build_button("＋", "on_tune_inc", {arg = e.idx})
+                ui.build_button("拿取", "on_take_n", {arg = {id = e.id, count = e.count}, tooltip = "按该数量发到背包(后仓)"})
+            if e.enabled:
+                ui.build_button("禁用", "on_tune_off", {arg = e.idx})
+            else:
+                ui.build_button("启用", "on_tune_on", {arg = e.idx})
+            ui.build_end()
+    ui.build_end()
+
+func fill_client():
+    var c = shop.current_client()
+    var lines = []
+    if c == null:
+        push(lines, "—— 当前客户: 无 ——")
+    else:
+        push(lines, "—— 当前客户: {c.name} [{c.intent}] ——")
+        var budget = "无预算限制"
+        if c.has_budget:
+            budget = "预算:{c.budget}"
+        push(lines, "现金: {c.cash} | {budget} | 阵营: {c.faction}")
+        var buy = "(无)"
+        if len(c.buying) > 0:
+            buy = join(c.buying, ", ")
+        push(lines, "愿意收购: {buy}")
+        if len(c.tags) > 0:
+            push(lines, "按标签收购: " + join(c.tags, ", "))
+        var carried = "(无)"
+        if len(c.carried) > 0:
+            carried = join(c.carried, ", ")
+        push(lines, "携带货物: {carried}")
+        var front = "(空)"
+        if c.front_total > 0:
+            front = "非拥有 {c.front_total} 件: " + join(c.front, ", ")
+        push(lines, "展示区: {front}")
+    ui.set_text("cur_client", join(lines, "\n"))
+    ui.set_pref_size("cur_client", -1, len(lines) * 24 + 14)
+
+func queue_sig_of(q):
+    var parts = []
+    var shown = 0
+    for c in q:
+        if shown >= 10:
+            break
+        shown = shown + 1
+        push(parts, "{c.name},{c.intent_key},{c.cash},{c.ptr}")
+    return "{len(q)}:" + join(parts, "|")
+
+func fill_queue():
+    if not g_show_queue:
+        return
+    var q = shop.queue()
+    g_queue_sig = queue_sig_of(q)
+    ui.build_begin("queue_list")
+    if len(q) == 0:
+        ui.build_label("(队列空)")
+    else:
+        var shown = 0
+        for c in q:
+            if shown >= 10:
+                break
+            shown = shown + 1
+            var tip = ""
+            if len(c.buying) > 0:
+                tip = "收购: " + join(c.buying, ", ")
+            if len(c.tags) > 0:
+                if len(tip) > 0:
+                    tip = tip + " "
+                tip = tip + "标签: " + join(c.tags, ", ")
+            ui.build_row()
+            if len(tip) > 0:
+                ui.build_label("{c.idx + 1}. {c.name} [{c.intent}] ¥{c.cash}", {tooltip = tip})
+            else:
+                ui.build_label("{c.idx + 1}. {c.name} [{c.intent}] ¥{c.cash}")
+            ui.build_button("补单", "on_force", {arg = c.ptr, tooltip = "立即对该客户注入(买池+货架)"})
+            ui.build_end()
+        if len(q) > shown:
+            ui.build_label("…共 {len(q)} 位(仅显示前 {shown} 位)")
+    ui.build_end()
+
+# ============ 交互回调 ============
+
+func on_refresh():
+    ui.rebuild()
+
+func on_restock():
+    var n = inject.restock_current()
+    ui.set_text("last_action", "[手动] 当前客户补货 +{n} 件")
+
+func on_reset():
+    inject.reset_tracking()
+    ui.set_text("last_action", "[手动] 注入记录已重置: 客户将重新注入")
+
+func on_cat(a):
+    g_cat = a.value - 1
+    g_page = 0
+    ui.rebuild()
+
+func on_search_input(a):
+    g_search = a.value
+
+func on_search():
+    g_applied = g_search
+    g_page = 0
+    ui.rebuild()
+
+func on_prev():
+    if g_page > 0:
+        g_page = g_page - 1
+        ui.rebuild()
+
+func on_next():
+    g_page = g_page + 1
+    ui.rebuild()
+
+func on_take(a):
+    if items.give(a.arg, 1):
+        ui.set_text("last_action", "[拿取] {a.arg} ×1 已入背包(后仓)")
+    else:
+        ui.set_text("last_action", "[拿取] {a.arg} 失败(未注册或不在对局)")
+
+func on_take_n(a):
+    var id = a.arg.id
+    var n = a.arg.count
+    if n <= 0:
+        n = 1
+    if items.give(id, n):
+        ui.set_text("last_action", "[拿取] {id} ×{n} 已入背包(后仓)")
+    else:
+        ui.set_text("last_action", "[拿取] {id} 失败(未注册或不在对局)")
+
+func find_entry(idx):
+    for e in inject.list():
+        if e.idx == idx:
+            return e
+    return null
+
+func on_tune_dec(a):
+    var e = find_entry(a.arg)
+    if e != null and e.count > 1:
+        inject.tune(a.arg, {count = e.count - 1})
+        ui.rebuild()
+
+func on_tune_inc(a):
+    var e = find_entry(a.arg)
+    if e != null and e.count > 0 and e.count < 99:
+        inject.tune(a.arg, {count = e.count + 1})
+        ui.rebuild()
+
+func on_tune_off(a):
+    inject.tune(a.arg, {enabled = false})
+    ui.set_text("last_action", "[注入] 条目 {a.arg} 已禁用(仅本次会话)")
+    ui.rebuild()
+
+func on_tune_on(a):
+    inject.tune(a.arg, {enabled = true})
+    ui.set_text("last_action", "[注入] 条目 {a.arg} 已启用")
+    ui.rebuild()
+
+func on_force(a):
+    if inject.force_client(a.arg):
+        ui.set_text("last_action", "[队列] 已对该客户补单(买池+货架)")
+    else:
+        ui.set_text("last_action", "[队列] 客户已离队, 补单失败")
+
+func on_queue_toggle():
+    g_show_queue = not g_show_queue
+    if g_show_queue:
+        ui.set_text("queue_toggle", "▼ 收起今日客户队列")
+    else:
+        ui.set_text("queue_toggle", "▶ 展开今日客户队列")
+    ui.rebuild()
+
+func on_close():
+    ui.close()
+
+# ============ 1Hz 刷新: 文本区直接 set_text; 队列结构变化才 rebuild(签名式, 防闪动) ============
+
+on tick():
+    if not ui.is_open("manager"):
+        return
+    refresh_texts()
+    fill_client()
+    if g_show_queue:
+        var sig = queue_sig_of(shop.queue())
+        if sig != g_queue_sig:
+            g_queue_sig = sig
+            ui.rebuild()

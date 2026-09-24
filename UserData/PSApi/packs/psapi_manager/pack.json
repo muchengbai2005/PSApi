@@ -1,0 +1,8 @@
+{
+  "id": "psapi_manager",
+  "name": "PSApi 管理面板 (M3 · NpcManager F6 全量复刻)",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "F6 开关(MelonPreferences PSApi.Events.ManagerHotkey 可改)。PSUI 动态面板样板: 静态骨架 + on_build 命令式填充 + ui.rebuild 签名式重建 + 位置记忆。系统包, 删除后 F6 面板不可用。"
+}
