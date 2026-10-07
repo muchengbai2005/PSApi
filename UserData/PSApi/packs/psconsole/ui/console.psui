@@ -1,0 +1,22 @@
+# console.psui — PS 指令台窗口静态骨架
+# 日志区 (log_area 带 id 的 scroll) 由 events/console.pss 的 on_build = build_console 在构建期填充;
+# 每执行一条指令 → ui.rebuild("console") 整体重建 (位置自动记忆)。
+# 输入框 on_submit = 回车提交 (框架轮询 Return/KeypadEnter, 回调后自动清空输入框)。
+window console:
+  title: "指令台"
+  size: 620x440
+  draggable: true
+  close_on_escape: true
+  on_build: build_console
+
+  label hint_lbl:
+    text: "按 / 开关 · 回车执行 · help 查看全部指令"
+  scroll log_area:
+    height: 340
+  row:
+    input cmd_input:
+      placeholder: "输入指令, help 查看帮助"
+      on_submit: on_submit
+    button exec_btn:
+      text: "执行"
+      on_click: on_exec

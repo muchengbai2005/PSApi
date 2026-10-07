@@ -1,0 +1,48 @@
+# npc_buy.pss — ex30 第 2 位 NPC: 收购商「齐姐」(intent = "buy")
+#
+# 知识点 (对应文档 07-advanced/05-npc-config.md §四收购侧):
+#   1. intent = "buy" = 客户花自己的钱买你的货 (客户视角)。
+#   2. buying_ids  = 必收清单 (台词里写死, 不复读);
+#      buy_pool   = 当日随机加收池, 条目 "id:权重" (权重缺省 1.0);
+#      buy_count  = 每次来访掷几种 ("1-2" 区间或定数);
+#      buy_pool 必须搭配 buy_count, 当日收购 = 必收 ∪ 掷中种, 客户生成时掷定。
+#   3. budget = [基数, 浮动] 预算制: 玩家卖给他时按预算内随机, 花完即走。
+#   4. 台词占位符 {{buy_list}}: pss 插值后留字面 {buy_list}, 由框架在构建对话时
+#      替换成当日掷中种的显示名 (只含掷中种, 不含 buying_ids 必收项)。
+#   5. 约束: 同一 NPC 的收购侧与出售侧不得重叠 — 齐姐只收不卖, 天然安全。
+
+const PACK = "ex30_npc_full"
+
+npc.register({
+    id = "ex30_recycler",
+    name = "收荒人齐姐",
+    base_template = "junker2",                     # ① 拾荒组, gunworks 实证可正常克隆
+    faction = "lower",
+    intent = "buy",                                # 客户视角: 她来收玩家的货
+    budget = [800, 200],                           # 预算制: 800±200, 花完即走
+    price = {sell_single = 1.0, sell_bulk = 1.0, buy = 1.05},   # 收购加价 5%
+    # 必收: 废料核心 (台词写死点名)
+    buying_ids = ["ex30_npc_full:scrap_core"],
+    # 当日随机加收 1-2 种: 头灯(本包) + 原版线缆/电子元件
+    buy_count = "1-2",
+    buy_pool = [
+        "ex30_npc_full:front_lamp:1.5",
+        "wire:1.0",
+        "common_electronic:1.0",
+    ],
+    dialogues = {
+        main = {texts = [
+            "收货的。核心我要, 见一个收一个。",
+            "今天还顺手收: {{buy_list}}。",
+        ]},
+        accept = "过秤了, 钱货两清。",
+        all_done = "今天的预算见底了。",
+        repeat = "还有货? 拿来我看。",
+        wrong_item = "这个不收 — 我只点名要该收的。",
+        right_item = "就是这个, 成色不错。",
+    },
+    schedule = {mode = "every_ndays", interval = 2, chance = 0.7},
+})
+
+# 挂进原版「买主池」— 与老金的 sell 池正好相对, 体会五池语义
+npc.pool_add("buy", "ex30_recycler", 8.0)

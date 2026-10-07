@@ -1,0 +1,57 @@
+# basics.pss — ex12: PSScript 值与变量
+# 对应文档: api_docs/04-psscript/03-values.md (值类型) + 04-expressions.md (运算符)
+#
+# 本文件全部是顶层语句: 游戏启动时按顺序执行一遍, 每个知识点 log 一个结果。
+# 看完你应能回答: PSScript 有哪几种值? var 和 const 差在哪? 7/2 为什么是 3 不是 3.5?
+
+const PACK = "ex12_pss_basics"        # 常量: 声明后不可再赋值; const 必须立刻初始化
+
+# ---------- 七种基础值 + type() ----------
+var count = 42                        # int   — 64 位整数
+var price = 3.5                        # float — 必须带小数点, 写 3 是 int
+var is_open = true                     # bool
+var owner = "老猫"                      # string — 单双引号等价
+var nothing = null                     # null  — 表达"没有"; 缺键/忘写 return 都悄悄给你 null
+var tags = ["hot", "clean"]            # array
+var deal = {buyer = "老猫", price = 500}   # dict — 标识符 = 键写法(与 {"buyer": ...} 等价)
+
+log.info("[{PACK}] type() 一览: {type(count)} / {type(price)} / {type(is_open)} / {type(owner)} / {type(nothing)} / {type(tags)} / {type(deal)}")
+log.info("[{PACK}] 有无小数点决定类型: 3 是 {type(3)}, 3.0 是 {type(3.0)}")
+log.info("[{PACK}] type() 还能看函数: type(len) = {type(len)}")
+
+# ---------- len() ----------
+log.info("[{PACK}] len(): 字符串 {len(owner)} / 数组 {len(tags)} / 字典 {len(deal)}")
+
+# ---------- var 与 const ----------
+var stock = 10                        # var: 可重新赋值
+stock += 5                            # 复合赋值 += -= *= /= (字符串/数组拼接也适用)
+const TAX = 0.1                        # const: 之后再赋值是运行错误 "不能给常量 'TAX' 赋值"
+log.info("[{PACK}] var 可改: stock += 5 → {stock}; const 不可改: TAX = {TAX}")
+
+# ---------- 算术运算 ----------
+log.info("[{PACK}] 算术: 7+2={7 + 2}  7-2={7 - 2}  7*2={7 * 2}  7%2={7 % 2}  负号: -(2+3)={-(2 + 3)}")
+log.info("[{PACK}] 坑! int/int 截断: 7/2={7 / 2}; 想要小数必须有一方是 float: 7/2.0={7 / 2.0}")
+log.info("[{PACK}] 类型转换: int(3.9)={int(3.9)}  int('42')={int('42')}  float('3.5')={float('3.5')}  bool('')={bool('')}")
+
+# ---------- 比较 (结果都是 bool) ----------
+log.info("[{PACK}] 相等: 1==1.0 → {1 == 1.0} (数字跨 int/float 按数值); '10'==10 → {'10' == 10} (类型不同 = false)")
+log.info("[{PACK}] 大小: 2<3 → {2 < 3}; 'apple'<'banana' → {'apple' < 'banana'} (字符串按码点序)")
+# 注意: 不支持链式比较 — 1<x<10 是编译错误, 要写 1<x and x<10 (见 ex14)
+
+# ---------- 逻辑 and / or / not (短路求值) ----------
+var empty_name = ""
+var fallback = empty_name or "匿名"     # or 兜底是惯用法: 左边 falsy → 取右边
+log.info("[{PACK}] or 兜底: 空串 or '匿名' → {fallback}")
+log.info("[{PACK}] and/or 返回操作数本身: 1 and 2 → {1 and 2}  0 or 5 → {0 or 5} (不是 true/false!)")
+log.info("[{PACK}] not 恒返回 bool: not '' → {not empty_name}  not 1 → {not 1}")
+# 短路: 左边为假时右边根本不执行 — 所以 "it != null and it.count > 0" 是安全写法
+
+# ---------- 字符串拼接 + ----------
+var label = "赃物" + "包"               # string + string
+label += " #" + 7                       # 任一侧是 string, 另一侧自动转文本
+log.info("[{PACK}] 字符串拼接: {label} (类型 {type(label)})")
+
+# ---------- null 的惯用法: 先占位, 事件里再填 ----------
+var target = null
+if target == null:
+    log.info("[{PACK}] null 占位: target 还没有值 — 等拿到客户句柄再填 (见 ex17)")

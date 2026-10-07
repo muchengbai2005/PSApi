@@ -1,0 +1,8 @@
+{
+  "id": "ex30_npc_full",
+  "name": "示例 30 · 多NPC网络",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex30: 多 NPC 网络 — 卖货商(intent:sell) + 收购商(intent:buy) + 剧情NPC(intent:dialogue/choices)。演示 npc.register 全家桶: price 三系数 / sell_items / buying_ids+buy_pool+buy_count / texts 多段对话链 / choices+cond / 五池挂载 npc.pool_add。对应文档 07-advanced/04-npc-pipeline.md + 05-npc-config.md。"
+}

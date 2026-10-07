@@ -1,0 +1,8 @@
+{
+  "id": "ex27_psui_dynamic",
+  "name": "示例 27 · 动态构建与自动刷新",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex27: PSUI 动态面板。静态骨架留带 id 的 scroll 动态区 → window on_build 构建期命令式填充 (for 循环加行 + ui.build_row/build_label/build_button) → 数据变化后 ui.rebuild 整体重建; on tick 每 5 秒改一次数据触发 rebuild 自动刷新。F9 开关面板。对应文档 06-psui/06-dynamic.md、04-layout.md (scroll)。写法参照官方面板 psapi_manager (manager.psui + manager.pss)。"
+}

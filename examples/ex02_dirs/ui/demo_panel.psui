@@ -1,0 +1,21 @@
+# demo_panel.psui — ex02_dirs 的极简面板 (界面面: ui/*.psui)
+#
+# PSUI 语法是缩进树: 每行一个元素或一条属性, 子内容缩进一级。
+# 最小面板 = 一个 window 根 + 两个内容件:
+#   window  — 唯一根元素, 显式 id 命名面板 (省略则用文件名)
+#   label   — 文本
+#   button  — 按钮, on_click 引用本包 events/*.pss 里的函数名
+
+window demo_panel:
+  title: "ex02 · 目录全景面板"
+  size: 340x170
+  draggable: true
+  close_on_escape: true
+
+  label hello_lbl:
+    text: "PSUI 最小面板: window + label + button"
+  label hint_lbl:
+    text: "按钮回调走 events/tour.pss 的 demo_btn_clicked"
+  button ok_btn:
+    text: "点我试试"
+    on_click: demo_btn_clicked

@@ -1,0 +1,8 @@
+{
+  "id": "ex11_icons",
+  "name": "示例 11 · 图标专题",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex11: icon 字段三种引用写法 — {\"file\":\"red_gem.png\"} 对象式 / \"blue_gem\" 裸串省扩展名(png 放 icons/sub/ 演示嵌套目录) / \"ex11_icons:red_gem\" 全限定复用。对应文档 03-items/06-icons.md。"
+}

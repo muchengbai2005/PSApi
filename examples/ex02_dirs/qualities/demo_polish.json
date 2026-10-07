@@ -1,0 +1,12 @@
+{
+  "//": "qualities/ 目录: 品质层定义。品质先于物品加载, 所以物品可以在 items/ 里放心引用。本包这条品质故意不被任何物品引用——注册成功但游戏内暂不可见, 引用效果见 ex10_qualities。",
+  "qualities": [
+    {
+      "id": "ex02_dirs:q_polished",
+      "tag": "quality_ex02_polished",
+      "display": "抛光",
+      "priceMul": 1.2,
+      "tier": 1
+    }
+  ]
+}

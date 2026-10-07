@@ -1,0 +1,63 @@
+# shop.pss — ex20_api_shop_events 的唯一脚本
+#
+# 演示商店观测台(shop.*)与商店事件(store_event.*):
+#   shop.status()         状态总览(任何时候可调; in_game=false 时其余字段是默认值)
+#   shop.attract()         吸引力与各档位阈值(不在对局 = null)
+#   shop.current_client()  当前客户详情(无当前客户/不在对局 = null)
+#   shop.queue()           今日待客队列(不在对局 = 空表)
+#   store_event.register() 注册自定义事件蓝图(加载期顶层; 池未就绪会自动挂起)
+#   store_event.queue()    不等抽选直接让事件发生(需在商店场景)
+#
+# 对局限制: 本包所有事件都只在【开店存档】(进 Emporium 开店)后触发——
+#   主菜单阶段一个 shop 查询都没有意义, store_event.register 顶层调用则永远安全
+#   (池未就绪时框架记账挂起, 下个 day_wake 自动补注入)。
+
+const PACK = "ex20_api_shop_events"
+
+# ---- 注册类: 加载期顶层调用, 往原版 normal 池加一张自己写的"牌" ----
+store_event.register("ex20_api_shop_events:street_festival", {
+    pool = "normal",            # 入池: normal 常规 / threat 威胁 / cosmetic 风味
+    odd = 30,                   # 抽选权重(与池内其他蓝图比大小; 想必出改用 queue)
+    name = "街区集市",
+    news = "今日街区集市开张",
+    description = "附近的街区集市开张了, 街坊邻里都出来逛, 店里说不定也热闹些。",
+    duration = 1,               # 持续 1 天
+    slip = true,                # 激活时生成一张实体纸条物品
+})
+
+# ---- shop_opened: 卷帘门拉开(开店), 四个观测函数各打一行 ----
+on shop_opened():
+    var s = shop.status()
+    log.info("[{PACK}] 状态: in_game={s.in_game}, 距交租 {s.day_until_rent} 天, 队列 {s.queue} 人, 当前 {s.current_name}({s.current_intent})")
+
+    var a = shop.attract()
+    if a == null:
+        log.info("[{PACK}] 吸引力: (不在对局, 无数据)")
+    else:
+        log.info("[{PACK}] 吸引力: 基础 {a.value}, 随机生成率 {a.spawn_chance}, 常客 {a.normal_count} 人")
+
+    var c = shop.current_client()
+    if c == null:
+        log.info("[{PACK}] 当前客户: (店内暂无客户)")
+    else:
+        log.info("[{PACK}] 当前客户: {c.name}({c.intent}), 现金 {c.cash}")
+
+    var q = shop.queue()
+    if len(q) == 0:
+        log.info("[{PACK}] 今日队列: 空")
+    else:
+        log.info("[{PACK}] 今日队列 {len(q)} 人, 首位 {q[0].name}({q[0].intent}), 现金 {q[0].cash}")
+
+    # 首次开店把自定义事件排成必出一次。state 防重: shop_opened 一天可触发多次
+    # (重进商店、读档重开都会再触发), 不记账会连发。
+    if not state.has("festival_queued"):
+        state.set("festival_queued", true)
+        store_event.queue("ex20_api_shop_events:street_festival")
+        log.info("[{PACK}] 首次开店: 自定义事件「街区集市」已排队, 今天必出(新闻可见)")
+
+# ---- 桥接事件: 任一商店事件(含原版)开始/结束都触发, event.event_id 区分归属 ----
+on store_event_started():
+    log.info("[{PACK}] 商店事件开始: {event.event_id}")
+
+on store_event_ended():
+    log.info("[{PACK}] 商店事件结束: {event.event_id}")

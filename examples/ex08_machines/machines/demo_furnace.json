@@ -1,0 +1,15 @@
+{
+  "//": "路线① 批次机: 什么运行块都不加就是批次模式。每晚执行 progressSpeed 个批次: 读输入槽 → 按 recipeSort 排序选第一条 CanCraft 的配方 → 探测输出槽空位 → 扣电 → 消耗材料产出。槽位贴 furnace 原生布局: 0=电池 1=模组 2=输入 3=输出。",
+  "machines": [
+    {
+      "id": "ex08_machines:demo_furnace",
+      "ui": "furnace",
+      "inputSlot": 2,
+      "outputSlot": 3,
+      "drawnPower": 8,
+      "batteryPowered": true,
+      "progressSpeed": 1,
+      "recipeSort": "priority"
+    }
+  ]
+}

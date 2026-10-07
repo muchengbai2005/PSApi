@@ -1,0 +1,36 @@
+# buyer.pss — ex34 收购 NPC: 果贩阿禾 (intent = "buy", 客户视角: 她花钱买你的货)
+#
+# 知识点 (对应文档 07-advanced/04-npc-pipeline.md / 05-npc-config.md):
+#   1. 阿禾是迷你温室数据流的"变现"环节: buying_ids 必收清单只认日光瓜。
+#   2. 收购三件套: buying_ids(必收) + budget=[基数, 浮动](500±150, 花完即走)
+#      + price.buy(收你货的加价, 1.1 = 愿意出高 10% 的价)。
+#   3. faction 不配 = 保留 base_template 的阵营 (foodBuyer 自带市集客群) —
+#      只有想覆写外观/阵营时才写这个键 (ex30 三位都显式写了 lower, 对照着看)。
+#   4. 排班 every_ndays(interval=2) 保底每 2 天来一次; 再挂 buy 池 6% 加权,
+#      没排到的日子也可能被抽中 — 两条路共用同一份配置 (复习 ex30)。
+#   5. 本包只此一位 NPC, 买卖清单天然不重叠 (同一 NPC 两侧重叠会注册失败)。
+#      刻意用最简必收清单 — buy_pool 随机加收和 {{buy_list}} 台词插值是 ex30 齐姐的课。
+
+const PACK = "ex34_mini_mod"
+
+npc.register({
+    id = "melon_buyer_ahe",
+    name = "果贩阿禾",
+    base_template = "foodBuyer",               # 原版食物买家模板 (04 篇模板表内)
+    intent = "buy",                            # 客户视角: 她来收玩家的日光瓜
+    budget = [500, 150],                       # 预算制: 500±150, 花完即走
+    price = {sell_single = 1.0, sell_bulk = 1.0, buy = 1.1},   # 收瓜加价 10%
+    buying_ids = ["ex34_mini_mod:sun_melon"],  # 必收清单: 只认日光瓜
+    dialogues = {
+        main = "阿禾来收瓜 — 温室的日光瓜, 有多少收多少。",
+        accept = "瓜很新鲜, 钱货两清。",
+        all_done = "今天带的钱见底了, 隔天再来。",
+        repeat = "还有瓜? 拿来我看看。",
+        wrong_item = "我只收日光瓜, 别的不看。",
+        right_item = "这批成色不错。",
+    },
+    schedule = {mode = "every_ndays", interval = 2, chance = 1.0},
+})
+
+# 挂进原版 buy 池 (买家池 = 玩家出货的主要通道), 6% 加权补抽
+npc.pool_add("buy", "melon_buyer_ahe", 6.0)

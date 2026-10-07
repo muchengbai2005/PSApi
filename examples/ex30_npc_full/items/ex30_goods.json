@@ -1,0 +1,21 @@
+{
+  "//": "数据面: 本包 2 个物品, 供三位 NPC 的买卖清单引用。卖货商的 sell_items 卖 ex30_npc_full:front_lamp 与 scrap_core (外加原版 common_ore 压舱); 收购商的 buying_ids 必收 scrap_core。原版物品直接写裸 id (common_ore), 只有本包物品才带 ex30_npc_full: 前缀。",
+  "items": [
+    {
+      "id": "ex30_npc_full:front_lamp",
+      "name": "前哨头灯",
+      "desc": "前哨废墟哨兵的制式头灯, 电池还能用。货郎老金每次来都会捎一两盏。",
+      "template": "flashlight",
+      "value": 55,
+      "test": true
+    },
+    {
+      "id": "ex30_npc_full:scrap_core",
+      "name": "废料核心",
+      "desc": "从报废设备里拆出来的控制核心。老金卖它, 齐姐收它 — 同一件物品在两张网络里各有一份身价。",
+      "template": "common_electronic",
+      "value": 40,
+      "test": true
+    }
+  ]
+}

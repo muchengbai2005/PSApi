@@ -1,0 +1,14 @@
+{
+  "//": "recipes/ 目录: 配方。machine 必须写自己包声明的机器全 id; 引用原版物品用 game: 前缀 (加载时剥成裸 id), 引用本包物品写全 id。qualityRule=none 产物不带品质。",
+  "recipes": [
+    {
+      "id": "ex02_dirs:demo_smelt_newspaper",
+      "machine": "ex02_dirs:demo_furnace",
+      "output": { "id": "game:newspaper", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2, "display": "废金属" } ],
+      "qualityRule": "none",
+      "customName": "示例熔炼：报纸",
+      "description": "ex02 目录全景包的基线配方: 2 废金属过夜变 1 报纸。"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+# ticker.pss — ex27_psui_dynamic 的唯一脚本: on_build 动态填充 + rebuild 刷新
+#
+# 数据模型: rows = [ {id, text}, ... ]  — 面板显示完全由它驱动 (改数据 → rebuild → 刷新)
+# 刷新工作流 (文档 06-psui/06-dynamic.md):
+#   玩家点按钮 / tick 到点 → 改 rows → ui.rebuild() → 关闭重开 → on_build 重跑
+#   (玩家拖过的窗口位置自动记忆恢复, 体感是"原地刷新")
+
+const PACK = "ex27_psui_dynamic"
+
+var rows = []          # 行数据: 每项 {id, text}
+var row_seq = 0        # 行 id 发号器
+var tick_sec = 0       # on tick 计数 (1Hz)
+var build_count = 0    # on_build 执行计数 (open/rebuild 各 +1)
+
+# 初始数据: 首次打开面板就有内容可看
+row_seq = 1
+push(rows, {id = 1, text = "初始行 · 手动添加于启动时"})
+row_seq = 2
+push(rows, {id = 2, text = "初始行 · 演示 for 循环生成"})
+
+# 顶层语句: 按键绑定
+ui.bind_key("F9", "ex27_psui_dynamic:ticker")
+
+# ============ on_build: 构建期填充 (只在 open/rebuild 的构建期被框架调用) ============
+
+func build_panel():
+    build_count += 1
+    # 构建期也能改静态元素 (v1.2.1 起构建期 set_text 走构建期解析, 不受"须先打开"限制)
+    ui.set_text("lbl_build", "第 {build_count} 次构建 · 当前行数 {len(rows)}")
+    ui.build_begin("row_list")            # 进入静态骨架里带 id 的滚动区
+    if len(rows) == 0:
+        ui.build_label("(空列表) — 点[添加一行], 或等 tick 自动加行")   # 空态也要填, 防滚动区塌陷
+    else:
+        for r in rows:
+            ui.build_row()                # 每行一个横排
+            ui.build_label("#{r.id}  {r.text}")
+            # 动态按钮可带 arg — 点击回调靠它区分"是哪一行的删除按钮" (静态 on_click 无参做不到)
+            ui.build_button("删除", "on_del_row", {arg = r.id})
+            ui.build_end()                # 闭合 row (显式配对, 别依赖运行时兜底)
+    ui.build_end()                        # 闭合 row_list
+
+# ============ 交互回调: 改数据 → rebuild ============
+
+func on_add_row():
+    row_seq += 1
+    push(rows, {id = row_seq, text = "手动行 · 添加于第 {tick_sec} 秒"})
+    log.info("[{PACK}] [按钮 on_click] 添加行 #{row_seq} → ui.rebuild 重建列表")
+    ui.rebuild("ticker")
+
+func on_del_row(ev):
+    # 动态按钮回调: ev = {elem, arg} — arg 就是 build_button 传的行 id
+    var kill = null
+    for r in rows:
+        if r.id == ev.arg:
+            kill = r
+    if kill != null:
+        remove(rows, kill)
+        log.info("[{PACK}] [动态按钮] 删除行 #{ev.arg} (arg 区分是哪颗按钮) → rebuild")
+        ui.rebuild("ticker")
+
+func on_clear_rows():
+    rows = []
+    log.info("[{PACK}] [按钮 on_click] 清空全部行 → rebuild")
+    ui.rebuild("ticker")
+
+func on_close():
+    ui.close("ticker")
+
+# ============ tick 自动刷新: 每 5 秒改一次数据 → rebuild ============
+# on tick 是 1Hz 事件; "数据变化 → rebuild 刷新显示"的被动面板标准写法。
+# 每秒的 lbl_tick 文本更新走 set_text (不重建); 结构性变化才 rebuild。
+
+on tick():
+    tick_sec += 1
+    if not ui.is_open("ticker"):
+        return                            # 面板没开不碰 ui.* (防"没有打开的面板"报错)
+    ui.set_text("lbl_tick", "tick: {tick_sec} 秒 (每 5 秒自动加一行)")
+    if tick_sec % 5 == 0:
+        row_seq += 1
+        push(rows, {id = row_seq, text = "自动行 · tick 第 {tick_sec} 秒生成, 心跳 {rand(60, 100)}"})
+        if len(rows) > 40:
+            remove(rows, rows[0])         # 封顶 40 行: 太老的就挤出去
+        log.info("[{PACK}] [tick] 数据变化 (每 5 秒) → ui.rebuild 刷新列表 (当前 {len(rows)} 行)")
+        ui.rebuild("ticker")
+
+# ============ 事件订阅 ============
+
+on game_loaded():
+    log.info("[{PACK}] 动态面板包就绪: 按 F9 开/关 ticker 面板 (on_build + tick 重建)")

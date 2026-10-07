@@ -36,7 +36,7 @@ func e6_close_panel():
 
 静态按钮回调**无参数**。列表里几十个按钮都要调同一个函数怎么办？
 两个选择：动态按钮（`ui.build_button` 的 `arg` 选项，见 [06 动态构建](06-dynamic.md)），
-或像 gunworks 那样"每按钮一函数 + 公共辅助函数"。
+或像 [ex26_psui_callbacks](../../examples/ex26_psui_callbacks/README.md) 那样"每按钮一函数 + 公共辅助函数"。
 
 ## on_change：玩家改值
 

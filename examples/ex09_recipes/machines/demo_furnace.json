@@ -1,0 +1,15 @@
+{
+  "//": "批次机宿主。recipeSort=priority: 每晚按配方 priority 降序遍历, 取第一条 CanCraft 命中的 — 顺序即优先。",
+  "machines": [
+    {
+      "id": "ex09_recipes:demo_furnace",
+      "ui": "furnace",
+      "inputSlot": 2,
+      "outputSlot": 3,
+      "drawnPower": 8,
+      "batteryPowered": true,
+      "progressSpeed": 1,
+      "recipeSort": "priority"
+    }
+  ]
+}

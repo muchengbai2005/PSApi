@@ -1,0 +1,57 @@
+# showcase.pss — ex25_psui_basic 的唯一脚本 (逻辑面)
+#
+# 三件事:
+#   1. 顶层 ui.bind_key("F8", ...) — 按键绑定必须顶层调用 (此时全部面板已注册)
+#   2. 每个控件的回调: log 一行 "[控件名] 触发" + 把反馈写回 fb_lbl 标签
+#   3. on_change 收 {elem, value}: toggle→bool / slider→float / dropdown→int 序号 / input→string
+
+const PACK = "ex25_psui_basic"
+
+# 顶层语句: 启动即注册按键 → 控制台/日志能看到 [psui] bind_key: F8 → ex25_psui_basic:showcase
+ui.bind_key("F8", "ex25_psui_basic:showcase")
+
+# 公共辅助: 把反馈文本写回面板的 fb_lbl (ui.set_text 定位"本包当前面板"里的元素)
+func fb(msg):
+    ui.set_text("fb_lbl", "反馈: {msg}")
+
+# ---- 按钮 on_click (静态按钮回调不带参数 — 想区分是哪个按钮就给不同函数名) ----
+
+func on_btn_a():
+    log.info("[{PACK}] [按钮 on_click] 触发: 按钮A")
+    fb("按钮A 被点击")
+
+func on_btn_b():
+    log.info("[{PACK}] [按钮 on_click] 触发: 按钮B")
+    fb("按钮B 被点击")
+
+func on_btn_close():
+    log.info("[{PACK}] [按钮 on_click] 触发: 关闭")
+    ui.close("showcase")
+
+# ---- 交互四件套 on_change (ev = {elem, value}) ----
+
+func on_toggle(ev):
+    var s = "关"
+    if ev.value:
+        s = "开"
+    log.info("[{PACK}] [开关 on_change] 触发: {s}")
+    fb("开关 → {s}")
+
+func on_slider(ev):
+    log.info("[{PACK}] [滑条 on_change] 触发: {ev.value}")
+    fb("滑条 → {ev.value}")
+    ui.set_progress("pg_demo", ev.value / 100.0)   # 顺手联动进度条 (0..1)
+
+func on_dropdown(ev):
+    log.info("[{PACK}] [下拉框 on_change] 触发: 序号 {ev.value}")
+    fb("下拉框 → 序号 {ev.value}")
+
+func on_input(ev):
+    # 注意: input 是每次键入即触发, 不是失焦才触发 (文档 05-callbacks.md 红线之二)
+    log.info("[{PACK}] [输入框 on_change] 触发 (每次键入): {ev.value}")
+    fb("输入框 → {ev.value}")
+
+# ---- 事件订阅 ----
+
+on game_loaded():
+    log.info("[{PACK}] 全控件演示包就绪: 按 F8 开/关 showcase 面板")

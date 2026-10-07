@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 2/2: 弹药包。走两条通道: sell_shelf(出售客户货架上架) + barter(野外以物易物商人有换)。",
+  "items": [
+    {
+      "id": "ex22_api_inject:ammo_pack",
+      "name": "弹药包",
+      "desc": "ex22 演示用弹药包。出售客户会摆上货架, 野外商人也会拿它以物易物。",
+      "template": "battery",
+      "value": 45,
+      "test": true
+    }
+  ]
+}

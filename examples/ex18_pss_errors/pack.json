@@ -1,0 +1,8 @@
+{
+  "id": "ex18_pss_errors",
+  "name": "示例 18 · 错误与排障",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex18: PSScript 错误与排障。demo.pss 演示防御性写法与调试套路; errors_commented.pss 把编译/运行错误示例全部注释掉 (去 # 亲眼看报错), 保证加载零错误零警告。对应文档 04-psscript/10-errors.md。"
+}

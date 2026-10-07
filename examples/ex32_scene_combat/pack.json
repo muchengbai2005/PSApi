@@ -1,0 +1,8 @@
+{
+  "id": "ex32_scene_combat",
+  "name": "示例 32 · 场景战斗与grid",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex32: 危险度 2 场景「锈甲竞技场」— 搜打撤循环 (进场→战斗→搜刮→撤离)。演示 combat.rt_start 实时战斗 (cfg 公式键) + grid.ground_place 战利品上地 + 场景级 layout.json HUD 布局覆写。对应文档 07-advanced/08-scenes-raid.md 后半 (§六~§七)。背景图 icons/bg_arena.png 由配套资源包提供。"
+}

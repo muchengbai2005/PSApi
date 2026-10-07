@@ -1,0 +1,8 @@
+{
+  "id": "ex33_state_deep",
+  "name": "示例 33 · 存档状态深入",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex33: state 深应用 — 开业天数(day_wake 累计) / 累计收入(trade_completed 累计) / 一次性剧情标志(state.has 防重)。README 教存档一致性验证与落盘时机 (FlushAll 没有手动 API, 关键记账对齐 day_wake/day_sleep)。对应文档 07-advanced/02-state-deep.md。"
+}

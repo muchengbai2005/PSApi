@@ -1,0 +1,8 @@
+{
+  "id": "ex13_pss_strings",
+  "name": "示例 13 · 字符串与插值",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex13: PSScript 字符串专题。演示: {表达式} 插值/引号规则/花括号转义/+ 拼接/format/join/split/len/索引/in。对应文档 04-psscript/05-strings.md。"
+}

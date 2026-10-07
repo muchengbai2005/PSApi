@@ -18,7 +18,7 @@
 | `barter` | 野外商人 `barterSellInventory` | `ShowBarter` 打开时 | **每商人实例一次**（按指针） |
 | `loot_pool` | 原版 `LootTable` 概率表 | 入池后由原版 Roll 消费（拾荒客带货/远征） | 表每局重建，自动重注 |
 
-源码：`_psapi/PSApi.Events/InjectService.cs`（四通道）、`LootPoolService.cs`
+源码：`_psapi/PSApi/Events/InjectService.cs`（四通道）、`LootPoolService.cs`
 （loot_pool）。前四条通道的注册条目在**加载期**就进内存表，真正的注入动作
 全部发生在**对局内**由补丁/事件触发。
 

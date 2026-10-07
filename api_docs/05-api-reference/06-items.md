@@ -26,7 +26,7 @@ if it != null:
 | 显示名 | `items.name(id)` | `string \| null`（未知 = `null`） | v1.11.0 |
 | 找一个 | `items.find(id)` | 物品句柄 \| `null` | — |
 | 找全部 | `items.find_all(id)` | `[物品句柄]` | v1.7.0 |
-| 消耗 | `items.consume(item_handle)` | `bool` | — |
+| 消耗 | `items.consume(item_handle[, count])` | `bool` | count 参数 v1.39.0 |
 
 **发放与检索的范围**（源码保证）：
 
@@ -39,7 +39,7 @@ if it != null:
 - `uses > 0`（1..9999）时发放的是**次数物品**（用完即毁，见下文"使用次数"）。
 
 ```pss
-# e5_demo.pss 真实用法（原为注释演示）
+# 教学写法
 var ok = items.give("game:newspaper", 2)
 var has2 = items.has("game:newspaper", 2)
 var price = items.value("game:newspaper")
@@ -54,6 +54,98 @@ if scrap != null:
 `items.consume` 接**句柄**（不是 id）：从所在库存取出并销毁，与机器配方的
 探测物回收同路径。`items.find` 没找到时返回 `null`，直接把 `null` 传进来会报
 `第一个参数是 null (items.find/machine.find 没找到? 请先判空)`——先判空。
+
+v1.39.0 起 `consume` 有第 2 可选参 `count`：省略或 `count ≥ 堆叠数` = 整堆销毁
+（旧行为）；`count < 堆叠数` = 直接扣减 `unitCount` 返回 `true`，不整堆移除。
+部分消耗（如 `items.on_target` 回调里吃掉拖拽物 1 件）务必传 count。
+
+## items：物品对物品 use（v1.39.0）
+
+`items.on_target(source_id, target_id, fn)` 注册「把物品 A 拖到物品 B 上」的脚本回调，
+通用化原版 `module_bay_expansion_kit` 拖机器升级那套交互（原生判定走
+`MachineHelper.CanExpand`，对自定义机器必然 false，框架用 Harmony 接管）。
+
+```pss
+func expand(h_source, h_target):
+    if h_target.get_data("mod_upgraded", 0) == 1:
+        return false            # 放行原生 (自定义机器上 = 无事发生, 不消耗)
+    h_target.set_data("mod_upgraded", 1)
+    items.consume(h_source, 1)  # 吃掉套件 1 个
+    return true                 # 跳过原生 (事件已处理完)
+
+items.on_target("game:module_bay_expansion_kit", "my_pack:refinery_furnace", expand)
+```
+
+- **三方法补丁**：`GameItem.MayTarget/CanTarget` postfix 只按 **id 对**命中注册表就放行
+  （拖拽高亮每帧调用，**不调 pss**，避免每帧脚本开销）；`GameItem.Target` prefix
+  才真正调 `fn(h_source, h_target)`——`fn` 的两个参数都是物品句柄。
+- **返回值语义**：`fn` 明确返回 `false` = 放行原生 `Target`；返回其他任何值
+  （含 `true` / 无返回）= 跳过原生。脚本异常被隔离记警告，本笔放行原生。
+- **id 归一**：注册与查找两侧都过 `NormalizeId`（`game:` 前缀大小写不敏感剥除），
+  写 `"game:xxx"` 或裸 `"xxx"` 等价。
+- **重复注册**同 (source, target) 键 = 覆盖 + 警告（包脚本顶层每次加载重新注册，
+  可调对象不随存档持久化）。
+- 注册在**顶层**执行一次即可；`fn` 必须是 pss 函数（传其他类型报参数错）。
+
+## items：自定义 tooltip 行（ps_tooltip，Items v0.9.16）
+
+任意物品句柄写 `ps_tooltip` NBT（列表），tooltip 会在原有内容之后**原样逐行追加**
+（行序 = 写入序；逐行容错，单行异常不影响其余行）。`set_data("ps_tooltip", null)` 删键 =
+不显示。通用机制，机器信息栏聚合效果、储罐内容物等自定义状态行都走这里。
+
+```pss
+m.set_data("ps_tooltip", ["模组效果:", "-质量: +75% (熔炼档 2)", "-性能: -6% 燃料"])
+# v0.9.17 起: dict 行 {text, color} 按色上色 (color 缺省/非法回退纯色行, 不丢文本)
+t.set_data("ps_tooltip", [{text = "内容物: 铜液", color = "#D88C4A"}, "储量: 36/100 mB"])
+# 无内容时删键: m.set_data("ps_tooltip", null)
+```
+
+- 读取路径与鉴定 tooltip 相同（`ItemsFacade.GetData(item, "ps_tooltip")` → JsonArray），
+  机器/容器被拿起（物品形态）时同样生效 — 缓存写在 NBT 里，不依赖面板存活。
+- 行元素：纯字符串 = 纯色行；dict `{text=..., color="#RRGGBB"/"#RRGGBBAA"}` = 上色行
+  （v0.9.17；8 位色 alpha 忽略）。其他类型的行静默跳过。
+
+## items：武器耐久三键约定（ps_dur / ps_dur_max / ps_wear / ps_broken，Events v1.43.0）
+
+带 `ps_dur_max` NBT 的武器参与耐久体系（gunworks 组装枪在 `bench_apply_mat` 时写入；
+**没有的武器 — 原版枪/战利品枪 — 完全不受影响，零开销**）：
+
+| 键 | 类型 | 含义 |
+|---|---|---|
+| `ps_dur_max` | long | 耐久上限（枪种基础 320-600 × 机匣硬度修正；gunworks v0.38.0 起，旧为 80-150） |
+| `ps_dur` | double（两位小数） | 当前耐久；≤0 钳 0 并进入破损 |
+| `ps_wear` | double | 单次损耗（=枪种基础 1.0-1.5 ×(1+枪机硬度/100)，下限 0.1；gunworks v0.38.0 起，旧恒以 1 为基数） |
+| `ps_broken` | long=1 | 破损标记（存在即破损；修理删键复原） |
+
+- **扣减**（C# 侧，pss 无需调用）：rt 战斗实际开火每发（连发每发；卡壳未射出不扣）+
+  近战抡/枪托抡每次挥击，`ps_dur -= ps_wear`（两位小数写回），并同步重写 `ps_tooltip`
+  「耐久： x/y」行（x 取整）；扣穿钳 0 + 写 `ps_broken=1` + 追加「已破损」行。
+  破损**不毁枪不禁止开火**，伤害 ×0.3（RtWeapon 解析处单点，枪抡/枪托/近战同源）。
+- **修理**（包侧脚本，走 `items.on_target`）：拖修理物到枪上 → 消耗 1 件、
+  `ps_dur=ps_dur_max`、删 `ps_broken`、tooltip 回满去「已破损」。
+  （gunworks v0.38.0 起修理物为打印维修件 `repair_kit`，材质须匹配机匣 `ps_mat_receiver`；
+  旧版为 17 种原料反查匹配。）
+  耐久行/破损行的重写约定与 C# `WeaponDurability.RewriteTip` 一致（「耐久： 」前缀行替换
+  否则插行首，「已破损」行按状态增删），包侧自行维护 tooltip 时照此保持兼容。
+
+## items：原生实例 tag 读取（tag_get_int / tag_get_string，v1.42.0 / Items v0.9.18）
+
+读物品实例的原生 tag（非 PSD_ 自定义数据）——原版模组效果值、MODULE_TYPE 等。
+
+```pss
+var p = items.tag_get_int(it, "TEMP_PERCENTAGE_PERFORMANCE_INT")
+if p == null:    # 未初始化的模组可能无 TEMP 键 → 回退模板基值
+    p = items.tag_get_int(it, "BONUS_PERCENTAGE_PERFORMANCE_INT")
+var mtype = items.tag_get_string(it, "MODULE_TYPE")
+```
+
+- 读取路径 `modifiedState?.GetTag(key) ?? state?.GetTag(key)`（同 ItemsFacade 私有
+  ReadIntTag 模式）。
+- **容错语义**：缺键 / 句柄失效 / 读取异常一律返回 `null` 不抛（聚合循环内逐件调用安全；
+  参数个数错仍抛）。注意 `tag_get_int` 缺键是 `null` 不是 0——`TEMP=0` 是有值，不会回退。
+- 原版模组效果键（ModuleHelper.InitModuleItem 写入，int 有符号可负）：
+  `BONUS_PERCENTAGE_PERFORMANCE_INT` / `BONUS_PERCENTAGE_EFFICIENCY_INT` /
+  `BONUS_PERCENTAGE_QUALITY_INT`（模板基值）+ `TEMP_PERCENTAGE_*_INT`（当前生效值，会退化）。
 
 ## items：电力与使用次数（v1.6.0）
 
@@ -116,12 +208,12 @@ for e in r["items"]:
 | 定价系数 | `quality.price_factor(item_handle)` | `float`（无品质/异常 = `1`） |
 
 ```pss
-# e5_demo.pss 真实用法: 打层前后 price_factor 对比
+# 教学写法: 打层前后 price_factor 对比
 items.give("game:scrap_metal", 1)
 var scrap = items.find("game:scrap_metal")
 if scrap != null:
     var before = quality.price_factor(scrap)
-    var setok = quality.set(scrap, "example_hello:q_pure")
+    var setok = quality.set(scrap, "my_pack:q_pure")
     var after = quality.price_factor(scrap)
     log.info("品质演示: set={setok} 品质={quality.get(scrap)} price_factor {before} -> {after}")
 ```
@@ -141,17 +233,18 @@ if scrap != null:
 这也是它和 `items.find`（只搜随身+后仓）的关键区别。
 
 ```pss
-# e5_demo.pss 真实用法
-var mach = machine.find("example_hello:example_desequencer")
+# 教学写法
+var mach = machine.find("my_pack:desequencer")
 if mach == null:
-    mach = machine.find("example_hello:example_processor")
+    mach = machine.find("my_pack:processor")
 if mach != null:
     log.info("机器: progress={machine.progress(mach)} producing={machine.producing(mach)}")
 ```
 
 机器的数据面定义（`machines/*.json`、进度机/批次机区别）见
 [03 · 数据面 JSON](../03-items/README.md)；机器**界面**（`ui.machine_*`）见
-[09 UI 函数](09-ui.md)。
+[09 UI 函数](09-ui.md)。本篇 API 的可运行对照包见
+[ex21_api_items](../../examples/ex21_api_items/README.md)。
 
 ## 本篇函数速查
 
@@ -163,7 +256,8 @@ items.value(id)                    # 单价 | -1
 items.name(id)                     # 显示名 | null
 items.find(id)                     # 句柄 | null (随身+后仓)
 items.find_all(id)                 # [句柄] (全量)
-items.consume(h)                   # 销毁
+items.consume(h[, n])              # 销毁 (n<堆数=部分扣减, v1.39.0)
+items.on_target(src_id, dst_id, fn)# 物品拖到物品上 (v1.39.0)
 items.power(h) / power_draw(h, n)  # 电量/抽电
 items.uses(h) / uses_max(h) / use(h[, n]) / use_init(h, max[, bv[, vpu]])  # 次数
 items.catalog() / browse(cat, search[, page[, size]])                     # 目录

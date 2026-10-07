@@ -1,0 +1,20 @@
+# monitor.pss — ex30 集中监视器: customer_generated 分 id 打日志
+#
+# 知识点 (对应文档 07-advanced/04-npc-pipeline.md §二):
+#   1. customer_generated 每天建队后发布, 原版客户 (source="vanilla") 也会发 —
+#      这是监听"今天来了谁"的官方入口, 不限于自己的 NPC。
+#   2. payload: event.client (客户句柄) / event.id / event.name / event.source
+#      source 三个值: vanilla (原版生成) / pool (挂池的脚本 NPC 被抽中) /
+#                     schedule | schedule+ (走排班评估生成)
+#   3. 排班问题排障口诀: NPC 不来, 先搜日志 "npc eval: <id>", 答案就在那一行。
+
+const PACK = "ex30_npc_full"
+
+on customer_generated():
+    if event.id == "ex30_peddler":
+        log.info("[{PACK}] 老金到店 (source={event.source}) — sell_items 将在交易阶段上架")
+    elif event.id == "ex30_recycler":
+        log.info("[{PACK}] 齐姐到店 (source={event.source}) — 当日收购清单已掷定, 说话时看 {buy_list} 那句")
+    elif event.id == "ex30_storyteller":
+        log.info("[{PACK}] 陆婆到店 (source={event.source}) — choices 已随对话构建")
+    # 其余 (含原版客户) 不打日志, 避免刷屏 — 想看原版来了谁, 把这里的 return 去掉即可

@@ -1,0 +1,8 @@
+{
+  "id": "ex08_machines",
+  "name": "示例 08 · 机器三条路线",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex08: 机器三条路线各一台 — furnace 批次机(一晚出货) / desequencer 进度机(34/100 三夜出货) / custom 自装配(免电网格)。参照 example_hello 三台官方验证机。对应文档 03-items/03-machines.md。"
+}

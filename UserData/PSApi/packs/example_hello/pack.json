@@ -1,8 +1,0 @@
-{
-  "id": "example_hello",
-  "name": "PS-API 示例包 + Custom Items",
-  "version": "0.4.1",
-  "authors": ["psapi"],
-  "gameVersions": ["playtest"],
-  "//": "v0.6.1 精简: 只保留实测机器 example_smelter(原版炉桥接) / example_desequencer(读卡器+多夜进度) / example_processor(ui=custom 自装配窗口, inputSize 3x4 / outputSize 2x2)。详见 _api_design/items/09-机器与配方.md。v0.4.1: e4_demo 的老猫·影演示 NPC 正式迁往 gunworks 包(cat_shadow.pss, 需 Events v1.11.0+), 本地注释保留作语法参考, 不再注册; customer_generated 通用日志分支保留。"
-}

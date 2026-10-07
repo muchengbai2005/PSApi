@@ -12,10 +12,10 @@ packs/<你的包>/ui/xxx.psui
 
 - 扫描**只扫 `ui/` 目录顶层**，子目录里的 `.psui` 会被忽略。
 - 面板注册 id = `"包id:面板名"`。面板名取 `window` 的显式 id；没写就**默认用文件名**
-  （`ui/gun_bench.psui` 无显式 id → `gunworks:gun_bench`）。
+  （`ui/bench.psui` 无显式 id → `my_pack:bench`）。
 - 同名冲突（同包两文件抢一个面板名，或 window id 撞名）：**后者跳过**，启动日志警告。
 
-脚本里开自己的面板可省包前缀：`ui.open("gun_bench")` = `ui.open("gunworks:gun_bench")`。
+脚本里开自己的面板可省包前缀：`ui.open("bench")` = `ui.open("my_pack:bench")`。
 
 ## 最小面板与行格式
 
@@ -123,7 +123,7 @@ id 必须是标识符：字母或 `_` 开头，只含字母/数字/`_`。`my_btn
 启动日志直接警告（不用等到点击才发现）。函数从**本包** `events/*.pss`
 的全局环境查找——面板与脚本靠包 id 关联，不需要任何注册语句。
 
-## 一个真实的面板（example_hello/e6_panel.psui 节选）
+## 一个真实的面板（[examples/ex25_psui_basic](../../examples/ex25_psui_basic/README.md) 节选）
 
 ```text
 window e6_panel:

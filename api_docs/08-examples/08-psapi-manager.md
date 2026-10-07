@@ -30,9 +30,9 @@ window manager:
 ```
 
 三个 `scroll` 容器在 psui 里**是空的**——内容由脚本的 `on_build` 回调
-在构建期命令式填充。这是与 gunworks 组装台（纯静态骨架）相反的另一个
-极端：**结构每次重建**，所以不存在"结构恒定/串槽"问题，代价是重建瞬间
-可能闪动——于是有了签名式刷新（第四节）。
+在构建期命令式填充。这是与 [ex29_psui_machine](../../examples/ex29_psui_machine/README.md)
+机器面板（纯静态骨架）相反的另一个极端：**结构每次重建**，所以不存在
+"结构恒定/串槽"问题，代价是重建瞬间可能闪动——于是有了签名式刷新（第四节）。
 
 ## 二、on_build：构建期命令式填充
 
@@ -104,8 +104,9 @@ func on_force(a):
 
 注意写法习惯：**操作结果写进 `last_action` 静态标签**（一行操作日志），
 比弹窗轻、比 log 直观；每次改完数据就 `ui.rebuild()` 让动态区跟上。
-`find_entry(idx)` 在 `inject.list()` 里现查——和 gunworks 的 doctor
-计划一样，**永远不假设 idx 稳定**。
+`find_entry(idx)` 在 `inject.list()` 里现查——和
+[ex22_api_inject](../../examples/ex22_api_inject/README.md) 的计划管理一样，
+**永远不假设 idx 稳定**。
 
 ## 四、tick 签名式刷新：防闪动的关键
 

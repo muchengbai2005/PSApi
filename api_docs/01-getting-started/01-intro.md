@@ -5,8 +5,9 @@
 
 ## 一句话定位
 
-**PS-API 是《Probably Stolen》的内容包加载器。** 它本体是两个 MelonLoader 模组
-（`PSApi.Items.dll` + `PSApi.Events.dll`），装好后常驻游戏；而你——模组作者——
+**PS-API 是《Probably Stolen》的内容包加载器。** 它本体是一个 MelonLoader 模组
+（`PSApi.dll`，v2.0.0 起由原 `PSApi.Items.dll` + `PSApi.Events.dll` 双组件合并而来），
+装好后常驻游戏；而你——模组作者——
 只需要在 `UserData/PSApi/packs/` 下放一个**内容包文件夹**，游戏启动时 PS-API 会自动
 发现它、校验它、把里面的内容注册进游戏。
 
@@ -14,7 +15,7 @@
 
 ```text
 Minecraft:  把 .jar 放进 mods/     → Forge/Fabric 加载
-PS-API:     把文件夹放进 packs/    → PSApi.Items / PSApi.Events 加载
+PS-API:     把文件夹放进 packs/    → PSApi 加载
 ```
 
 ## 三面一体架构
@@ -28,19 +29,22 @@ PS-API 把模组内容拆成三个"面"，各用一种专用格式，互不干�
 └───────────────────────────────┬────────────────────────────────┘
                                 │ MelonLoader (模组加载器)
 ┌───────────────────────────────▼────────────────────────────────┐
-│  PSApi.Items.dll (优先级 10)      PSApi.Events.dll (优先级 20)   │
+│                     PSApi.dll (单宿主, v2.0.0)                   │
 │  ┌─────────────────────────┐     ┌────────────────────────────┐ │
 │  │ 数据面：JSON             │     │ 逻辑面：PSScript (.pss)     │ │
 │  │  items/    物品          │     │  events/ 脚本，写玩法逻辑    │ │
-│  │  machines/ 机器          │     │                            │ │
-│  │  recipes/  配方          │     │ 界面面：PSUI (.psui)        │ │
-│  │  qualities/品质          │     │  ui/ 声明式界面文件          │ │
-│  │  icons/    图标          │     │                            │ │
-│  └─────────────────────────┘     │ + NPC / 商店 / 注入 / 掠夺池 │ │
+│  │  machines/ 机器          │     │  scenes/ 自定义外出场景      │ │
+│  │  recipes/  配方          │     │                            │ │
+│  │  qualities/品质          │     │ 界面面：PSUI (.psui)        │ │
+│  │  icons/    图标          │     │  ui/ 声明式界面文件          │ │
+│  └─────────────────────────┘     │                            │ │
+│   (命名空间 PSApi.Items.*)        │ + NPC / 商店 / 注入 / 掠夺池 │ │
 │                                  │   事件总线 / 存档状态         │ │
-└──────────────┬───────────────────┴─────────────┬──────────────┘
-               │                                 │
-┌──────────────▼─────────────────────────────────▼──────────────┐
+│                                  │  (命名空间 PSApi.Events.*)   │ │
+│                                  └────────────────────────────┘ │
+└───────────────────────────────┬────────────────────────────────┘
+                                │
+┌───────────────────────────────▼────────────────────────────────┐
 │            UserData/PSApi/packs/<你的包>/                       │
 │   一个文件夹 = 一个模组 = 数据 + 逻辑 + 界面 三件套按需混搭        │
 └────────────────────────────────────────────────────────────────┘
@@ -48,11 +52,11 @@ PS-API 把模组内容拆成三个"面"，各用一种专用格式，互不干�
 
 三个面的分工：
 
-| 面 | 格式 | 谁消费 | 适合做什么 |
-|---|---|---|---|
-| **数据面** | JSON 文件 | PSApi.Items | 物品、机器、配方、品质、图标——"游戏里**有什么**" |
-| **逻辑面** | `.pss` 脚本（PSScript 语言） | PSApi.Events | 玩法规则、事件响应、NPC 对话——"游戏里**发生什么**" |
-| **界面面** | `.psui` 文件（PSUI 声明式 UI） | PSApi.Events | 自定义窗口、按钮、槽位网格——"玩家**看到什么**" |
+| 面 | 格式 | 适合做什么 |
+|---|---|---|
+| **数据面** | JSON 文件 | 物品、机器、配方、品质、图标——"游戏里**有什么**" |
+| **逻辑面** | `.pss` 脚本（PSScript 语言） | 玩法规则、事件响应、NPC 对话、自定义场景——"游戏里**发生什么**" |
+| **界面面** | `.psui` 文件（PSUI 声明式 UI） | 自定义窗口、按钮、槽位网格——"玩家**看到什么**" |
 
 > **为什么拆开？** 数据用 JSON 声明，改数值不用碰代码；逻辑用专用小语言 PSScript，
 > 语法比 C# 轻量得多（接近 Python/GDScript 的手感），且错误只会落在日志里、不会崩溃游戏；
@@ -60,25 +64,22 @@ PS-API 把模组内容拆成三个"面"，各用一种专用格式，互不干�
 
 ## 一个内容包长什么样
 
-下面是官方示例包 `example_hello` 的真实文件（完整带读见 [08 实战讲解](../08-examples/README.md)）：
+仓库 [`examples/`](../../examples/) 目录下有 34 个教学示例包（导航见
+[08 实战讲解](../08-examples/README.md)）：最小的 [ex01_hello](../../examples/ex01_hello/README.md)
+只有 pack.json + 1 个物品 + 1 个脚本，[ex02_dirs](../../examples/ex02_dirs/README.md)
+则 9 个子目录各放一个最小文件。一个内容包的标准目录长这样：
 
 ```text
-UserData/PSApi/packs/example_hello/
+UserData/PSApi/packs/<你的包>/
 ├── pack.json            ← 包清单：id、名字、版本（必备，唯一必备）
 ├── items/               ← 数据面：物品定义
-│   ├── _placeholder.json
-│   └── example_smelter.json
 ├── machines/            ← 数据面：机器声明
-│   └── example_smelter.json
 ├── recipes/             ← 数据面：配方
-│   └── smelter_tests.json
 ├── qualities/           ← 数据面：品质层
-│   └── example_qualities.json
 ├── icons/               ← 数据面：图标 png
 ├── events/              ← 逻辑面：PSScript 脚本
-│   └── hello.pss
+├── scenes/              ← 逻辑面：自定义外出场景
 └── ui/                  ← 界面面：PSUI 面板
-    └── u4_printer.psui
 ```
 
 三个面各来一段真实代码感受一下。
@@ -89,7 +90,7 @@ UserData/PSApi/packs/example_hello/
 {
   "items": [
     {
-      "id": "example_hello:example_smelter",
+      "id": "my_pack:example_smelter",
       "directory": "StationMachinery",
       "template": "furnace",
       "name": "示例熔炉",
@@ -103,7 +104,7 @@ UserData/PSApi/packs/example_hello/
 **逻辑面**——`events/hello.pss` 的开头（顶层代码在启动时立即执行，`on` 块订阅事件）：
 
 ```python
-const PACK = "example_hello"
+const PACK = "my_pack"
 var boot_count = 0
 
 func describe_stock(name, tags, discount = 0):
@@ -145,22 +146,21 @@ window u4_printer:
 
 ## 游戏启动时发生了什么
 
-理解启动流程，排障时你就知道去哪找问题（流程取自 `PSApi.Items` / `PSApi.Events`
-两个模组的 `OnInitializeMelon` 真实代码）：
+理解启动流程，排障时你就知道去哪找问题（流程取自 `PSApi` 模组
+`OnInitializeMelon` 真实代码）：
 
 ```text
 1. MelonLoader 按优先级加载 Mods/ 下的 DLL
    ├─ PSPack.<id>.dll   (优先级 5)  ← 编译成 DLL 的内容包，先登记内嵌资源
-   ├─ PSApi.Items.dll   (优先级 10)
-   └─ PSApi.Events.dll  (优先级 20) ← 在 Items 之后，脚本可安全引用物品
+   └─ PSApi.dll         (优先级 10) ← 单宿主：数据面先就绪，脚本随后可安全引用物品
 
-2. PSApi.Items 启动
+2. PSApi 启动（数据面）
    ├─ 扫描 UserData/PSApi/packs/* 解析 pack.json（与内嵌包合并去重）
    ├─ 加载顺序：qualities → items → recipes
    └─ 解析错误汇总写入 UserData/PSApi/logs/pack_errors_*.log
 
-3. PSApi.Events 启动
-   ├─ 建 PSScript 引擎，编译加载全部 events/*.pss
+3. PSApi 启动（逻辑/界面面）
+   ├─ 建 PSScript 引擎，编译加载全部 events/*.pss 与 scenes/**/*.pss
    ├─ on 块登记到事件总线；编译错误同样落 logs/
    └─ 控制台自检：event bus selftest hits=12
 
@@ -190,6 +190,7 @@ window u4_printer:
 | 内置 API：物品发放 / 机器操控 / 品质 / 时间 / 存档 | [05 API 参考](../05-api-reference/README.md) |
 | 自定义 NPC（对话、买卖、剧情链、皮肤） | [07 进阶 · NPC](../07-advanced/README.md) |
 | 原版内容注入（NPC 收购单 / 货架 / 掠夺池） | [07 进阶 · 注入](../07-advanced/README.md) |
+| 自定义外出场景（搜打撤 / raid / 实时战斗） | [07 进阶 · 场景](../07-advanced/08-scenes-raid.md) |
 | PSUI 自定义界面（窗口 / 按钮 / 槽位网格） | [06 PSUI](../06-psui/README.md) |
 | 存档隔离状态（每个存档槽独立 KV） | [07 进阶 · 存档状态](../07-advanced/README.md) |
 | 犯罪豁免 / 治安玩法定制 | [05 API 参考 · crime](../05-api-reference/README.md) |

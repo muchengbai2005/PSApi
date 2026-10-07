@@ -1,0 +1,63 @@
+# containers.pss — ex16: PSScript 容器: list 与 map
+# 对应文档: api_docs/04-psscript/08-containers.md
+#
+# list = 有序数组, map = 字符串键字典; 两者都是引用类型 (赋值传的是"同一个容器")。
+# 事件载荷 event 就是 map — 学容器 = 学会读事件 (见 ex17)。
+
+const PACK = "ex16_pss_containers"
+
+# ---------- list: push / pop / 索引 / remove / len ----------
+var stock = ["步枪", "医疗包"]
+log.info("[{PACK}] list 字面量: {stock}  len = {len(stock)}")
+
+push(stock, "废金属")                    # 尾部追加
+log.info("[{PACK}] push 后: {stock}")
+
+log.info("[{PACK}] pop 弹出末尾: {pop(stock)}  剩下 {stock}")
+
+stock[0] = "旧步枪"                       # 索引赋值
+log.info("[{PACK}] 索引赋值: stock[0]='旧步枪' → {stock}")
+log.info("[{PACK}] 负索引从尾数: stock[-1] = {stock[-1]}")
+log.info("[{PACK}] 查成员: '医疗包' in stock → {'医疗包' in stock}; has(stock, '废金属') → {has(stock, '废金属')} (刚被 pop 走了)")
+
+remove(stock, "医疗包")                   # 按值删第一个匹配, 返回 bool
+log.info("[{PACK}] remove 按值删: {stock}")
+
+# ---------- map: 两种键写法完全等价 ----------
+var deal = {"buyer": "老猫", "price": 500}    # 字符串键 + 冒号
+var d2 = {buyer = "博士", price = 300}         # 标识符 + '=' (GDScript 风格), 混用也合法
+log.info("[{PACK}] 两种键写法等价: deal['buyer'] = {deal['buyer']}  d2.buyer = {d2.buyer}")
+
+deal["item"] = "步枪"                     # 方括号新增键
+deal.price += 50                          # 点号复合赋值
+log.info("[{PACK}] 两种写值: 新增 item = {deal.item}, 改价 price = {deal.price}")
+log.info("[{PACK}] 缺键宽容: deal.note = {deal.note} (返回 null 不报错 — 读 event 全靠这个)")
+log.info("[{PACK}] keys/values/has: keys = [{join(keys(deal), ', ')}]  values = {values(deal)}  has(deal, 'price') = {has(deal, 'price')}")
+
+# ---------- 嵌套容器: 点号/索引任意链式 ----------
+var config = {
+    "prices": {"rifle": 100, "medkit": 30},
+    "loot": ["ore:3:1", {id = "bandage", count = 2}],
+}
+log.info("[{PACK}] 嵌套读取: config['prices'].rifle = {config['prices'].rifle}")
+log.info("[{PACK}] 链式读取: config.loot[1].count = {config.loot[1].count}")
+
+config.prices.rifle = 120                 # 链式赋值 OK
+push(config.loot, "scrap:2:0.3")          # 嵌套数组同样可变
+log.info("[{PACK}] 嵌套可写: rifle = {config.prices.rifle}, loot = {config.loot}")
+
+# ---------- 引用语义: 赋值不拷贝 ----------
+var a = [1, 2]
+var b = a                                 # b 和 a 是同一个数组!
+push(a, 3)
+log.info("[{PACK}] 引用语义: push(a, 3) 后 b 也跟着变 → {b}")
+log.info("[{PACK}] == 按引用比: a == b (同一对象) → {a == b}; [1,2] == [1,2] → {[1,2] == [1,2]}")
+
+# ---------- for 遍历两种容器 ----------
+var menu = ["回收", "收购", "下架"]
+for act in menu:
+    log.info("[{PACK}] for 遍历 list: {act}")
+
+var stats = {day = 3, trades = 12, income = 5400}
+for k in stats:                           # for 遍历 map 拿到的是键
+    log.info("[{PACK}] for 遍历 map: {k} = {stats[k]}")

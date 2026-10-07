@@ -9,11 +9,10 @@
 
 | 组件 | 版本 | 说明 |
 |---|---|---|
-| PSApi.Items | v0.9.3 | 数据面宿主：物品 / 机器 / 配方 / 品质 / 图标 |
-| PSApi.Events | v1.13.1 | 逻辑面 + 界面面宿主：PSScript / PSUI / NPC / 注入 |
-| example_hello | — | 入门示范内容包（逐文件带读见文档 08 章） |
-| gunworks | — | 全特性实战内容包（枪械零件 / 工作台 / 打印机 / 分析仪） |
+| PSApi | **v2.0.0** | 框架本体（单 dll，v2.0.0 起合并原 Items/Events 双组件） |
+| examples/ | 1.0.0 | **34 个教学示例包**（ex01_hello ~ ex34_mini_mod，每个知识小节一个，全部实跑验证） |
 | psapi_manager | — | 系统包：游戏内 F6 管理面板 |
+| psconsole | — | 调试控制台包：游戏内指令行 |
 | 适配游戏版本 | playtest | *Probably Stolen Demo*（Steam） |
 
 ---
@@ -30,56 +29,46 @@ D:\game\steam\steamapps\common\Probably Stolen Demo\
 
 | 仓库路径 | 放到哪里 | 是否必须 |
 |---|---|---|
-| `Mods/PSApi.Items.dll` | `<游戏根>/Mods/` | **必须**（框架本体） |
-| `Mods/PSApi.Events.dll` | `<游戏根>/Mods/` | **必须**（框架本体） |
-| `Mods/PSPack.gunworks.dll` | `<游戏根>/Mods/` | 可选（与 `packs/gunworks` **二选一**，见下文冲突说明） |
+| `Mods/PSApi.dll` | `<游戏根>/Mods/` | **必须**（框架本体，单 dll） |
 | `UserData/PSApi/README.md` | `<游戏根>/UserData/PSApi/` | 推荐（目录说明） |
-| `UserData/PSApi/packs/example_hello/` | `<游戏根>/UserData/PSApi/packs/` | 可选（学习用） |
-| `UserData/PSApi/packs/gunworks/` | `<游戏根>/UserData/PSApi/packs/` | 可选（与 `PSPack.gunworks.dll` **二选一**） |
 | `UserData/PSApi/packs/psapi_manager/` | `<游戏根>/UserData/PSApi/packs/` | 推荐（F6 管理面板） |
+| `UserData/PSApi/packs/psconsole/` | `<游戏根>/UserData/PSApi/packs/` | 可选（调试控制台） |
+| `examples/exNN_xxx/`（任意若干） | `<游戏根>/UserData/PSApi/packs/` | 可选（学习用，装哪个学哪章） |
 | `_psapi/` | 不安装 | 框架 C# 源码（开发用） |
-| `api_docs/` | 不安装 | 65 篇中文开发者文档 |
+| `api_docs/` | 不安装 | 61 篇中文开发者文档 |
 | `_tools/` | 不安装 | 开发工具（物品编辑器 / 内容包编译器） |
 
-简单说：**仓库里的 `Mods/` 和 `UserData/PSApi/` 两个目录的内容，原样对应拖进游戏的同名目录即可**；其余目录（`_psapi` `api_docs` `_tools`）是开发资源，不需要放进游戏。
+简单说：**仓库里的 `Mods/` 和 `UserData/PSApi/` 两个目录的内容，原样对应拖进游戏的同名目录即可**；`examples/` 里想学哪个包就复制哪个进 `packs/`；其余目录（`_psapi` `api_docs` `_tools`）是开发资源，不需要放进游戏。
 
 ### 安装步骤
 
 1. **前置**：游戏已安装 MelonLoader（IL2CPP 版）。没有的话去 [MelonLoader Releases](https://github.com/LavaGang/MelonLoader/releases) 下载安装器，选中游戏目录安装。
-2. **装框架**：把 `Mods/PSApi.Items.dll` 和 `Mods/PSApi.Events.dll` 复制到 `<游戏根>/Mods/`。
-3. **装内容包**（两种形态二选一，见冲突说明）：
-   - **DLL 形态**（推荐普通玩家）：把 `Mods/PSPack.gunworks.dll` 复制到 `<游戏根>/Mods/`；
-   - **文件夹形态**（推荐想学习/修改的作者）：把 `UserData/PSApi/packs/` 下的包目录复制到 `<游戏根>/UserData/PSApi/packs/`。
-4. **验证**：启动游戏，MelonLoader 控制台出现 `PSApi.Events v1.13.1 loaded. packs=N` 即成功；游戏内按 **F6** 可打开 psapi_manager 管理面板。
+2. **装框架**：把 `Mods/PSApi.dll` 复制到 `<游戏根>/Mods/`。
+3. **装内容包**：把想要的包目录复制到 `<游戏根>/UserData/PSApi/packs/`（推荐先装 `psapi_manager`；学习时按文档装对应 `examples/exNN`）。
+4. **验证**：启动游戏，MelonLoader 控制台出现 `PSApi v2.0.0 loaded` 与 `rescan(init): N pack(s), ... 0 compile error(s)` 即成功；游戏内按 **F6** 可打开 psapi_manager 管理面板。
 
 ---
 
 ## 二、⚠️ 冲突与常见坑（必读）
 
-1. **gunworks 双形态冲突（最重要的坑）**
-   gunworks 同时以两种形态存在于本仓库：`Mods/PSPack.gunworks.dll`（编译版）和 `UserData/PSApi/packs/gunworks/`（文件夹版）。
-   **两者只能装一个**：同 id 并存时启动主菜单会弹"重复加载"冲突窗，且 **DLL 胜出、文件夹版被忽略**。
-   - 普通玩家 → 装 DLL（版本固定、防误改）；
-   - 想学习/魔改 → 装文件夹版，改文件重启游戏即生效（此时**不要**把 DLL 留在 `Mods/`）。
+1. **升级时清理旧版残留（尤其 v2.0.0 升级）**
+   v2.0.0 合并为单 dll：更新前先删除 `Mods/` 里的旧版 `PSApi.Items.dll`、`PSApi.Events.dll` 及任何 `PSPack.*.dll`，再放入新的 `PSApi.dll`。新旧并存会导致重复注册与不可预期的行为。
 
-2. **两个框架 DLL 必须配对安装**
-   `PSApi.Events` 硬引用 `PSApi.Items`（只装 Events 会降级甚至异常），且 Events（优先级 20）必须在 Items（优先级 10）之后加载——MelonLoader 自动保证顺序，你只需要把两个 DLL 都放进 `Mods/`。
+2. **从 v1.x 升级的旧存档**
+   状态文件（`UserData/PSApi/state/`）格式兼容，无需处理；若曾装过 gunworks 的 DLL 形态，卸载后其注入内容随旧存档自然失效，不影响框架。
 
-3. **升级时清理旧版残留**
-   更新版本前先删除 `Mods/` 里的旧版 `PSApi.*.dll` / `PSPack.*.dll`，新旧并存会导致重复注册与不可预期的行为。
-
-4. **前置依赖（prerequisites）**
+3. **前置依赖（prerequisites）**
    内容包 `pack.json` 的 `prerequisites` 字段生效：若所依赖的包未安装，该包整体跳过加载，并在主菜单弹"缺少前置模组"冲突窗。
 
-5. **`UserData/PSApi/state/` 是存档状态，勿手改**
+4. **`UserData/PSApi/state/` 是存档状态，勿手改**
    该目录按存档槽（`state/<slot>/<owner>.json`）由框架自动读写，手改会破坏玩法进度。同理 `logs/` 和 `ui/` 也是运行时产物，无需备份或分发。
 
-6. **排障第一现场**
+5. **排障第一现场**
    出问题先看 `<游戏根>/UserData/PSApi/logs/`（含 `pack_errors`、PSScript 编译错误等），排查方法见[开发工作流文档](api_docs/01-getting-started/04-workflow.md)。
 
 ---
 
-## 三、开发者文档（api_docs/，65 篇中文）
+## 三、开发者文档（api_docs/，9 章 61 篇中文）
 
 | 章节 | 内容 |
 |---|---|
@@ -90,36 +79,50 @@ D:\game\steam\steamapps\common\Probably Stolen Demo\
 | [05 内置 API 参考](api_docs/05-api-reference/README.md) | PSScript 全部内置函数，按主题分类 + 完整示例 |
 | [06 PSUI 界面](api_docs/06-psui/README.md) | 声明式 UI：窗口、控件、脚本绑定 |
 | [07 进阶主题](api_docs/07-advanced/README.md) | 存档状态、原版内容注入、自定义 NPC（参考级）、调试排障、item_editor |
-| [08 实战讲解](api_docs/08-examples/README.md) | example_hello / psapi_manager / gunworks 三个真实包逐文件带读 |
+| [08 实战讲解](api_docs/08-examples/README.md) | **34 个教学示例包总导航** + psapi_manager 带读 + 从 0 到 1 工作流 |
 | [09 附录](api_docs/09-appendix/README.md) | 原版物品 id 对照、术语表、速查表、FAQ |
 
 所有语法、字段、函数签名均取自 `_psapi/` 真实源码并经游戏反编译双重核对，示例完整可运行。**新手从[这里](api_docs/01-getting-started/01-intro.md)开始。**
 
-## 四、从源码构建（_psapi/）
+## 四、教学示例包（examples/，34 个）
 
-两个 csproj 用相对路径引用游戏侧 DLL（`..\..\MelonLoader\...`），因此**源码必须位于 `<游戏根>/_psapi/`（与 `MelonLoader/` 同级）才能编译**：
+每个知识小节配一个**最小可运行示例包**——读到哪、装到哪、跑到哪：
+
+| 分组 | 包 | 学什么 |
+|---|---|---|
+| 入门 | ex01 ~ ex04 | 第一个包、目录全景、依赖声明 |
+| 数据面 | ex05 ~ ex11 | 物品字段、模板、次数、机器三路线、配方、品质、图标 |
+| PSScript | ex12 ~ ex18 | 类型、字符串、控制流、函数、容器、事件、错误防御 |
+| API | ex19 ~ ex24 | state/time、商店事件、items、inject、npc、ui |
+| PSUI | ex25 ~ ex29 | 全控件、回调、动态构建、槽位、机器面板 |
+| 进阶 | ex30 ~ ex34 | NPC 全配置、场景、战斗、state 深入、迷你 mod 综合 |
+
+用法：把包复制进 `packs/` → 启动游戏 → 先读包内 `README.md` 的"验证"节对照日志 → 改"动手练习"里的值重启看效果。全部 34 包可同时安装、互不冲突、不依赖其他 mod。总导航见[08 章](api_docs/08-examples/README.md)。
+
+## 五、从源码构建（_psapi/）
+
+单工程用相对路径引用游戏侧 DLL（`..\..\MelonLoader\...`），因此**源码必须位于 `<游戏根>/_psapi/`（与 `MelonLoader/` 同级）才能编译**：
 
 ```bash
 # 把 _psapi/ 复制到游戏根目录后：
-cd "<游戏根>/_psapi/PSApi.Items"  && dotnet build -c Release   # 先构建 Items
-cd "<游戏根>/_psapi/PSApi.Events" && dotnet build -c Release   # Events 引用 Items 的 Release 产物
+cd "<游戏根>/_psapi/PSApi" && dotnet build -c Release
 ```
 
-产物在各自 `bin/Release/`，复制到 `<游戏根>/Mods/` 即可（覆盖旧版前记得先删）。
+产物在 `bin/Release/PSApi.dll`，复制到 `<游戏根>/Mods/` 即可（覆盖旧版前记得先删）。
 
-## 五、开发工具（_tools/）
+## 六、开发工具（_tools/）
 
 | 工具 | 用法 |
 |---|---|
-| `item_editor/` | Python 物品编辑器：`run_editor.bat` 启动，含 gunworks 物品 id 对照表 |
+| `item_editor/` | Python 物品编辑器：`run_editor.bat` 启动 |
 | `pack_compiler/` | 内容包 → 单 DLL 编译器：`dotnet build -c Release` 后 `pack_compiler <packDir> [outDir]`，产出 `PSPack.<包id>.dll`；`--verify <dll>` 自检 |
 | AssetRipper | **不入库**（可执行文件 130MB，超 GitHub 单文件限制），请自行从 [官网](https://github.com/AssetRipper/AssetRipper) 下载，用于游戏资源逆向 |
 
-## 六、5 分钟写第一个内容包
+## 七、5 分钟写第一个内容包
 
-1. 复制 `UserData/PSApi/packs/example_hello/` 整个目录为 `packs/my_pack/`；
+1. 复制 `examples/ex01_hello/` 整个目录到 `<游戏根>/UserData/PSApi/packs/my_pack/`；
 2. 改 `pack.json` 的 `id` 为 `my_pack`（必须与目录名一致）；
-3. 全局替换包内 JSON 里的 `example_hello:` → `my_pack:`；
+3. 全局替换包内 JSON / `.pss` 里的 `ex01_hello` → `my_pack`；
 4. 启动游戏，看 `UserData/PSApi/logs/` 没有 `pack_errors` 即加载成功。
 
 完整教程见[5 分钟跑通第一个包](api_docs/01-getting-started/03-first-pack.md)。
@@ -128,6 +131,6 @@ cd "<游戏根>/_psapi/PSApi.Events" && dotnet build -c Release   # Events 引�
 
 ## Credits
 
-- 框架作者：**Research**（PSApi.Items / PSApi.Events）
-- 本仓库文档（api_docs/）基于源码与游戏反编译逐字段核对编写，共 9 章 65 篇约 31 万字
+- 框架作者：**Research**（PSApi）
+- 本仓库文档（api_docs/）基于源码与游戏反编译逐字段核对编写，共 9 章 61 篇约 31 万字
 - 依赖：[MelonLoader](https://github.com/LavaGang/MelonLoader)、Harmony

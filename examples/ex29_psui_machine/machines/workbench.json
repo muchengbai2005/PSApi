@@ -1,0 +1,10 @@
+{
+  "//": "机器声明: ui=psui → 双击 workbench 物品原生打开 PSUI 面板; panel 写短名 (自动补本包前缀 → ex29_psui_machine:workbench, 与 ui/workbench.psui 的 window id 严格一致)。槽内物品随机器物品存档序列化 (隔夜不丢, 关窗不退)。本机不配 recipes — 隔夜行为/玩法全部在 events/workbench.pss 脚本里。启动时控制台的 machine audit 体检行里应看到 ui=psui。",
+  "machines": [
+    {
+      "id": "ex29_psui_machine:workbench",
+      "ui": "psui",
+      "panel": "workbench"
+    }
+  ]
+}

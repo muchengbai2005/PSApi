@@ -1,0 +1,8 @@
+{
+  "id": "ex03_deps_base",
+  "name": "示例 03 · 被依赖的地基包",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex03: 依赖机制里的'被依赖方'。只提供一个基础物品 base_token, 供 ex04_deps_user 通过 prerequisites + items.has 依赖。对应文档 02-pack/README.md。"
+}

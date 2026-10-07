@@ -16,7 +16,7 @@ v0.5.3 起的硬规则：**一个物品是不是机器，只看它在不在 `mac
 ```text
 items/gun_bench.json            machines/gun_bench.json
 "items": [{                       "machines": [{
-  "id": "gunworks:gw_bench",  ◀──▶  "id": "gunworks:gw_bench",
+  "id": "my_pack:gun_bench",  ◀──▶  "id": "my_pack:gun_bench",
   ...                                "ui": "psui", ...
 }]                                }]
 ```
@@ -32,7 +32,7 @@ items/gun_bench.json            machines/gun_bench.json
 |---|---|---|---|
 | **原版工厂桥接** | `furnace` 等 13 种（下表） | 调原版机器工厂，保留真实窗口/槽位/电池/模组闭包 | 想要原版机器的全部原生行为 |
 | **自装配窗口** | `custom` | `CustomMachineFactory` 自己拼窗口（输入/输出两栏） | 全新布局，纯 JSON 可控 |
-| **PSUI 面板** | `psui` | `PSApi.Events` 按同包 `ui/<panel>.psui` 装配，逻辑全在脚本 | 深度定制界面+玩法（gunworks 组装台路线） |
+| **PSUI 面板** | `psui` | PSApi 界面面按同包 `ui/<panel>.psui` 装配，逻辑全在脚本 | 深度定制界面+玩法（[ex29_psui_machine](../../examples/ex29_psui_machine/README.md) 路线） |
 | （不声明） | 缺省或 `none` | 无窗口 | 纯装饰 |
 
 **原版工厂 13 种**（大小写/`-`/空格不敏感，括号内为等价别名）：
@@ -168,15 +168,16 @@ items/gun_bench.json            machines/gun_bench.json
 ```json
 {
   "machines": [
-    { "id": "gunworks:gw_bench", "ui": "psui", "panel": "gun_bench" }
+    { "id": "my_pack:gun_bench", "ui": "psui", "panel": "gun_bench" }
   ]
 }
 ```
 
 窗口和逻辑完全交给脚本侧：`ui/gun_bench.psui` 描述界面，`.pss` 脚本订阅事件
 写玩法。机器物品只负责"双击开窗 + 槽内物品随存档序列化"。这是最自由也最
-费代码的路线，完整教学见 [06 PSUI](../06-psui/README.md) 与
-[08 实战 gunworks 带读](../08-examples/README.md)。
+费代码的路线，完整教学见 [06 PSUI](../06-psui/README.md)、教学包
+[ex29_psui_machine](../../examples/ex29_psui_machine/README.md) 与
+[08 实战示例包](../08-examples/README.md)。
 
 ## 槽位过滤器：白名单三层
 
@@ -215,15 +216,16 @@ machine audit: my_pack:module_copier ui=desequencer printer(tpl=2 blank=3 out=4 
 | `recipe X input tag Y cannot enter Z slot` | 配方 tag 与槽位原生过滤器冲突，配 whitelist 或换 tag |
 | `recipe X machine 'Y' has no machines/*.json declaration` | 配方的 machine 写错，配方永远不会跑 |
 
-## 完整示例：三台官方验证机
+## 完整示例：机器三路线教学包
 
-`example_hello` 包的三台机器覆盖了三条路线，建议对着源文件读：
+教学包 [ex08_machines](../../examples/ex08_machines/README.md) 用三台机器
+覆盖了三条路线（furnace / custom / 进度机各一台），建议对着源文件读：
 
-| 机器 | 路线 | 文件 |
-|---|---|---|
-| 示例熔炉 | furnace 桥接 + 批次机 | `machines/example_smelter.json` + `recipes/smelter_tests.json` |
-| 示例读卡器 | desequencer + 进度机 + 双输入槽白名单 | `machines/example_desequencer.json` + 7 条链式配方 |
-| 示例加工机 | custom 自装配（免电） | `machines/example_processor.json` + `items/example_processor.json` |
+| 文件 | 内容 |
+|---|---|
+| `items/machines_tour.json` | 三台机器的物品定义 |
+| `machines/` | 三份机器声明，三路线各一 |
+| `recipes/` | 三份配方，按机器拆文件 |
 
 ---
 

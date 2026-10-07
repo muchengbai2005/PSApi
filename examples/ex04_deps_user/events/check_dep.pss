@@ -1,0 +1,23 @@
+# check_dep.pss — ex04_deps_user 的唯一脚本: 对前置包做"双层运行时检查"
+#
+# prerequisites 只保证"地基包的 id 被扫描到了"(存在性检查, 不传递、不看加载成败),
+# 所以运行时再查一层是好习惯。本脚本演示两个互补的检查:
+#   1. items.name(id)  → 物品"注册了吗"(返回 null = 未注册, 不管你手上有没有)
+#   2. items.has(id)   → 你"手上有没有"(搜随身背包+后仓, 计入堆叠)
+
+const PACK = "ex04_deps_user"
+const DEP_PACK = "ex03_deps_base"
+const DEP_ITEM = "ex03_deps_base:base_token"
+
+log.info("[{PACK}] check_dep.pss 已加载 — 本包声明了前置 {DEP_PACK}, 加载器已保证'它在'才会加载我们")
+
+on game_loaded():
+    var dep_name = items.name(DEP_ITEM)
+    if dep_name != null:
+        log.info("[{PACK}] 前置物品已注册: {DEP_ITEM} (显示名: {dep_name})")
+        if items.has(DEP_ITEM):
+            log.info("[{PACK}] 背包/后仓里也有实体 — 前置完全就绪")
+        else:
+            log.info("[{PACK}] 已注册但手上还没有实体 — 按 F12 发放后此条会变成'完全就绪'")
+    else:
+        log.warn("[{PACK}] 前置物品未注册?! {DEP_PACK} 可能扫描到了但没加载成功 (prerequisites 只查 id 存在, 不传递)")

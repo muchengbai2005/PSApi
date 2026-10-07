@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 2/2: 礼签。on_target 拖拽的源物品: 拖到神秘礼盒上 → 贴祝福语 + 消耗 1 张。",
+  "items": [
+    {
+      "id": "ex24_api_ui_handles:gift_tag",
+      "name": "礼签",
+      "desc": "ex24 演示用礼签。按住拖到神秘礼盒上, 给礼盒贴一句祝福。",
+      "template": "newspaper",
+      "value": 8,
+      "test": true
+    }
+  ]
+}

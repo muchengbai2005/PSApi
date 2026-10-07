@@ -1,0 +1,8 @@
+{
+  "id": "ex20_api_shop_events",
+  "name": "示例 20 · 商店观测与商店事件",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex20: shop 只读观测台(status/attract/current_client/queue) + store_event 自定义「今日运势」事件(register/queue)与 started/ended 桥接。对应文档 05-api-reference/04-shop.md 与 05-store-event.md。注意全部功能只在开店存档(进 Emporium 开店)后触发。"
+}

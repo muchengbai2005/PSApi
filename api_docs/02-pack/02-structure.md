@@ -11,16 +11,19 @@
 ```text
 UserData/PSApi/packs/<你的包>/
 ├── pack.json        ← 必备：包清单（见上一篇）
-├── items/           ← 数据面：物品定义 JSON        （PSApi.Items 读）
-├── machines/        ← 数据面：机器声明 JSON         （PSApi.Items 读）
-├── recipes/         ← 数据面：配方 JSON             （PSApi.Items 读）
-├── qualities/       ← 数据面：品质层 JSON           （PSApi.Items 读）
-├── icons/           ← 数据面：物品图标 PNG          （PSApi.Items 读）
-├── events/          ← 逻辑面：PSScript 脚本 .pss    （PSApi.Events 读）
-└── ui/              ← 界面面：PSUI 面板 .psui       （PSApi.Events 读）
+├── items/           ← 数据面：物品定义 JSON        （PSApi 数据面模块读）
+├── machines/        ← 数据面：机器声明 JSON         （PSApi 数据面模块读）
+├── recipes/         ← 数据面：配方 JSON             （PSApi 数据面模块读）
+├── qualities/       ← 数据面：品质层 JSON           （PSApi 数据面模块读）
+├── icons/           ← 数据面：物品图标 PNG          （PSApi 数据面模块读）
+├── events/          ← 逻辑面：PSScript 脚本 .pss    （PSApi 逻辑面模块读）
+├── scenes/          ← 逻辑面：自定义外出场景         （PSApi 逻辑面模块读，
+│                      扁平 <id>.json 或文件夹 <id>/scene.json + scripts/ + layout.json）
+└── ui/              ← 界面面：PSUI 面板 .psui       （PSApi 逻辑面模块读）
 ```
 
-规则与细节（依据 `PackScanner.cs` / `PackSource.cs` / 两宿主 `Plugin.cs`）：
+规则与细节（依据 `_psapi/PSApi/Shared/` 的 `PackScanner.cs` / `PackSource.cs` /
+`PackMerger.cs` 与两模块 `Plugin.cs`——v2.0.0 起同属单个 `PSApi.dll`）：
 
 | 规则 | 说明 |
 |---|---|
@@ -28,7 +31,7 @@ UserData/PSApi/packs/<你的包>/
 | 子目录内部**允许再嵌套** | `items/weapons/rifle.json`、`events/quest/chapter1.pss` 都合法——文件检索是递归的 |
 | 文件名即检索顺序 | 每个子目录内的文件按**路径名不区分大小写字典序**依次加载 |
 | 逻辑路径用正斜杠 | 引用包内文件时写 `items/gun1.json` 风格（DLL 内嵌包同样如此，见[第三篇](03-distribution.md)） |
-| 谁读哪个目录 | Items 读 `items/ machines/ recipes/ qualities/ icons/`；Events 读 `events/ ui/`——互不干涉，只放单面的内容包完全合法 |
+| 谁读哪个目录 | 数据面模块读 `items/ machines/ recipes/ qualities/ icons/`；逻辑面模块读 `events/ scenes/ ui/`——互不干涉，只放单面的内容包完全合法 |
 | 空包合法 | 只有 pack.json、零内容子目录的包也能正常加载（计数为 0 而已） |
 
 各子目录里 JSON 的**内容格式**（每个字段什么意思）属于数据面话题，展开在
@@ -39,8 +42,8 @@ UserData/PSApi/packs/<你的包>/
 
 | 对象 | 格式 | 例子 |
 |---|---|---|
-| 包 id | 小写字母 + 下划线（建议） | `gunworks` |
-| 自定义内容 id | `包id:名字`（全局唯一） | `gunworks:gw_semi_sniper` |
+| 包 id | 小写字母 + 下划线（建议） | `my_pack` |
+| 自定义内容 id | `包id:名字`（全局唯一） | `my_pack:my_sniper` |
 | 引用原版内容 | `game:裸id` | `game:scrap_metal` |
 | 包内图标引用 | 文件名（相对 `icons/`） | `"icon": { "file": "rifle.png" }` |
 
@@ -50,18 +53,19 @@ UserData/PSApi/packs/<你的包>/
 
 ## 启动管线：从文件夹到游戏内容
 
-两个宿主模组**各自独立**跑一遍"扫描 → 合并 → 消费"，互不依赖对方的扫描结果：
+PSApi 单宿主内的**数据面/逻辑面两模块各自独立**跑一遍"扫描 → 合并 → 消费"，
+互不依赖对方的扫描结果：
 
 ```text
 游戏启动
 │
 ├─ MelonLoader 按 MelonPriority 加载 Mods/ 下的 DLL
-│    PSPack.*.dll (5) → PSApi.Items (10) → PSApi.Events (20)
-│         │                 │                   │
-│         ▼                 │                   │
-│    Register 登记          │                   │
-│    内嵌包资源 ────────────┤                   │
-│                          ▼                   ▼
+│    PSPack.*.dll (5) → PSApi.dll (10, 单宿主: items+events)
+│         │                 │
+│         ▼                 │
+│    Register 登记          │
+│    内嵌包资源 ────────────┤
+│                          ▼
 │              ┌──────────────────────────────────────┐
 │              │ ① 扫描 PackScanner                    │
 │              │  packs/ 一层子目录按目录名排序          │
@@ -75,9 +79,10 @@ UserData/PSApi/packs/<你的包>/
 │              │  统一做 prerequisites 检查             │
 │              │  （缺前置 → 记 missing_prereq 冲突跳过）│
 │              ├──────────────────────────────────────┤
-│              │ ③ 消费（各自为政）                     │
-│              │  Items: qualities → items → recipes   │
-│              │  Events: events/*.pss + ui/*.psui     │
+│              │ ③ 消费（两模块各自为政）                │
+│              │  数据面: qualities → items → recipes   │
+│              │  逻辑面: events/*.pss + scenes/ +      │
+│              │         ui/*.psui                     │
 │              │  错误汇总 → logs/pack_errors_*.log     │
 │              └──────────────────────────────────────┘
 │
@@ -85,9 +90,8 @@ UserData/PSApi/packs/<你的包>/
      首次进入 EmporiumMenu 时读取合并结果，弹"PS-API 内容包冲突"窗
 ```
 
-两个宿主都跑完合并后，会**各打印一遍**冲突警告（所以同一条冲突在日志里
-可能出现两次，一次带 `[PSApi.Items]` 前缀、一次带 `[PSApi.Events]` 前缀，
-这是正常现象）。
+两模块都跑完合并后，会**各打印一遍**冲突警告（同一条冲突在日志里可能出现
+两次，前缀同为 `[PSApi]`，这是正常现象）。
 
 ## 加载顺序详解
 
@@ -97,11 +101,11 @@ UserData/PSApi/packs/<你的包>/
 
 ```text
 PSPack.<id>.dll   priority = 5    ← 编译包 DLL，先登记内嵌资源
-PSApi.Items.dll   priority = 10   ← 数据面宿主
-PSApi.Events.dll  priority = 20   ← 逻辑/界面面宿主（晚于 Items，脚本可安全引用物品）
+PSApi.dll         priority = 10   ← 单宿主：内部数据面先初始化，逻辑面随后
+                                    （脚本可安全引用物品）
 ```
 
-这一层决定**谁先初始化**。包 DLL 必须先于 Items 注册，否则合并时内嵌包
+这一层决定**谁先初始化**。包 DLL 必须先于 PSApi 注册，否则合并时内嵌包
 还没就位——这是编译器把 stub 的 priority 定为 5 的原因（见[第三篇](03-distribution.md)）。
 
 ### 第二层：包与包之间（扫描顺序）
@@ -112,7 +116,7 @@ PSApi.Events.dll  priority = 20   ← 逻辑/界面面宿主（晚于 Items，�
 packs/
 ├── alpha_pack/     ← 先加载（目录名靠前）
 ├── beta_lib/       ← 再加载
-└── gunworks/       ← 再加载
+└── gamma_pack/     ← 再加载
 ```
 
 - 排序规则：目录名**不区分大小写的字典序**（OrdinalIgnoreCase）。
@@ -136,11 +140,11 @@ packs/
 | **文件夹包** vs **DLL 包**同 id | **DLL 胜**，文件夹包整包丢弃 | 警告 `pack conflict [duplicate]: <id> 同时存在 dll 与 pack, 已默认加载 dll`；弹"重复加载"窗 |
 | 两个 **DLL** 同 id | 先注册者胜，后者丢弃 | 仅警告 `embedded pack '<id>': duplicate registration, first registered wins, skipped`；不弹窗 |
 
-> 开发期"文件夹 + DLL 并存"是官方认可的对照验证手法（本仓库 `gunworks`
-> 就是活例子：`packs/gunworks/` 与 `Mods/PSPack.gunworks.dll` 并存，DLL 胜出）。
+> 开发期"文件夹 + DLL 并存"是官方认可的对照验证手法（例如 `packs/my_pack/`
+> 与 `Mods/PSPack.my_pack.dll` 并存时，DLL 胜出）。
 > 但要记得：**你改的文件夹版根本没被加载**——验证改动前先移走 DLL。
 
-id 比较一律**不区分大小写**（`Gunworks` 与 `gunworks` 视为同一个 id）。
+id 比较一律**不区分大小写**（`My_Pack` 与 `my_pack` 视为同一个 id）。
 
 ## prerequisites 的精确语义
 
@@ -173,10 +177,10 @@ EmporiumMenu，故以它为触发点）：
 ┌─ PS-API 内容包冲突 ──────────────────────────┐
 │                                               │
 │  缺少前置模组:                                 │
-│    my_pack 需要 gunworks                       │
+│    my_pack 需要 my_weapon_lib                  │
 │                                               │
 │  重复加载:                                     │
-│    gunworks 同时存在 dll 与 pack, 已默认加载 dll │
+│    my_pack 同时存在 dll 与 pack, 已默认加载 dll │
 │                                               │
 │                 [ 确定 ]                       │
 └───────────────────────────────────────────────┘

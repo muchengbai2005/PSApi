@@ -1,0 +1,34 @@
+{
+  "//": "3 个机器物品。铁律: 物品是不是机器, 只看 machines/*.json 里有没有声明 — 但机器物品本身也必须在 items/ 里定义, 否则 audit 警告 has no items/*.json definition → never built。directory 一律 StationMachinery。",
+  "items": [
+    {
+      "id": "ex08_machines:demo_furnace",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例批次炉",
+      "desc": "路线①: furnace 工厂桥接 + 批次机, 一晚出货。",
+      "value": 400,
+      "test": true
+    },
+    {
+      "id": "ex08_machines:demo_reader",
+      "directory": "StationMachinery",
+      "template": "desequencer",
+      "name": "示例读卡机",
+      "desc": "路线②: desequencer 工厂桥接 + 进度机, 34/100 三夜出货。",
+      "value": 500,
+      "test": true
+    },
+    {
+      "id": "ex08_machines:demo_press",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例压块机",
+      "desc": "路线③: custom 自装配窗口, 免电, 输入网格 3x4。",
+      "value": 300,
+      "types": ["MACHINE"],
+      "shape": { "w": 2, "h": 2, "cells": [ [0, 0], [0, 1], [1, 0], [1, 1] ] },
+      "test": true
+    }
+  ]
+}

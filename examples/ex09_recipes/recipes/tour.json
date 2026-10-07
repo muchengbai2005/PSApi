@@ -1,0 +1,47 @@
+{
+  "//": "4 条配方 = 4 个知识点: r_basic 单输入基线; r_hybrid 多输入 AND + display 显示名; r_priority 抢占 (priority 10 压过 r_basic 的默认 0 — 同样 2 废金属, 出瓶装水不出报纸, 这就是 recipeSort 的'每晚选第一条可 craft 的'); r_ore 压矿成铁。id 归一化: output/inputs 的原版物品写 game: 前缀 (加载时剥成裸 id), machine 写本包机器全 id。",
+  "recipes": [
+    {
+      "//": "① 单输入 + 显式 qualityRule:none (默认值, 产物无品质; 另两档见 README)",
+      "id": "ex09_recipes:r_basic",
+      "machine": "ex09_recipes:demo_furnace",
+      "output": { "id": "game:newspaper", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2, "display": "废金属" } ],
+      "qualityRule": "none",
+      "customName": "基础熔炼：报纸",
+      "description": "单输入基线: 2 废金属 → 1 报纸。默认 priority 0。"
+    },
+    {
+      "//": "② 多输入: inputs 里所有条目都要满足 (AND); display 是 UI 显示名, 缺省用 id",
+      "id": "ex09_recipes:r_hybrid",
+      "machine": "ex09_recipes:demo_furnace",
+      "output": { "id": "game:battery", "count": 1 },
+      "inputs": [
+        { "id": "game:scrap_metal", "count": 1, "display": "废金属" },
+        { "id": "game:common_ore", "count": 1, "display": "普通矿石" }
+      ],
+      "qualityRule": "none",
+      "customName": "杂拌电池",
+      "description": "多输入 AND: 1 废金属 + 1 普通矿石缺一不可 → 1 电池。"
+    },
+    {
+      "//": "③ priority 抢占: 与 r_basic 同吃 2 废金属, 但 priority 10 > 0 → 每晚先被选中 (被压制是特性, 练习里会救活 r_basic)",
+      "id": "ex09_recipes:r_priority",
+      "machine": "ex09_recipes:demo_furnace",
+      "output": { "id": "game:bottled_water", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2 } ],
+      "priority": 10,
+      "customName": "优先熔炼：瓶装水",
+      "description": "priority 演示: 同料不同产出, priority 10 抢在 r_basic 前面。"
+    },
+    {
+      "//": "④ 最低门槛: 单输入单产出, 无任何可选字段 — qualityRule 省略等于 none",
+      "id": "ex09_recipes:r_ore",
+      "machine": "ex09_recipes:demo_furnace",
+      "output": { "id": "game:scrap_metal", "count": 1 },
+      "inputs": [ { "id": "game:common_ore", "count": 1 } ],
+      "customName": "压矿成铁",
+      "description": "最简配方: 1 普通矿石 → 1 废金属。"
+    }
+  ]
+}

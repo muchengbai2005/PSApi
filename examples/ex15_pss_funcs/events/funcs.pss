@@ -1,0 +1,72 @@
+# funcs.pss — ex15: PSScript 函数
+# 对应文档: api_docs/04-psscript/07-functions.md
+#
+# 两条保护极限 (源码 Interpreter): 递归深度上限 64 层, 单段执行步数预算 100000 步。
+# 超限报运行错误并终止本段, 不崩游戏 — 深递归不可靠, 大计算改 while。
+
+const PACK = "ex15_pss_funcs"
+
+# ---------- 定义 / 调用 / 默认参数 ----------
+func greet(name, greeting = "你好"):    # 默认值在每次调用缺省时重新求值
+    return "{greeting}, {name}!"
+
+log.info("[{PACK}] 默认参数: greet('老猫') → {greet('老猫')}")
+log.info("[{PACK}] 覆盖默认: greet('老猫', '久仰') → {greet('老猫', '久仰')}")
+# 注意: 只有位置传参 — greet(name='老猫') 这种关键字传参是编译错误
+
+# ---------- 忘写 return → 返回 null (新手第一大坑) ----------
+func forgot_return(a, b):
+    a + b                               # 表达式算了, 但没 return!
+
+log.info("[{PACK}] 忘写 return 的返回值: {forgot_return(1, 2)} (不是 3, 是 null)")
+
+# ---------- 守卫子句 + 提前 return ----------
+func try_sell(price, stock):
+    if price <= 0:
+        return "价格非法"                # 不合法早退, 主逻辑不用层层嵌套
+    if stock <= 0:
+        return "没货"
+    return "成交 {stock} 件, 收 {price * stock}"
+
+log.info("[{PACK}] 提前 return: try_sell(50, 3) → {try_sell(50, 3)}")
+log.info("[{PACK}] 守卫拦截: try_sell(50, 0) → {try_sell(50, 0)}")
+
+# ---------- 函数是值: 存进变量, 括号调用 ----------
+func restock_plan():
+    return ["rifle:2", "medkit:5", "scrap:10"]
+
+var plan = restock_plan                 # 不加括号 = 函数本身; 加了括号 = 立刻调用
+log.info("[{PACK}] 函数是值: type(plan) = {type(plan)}; plan() = {plan()}")
+
+# ---------- 函数当参数传递 ----------
+func double(x):
+    return x * 2
+
+func apply(fn, v):                      # fn 参数拿到的是函数值
+    return fn(v)
+
+log.info("[{PACK}] 函数当参数: apply(double, 21) = {apply(double, 21)}")
+# 真实用途: npc.register({... sell_items = fence_stock ...}) 传"动态货清单函数"时不加括号
+
+# ---------- 返回值: 只有单返回; 想要"多值" → 塞数组 ----------
+func minmax(nums):
+    var lo = nums[0]
+    var hi = nums[0]
+    for n in nums:
+        if n < lo:
+            lo = n
+        if n > hi:
+            hi = n
+    return [lo, hi]
+
+var mm = minmax([7, 2, 9, 4])
+log.info("[{PACK}] 多值用数组模拟: minmax → 最小 {mm[0]} / 最大 {mm[1]}")
+
+# ---------- 递归 (深度上限 64) ----------
+func fact(n):
+    if n <= 1:                          # 基线条件必须有, 否则深度 64 熔断
+        return 1
+    return n * fact(n - 1)
+
+log.info("[{PACK}] 递归阶乘: fact(10) = {fact(10)}")
+# 动手试: 改成 fact(100) 重启 → 报 调用深度超过上限(64), 疑似无限递归

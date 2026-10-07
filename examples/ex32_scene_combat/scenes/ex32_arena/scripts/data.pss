@@ -1,0 +1,41 @@
+# data.pss — ex32 锈甲竞技场 · 敌人定义与文案
+#
+# 知识点 (对应文档 08-scenes-raid.md §六 "raid 玩法 = pss 库 + 数据表"):
+#   gunworks 把敌人表放 scenes/_raid/scripts/bestiary.pss 集中管理;
+#   本教学包大幅简化 — 1 种敌人直接写在这, 结构与 bestiary 工厂返回的 dict 同构。
+#
+# 敌人 dict 字段 (rt_start cfg 的直接来源; 括号内为文档口径的取值说明):
+#   id / name     — 敌人标识与显示名
+#   hp            — 直接 HP 值 (≤10 会回退旧 pip×15 兼容格式, 写 120 走直接值)
+#   atk           — 反击伤害区间 "lo-hi" (受 roll_damage ×姿态×档位×0.85-1.15 浮动)
+#   band          — 初始距离带: 0 近战 / 1 中距 / 2 远距 (默认 1)
+#   behaviors     — 行为卡组 (加权出牌): strafe(speed/amplitude/noise) / charge / shrink / hide /
+#                   dash / zigzag / circle / leap / feint ... 全表见文档 §六
+#   charge        — 冲锋参数 {duration 秒, stagger_mul, heavy_mul 重击倍率}
+#   loot          — 胜利掉落清单 (boot.pss 逐条 grid.ground_place 上地)
+
+const EX32_SCENE = "ex32_arena:ex32_arena"
+
+var ARENA_ENEMY = {
+    id = "arena_keeper",
+    name = "锈甲看守",
+    hp = 120,                       # 直接 HP 值
+    atk = "6-10",                   # 反击区间
+    band = 1,                       # 中距离开场
+    behaviors = [
+        {type = "strafe", weight = 60, speed = 2.0, amplitude = 90, noise = 1.2},
+        {type = "charge", weight = 40},
+    ],
+    charge = {duration = 2, heavy_mul = 1.5},
+    loot = [
+        {id = "scrap_metal", count = 2},
+        {id = "common_ore", count = 1},
+    ],
+}
+
+var EX32_TEXTS = {
+    enter = "围栏后传来金属摩擦声 — 锈甲看守发现你了。",
+    win = "看守瘫在地上不再动弹。军械架, 现在没人看着了。",
+    flee = "你从围栏缺口溜了出去。军械架还在他身后, 这趟算白来。",
+    lose = "你被打倒在地。再睁眼时, 人已经在店门口 — 药费自理。",
+}

@@ -6,8 +6,8 @@
 
 ## 一、三层结构
 
-`state.*` 背后是一个纯托管类 `SaveStates`（`_psapi/Shared/SaveStates.cs`，
-Items / Events 两个模组各自编译一份，internal 无冲突）：
+`state.*` 背后是一个纯托管类 `SaveStates`（`_psapi/PSApi/Shared/SaveStates.cs`，
+v2.0.0 合并后单 dll 内一份；合并前 Items / Events 两模组曾各自编译一份）：
 
 ```text
 state.set("k", [1,2,3])                    脚本层
@@ -36,8 +36,8 @@ UserData/PSApi/state/<槽>/<owner>.json      磁盘层
 ```text
 UserData/PSApi/state/
 ├─ 8/                        ← 存档槽 8
-│  ├─ example_hello.json
-│  ├─ gunworks.json
+│  ├─ ex01_hello.json
+│  ├─ ex33_state_deep.json
 │  └─ psapi.events.npc.json
 ├─ 9/ ... 10/ ... 14/        ← 其余槽位(实际存在哪些取决于玩家建过的存档)
 └─ global/                   ← "无存档"槽(主菜单期写入落这里)

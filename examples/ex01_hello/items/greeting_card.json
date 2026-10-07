@@ -1,0 +1,13 @@
+{
+  "//": "数据面: 物品定义。items/ 目录下每个 .json 都是一个物品清单文件, 顶层键固定为 items, 值是物品数组。字段说明: id=全局唯一id(包id:名字); name/desc/value=名称/描述/基础售价; template=原版模板(继承图标/目录/行为); test=true 进 F12 测试分类(第29类), 方便调试发放。不写 icon 字段 → 图标走 template 的原版切片, 所以本包不需要任何 png。",
+  "items": [
+    {
+      "id": "ex01_hello:greeting_card",
+      "name": "问候卡",
+      "desc": "来自 ex01_hello 示例包的见面礼。按 F12 可发放全部测试物品。",
+      "template": "scrap_metal",
+      "value": 12,
+      "test": true
+    }
+  ]
+}

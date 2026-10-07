@@ -1,0 +1,40 @@
+# world.pss — ex19_api_state_world 的唯一脚本
+#
+# 演示四个"状态与查询"命名空间:
+#   state — 按存档槽隔离的 KV 存储(脚本的记忆: 持久/按槽隔离/值友好)
+#   time  — 游戏时间三查询(需要存档场景, 主菜单期调用会报"当前不可用")
+#   pack  — 已加载内容包清单(任何时候可查)
+#   rep   — 派系声望(建议 day_wake 之后的时机调用, 场景刚加载时会报"无声望记录")
+#
+# 对局限制速记: state/pack 任何时候可调; time 进对局(game_loaded)后可用;
+#   rep 至少等到 day_wake 之后。顶层代码在主菜单阶段执行, 所以顶层只碰 state。
+
+const PACK = "ex19_api_state_world"
+
+# ---- 顶层: state 四函数任何时候可调(主菜单无槽位, 写进 global 槽) ----
+var boot_count = state.get("boot_count", 0) + 1   # 读: 无此键且给默认值 → 返回默认值
+state.set("boot_count", boot_count)               # 写: 值自动 JSON 序列化, 随存档槽落盘
+log.info("[{PACK}] 启动第 {boot_count} 次(state 计数, global 槽), has(boot_count)={state.has('boot_count')}")
+
+# ---- game_loaded: 读档/新开对局完成, 已在存档场景 → time 可用 ----
+on game_loaded():
+    log.info("[{PACK}] 对局就绪: 开业第 {time.rel_day()} 天(周{time.weekday() + 1}), 绝对日 {time.day()}, 存档槽 {event.save_slot}")
+    log.info("[{PACK}] 上次会话的 tick 里程碑: {state.get('tick_milestone', 0)}(0 = 上次没攒到 5 秒)")
+    var packs = pack.list()
+    log.info("[{PACK}] 已加载内容包 {len(packs)} 个:")
+    for p in packs:
+        log.info("[{PACK}]   · {p.id} v{p.version} [{p.source}] {p.name}")
+
+# ---- tick: 每秒一次 → 演示"变量跨 tick 保留 + state 跨会话保留" ----
+var tick_count = 0
+on tick():
+    tick_count += 1                    # var 在事件触发之间保留(ex01 演示过)
+    if tick_count % 5 == 0:
+        state.set("tick_milestone", tick_count)   # state 还能跨会话保留(见 game_loaded 读回)
+        log.info("[{PACK}] tick 第 {tick_count} 次, 计数已存入 state(重启后可读回)")
+
+# ---- day_wake: 每天早晨醒来 → 打天数变化 + rep(此时声望表必已建档) ----
+on day_wake():
+    var last_day = state.get("last_rel_day", 0)
+    log.info("[{PACK}] 醒来: 开业第 {time.rel_day()} 天(周{time.weekday() + 1}), 上次记录 {last_day}, 黑市声望 {rep.get('bm')}")
+    state.set("last_rel_day", time.rel_day())     # 先查后记账: 下天对比出"天数变化"

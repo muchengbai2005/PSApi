@@ -1,0 +1,9 @@
+{
+  "id": "ex04_deps_user",
+  "name": "示例 04 · 依赖前置包",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex04: 依赖机制的'使用方'。prerequisites 声明 ex03_deps_base (缺了整包不加载); 脚本里 items.name/items.has 做双层运行时检查。对应文档 02-pack/README.md 的 prerequisites 一节。安装本包必须同时安装 ex03_deps_base。",
+  "prerequisites": ["ex03_deps_base"]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "ex17_pss_events",
+  "name": "示例 17 · 事件全景",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex17: PSScript 事件全景。演示: 全部 19 个桥接事件别名各打一行 log (tick 只 log 前 3 次) + bus.emit 自定义事件与字符串形式订阅。对应文档 04-psscript/09-events.md。"
+}

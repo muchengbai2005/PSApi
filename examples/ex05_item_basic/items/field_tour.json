@@ -1,0 +1,72 @@
+{
+  "//": "6 个物品 = 6 组字段演示。每个物品的 desc 写明自己演示什么。共同点: id 全写 (ex05_item_basic:xxx); test=true 进 F12; 图标一律不写 (icons/ 未建), 走 template 的图集切片——这是'省略走模板'的第一课。",
+  "items": [
+    {
+      "//": "演示 1: value + stack; icon 省略走模板 (scrap_metal 的切片)",
+      "id": "ex05_item_basic:value_stack",
+      "name": "标准零件",
+      "desc": "演示 value(25) 与 stack(5)。icon 未写 → 图标走模板 scrap_metal 的图集切片。",
+      "template": "scrap_metal",
+      "value": 25,
+      "stack": 5,
+      "test": true
+    },
+    {
+      "//": "演示 2: shape 自定义占格 (L 形: 3x2 包围盒缺右上格)。cells 是 [x,y] = [列,行], 原点左上",
+      "id": "ex05_item_basic:l_shape",
+      "name": "L 形零件",
+      "desc": "演示 shape: 3x2 包围盒只占 4 格的 L 形 (cells 里 x=列 y=行, 原点左上)。",
+      "template": "scrap_metal",
+      "value": 18,
+      "shape": {
+        "w": 3,
+        "h": 2,
+        "cells": [ [0, 0], [0, 1], [1, 1], [2, 1] ]
+      },
+      "test": true
+    },
+    {
+      "//": "演示 3: types(=tags 正式写法) + typesMode replace。types 参与 SetGameItemType; tags 是别名且额外参与目录映射",
+      "id": "ex05_item_basic:types_demo",
+      "name": "奢侈品零件",
+      "desc": "演示 types/typesMode: types=[LUXURY_ITEM, MATERIAL] + replace 清空模板类型 (默认 merge 是并集)。",
+      "template": "scrap_metal",
+      "value": 66,
+      "types": ["LUXURY_ITEM", "MATERIAL"],
+      "typesMode": "replace",
+      "test": true
+    },
+    {
+      "//": "演示 4: contraband 违禁品等级, 字符串枚举 none|low|mid|high|critical (内部 0-4 级); 非 none 走原版 InitContrabandItem: 违禁标签+安检识别+tooltip 警示",
+      "id": "ex05_item_basic:contraband_card",
+      "name": "加密黑卡",
+      "desc": "演示 contraband: high → 原版治安系统全面接管 (违禁标签/安检/卖黑货被查)。",
+      "template": "blank_keycard",
+      "value": 90,
+      "contraband": "high",
+      "test": true
+    },
+    {
+      "//": "演示 5: directory 显式声明优先于 tags 映射。tags=[MATERIAL] 本应映射 MaterialDirectory, 显式 directory=ToolDirectory 说了算",
+      "id": "ex05_item_basic:dir_demo",
+      "name": "示例扳手",
+      "desc": "演示 directory: 显式 ToolDirectory 优先于 tags 的 MATERIAL→材料目录映射, 落在工具目录。",
+      "template": "scrap_metal",
+      "value": 30,
+      "tags": ["MATERIAL"],
+      "directory": "ToolDirectory",
+      "test": true
+    },
+    {
+      "//": "演示 6: qualities + defaultQuality 出厂品质。引用必须写全 id 且品质先于物品加载 (数据面按 qualities→items→recipes 消费)",
+      "id": "ex05_item_basic:quality_ingot",
+      "name": "精铸锭",
+      "desc": "演示 defaultQuality: 出厂自带 q_fresh 品质层, tooltip 显示'品质: 新鲜出炉 ×1.5'。",
+      "template": "metal_ingot",
+      "value": 60,
+      "qualities": ["ex05_item_basic:q_fresh"],
+      "defaultQuality": "ex05_item_basic:q_fresh",
+      "test": true
+    }
+  ]
+}

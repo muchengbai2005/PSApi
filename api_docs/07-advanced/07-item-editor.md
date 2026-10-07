@@ -1,6 +1,6 @@
 # 07 · item_editor 物品编辑器
 
-> 工作区自带的可视化物品制作工具：`_tools/item_editor/item_editor.py`（Python/Tkinter，与 PSApi 运行时无关——它只生成内容包文件，不参与游戏加载）。工具自带完整操作手册见 `_docs/README-物品编辑器.md`，本篇从**模组开发工作流**视角讲怎么把它嵌进内容包生产线。
+> 工作区自带的可视化物品制作工具：`_tools/item_editor/item_editor.py`（Python/Tkinter，与 PSApi 运行时无关——它只生成内容包文件，不参与游戏加载）。工具自带完整操作手册见 `_docs/开发向/README-物品编辑器.md`，本篇从**模组开发工作流**视角讲怎么把它嵌进内容包生产线。
 
 ---
 
@@ -54,7 +54,7 @@ _tools/item_editor/
 
 ```
 <导出目录>/
-├─ items/<名>.json    ← 每物品一个（id 冒号后取名部分, gunworks:x → x.json）
+├─ items/<名>.json    ← 每物品一个（id 冒号后取名部分, my_pack:x → x.json）
 └─ icons/<名>.png     ← 每物品一个图标
 ```
 

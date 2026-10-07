@@ -1,0 +1,28 @@
+# tour.pss — ex02_dirs 的唯一脚本 (逻辑面: events/*.pss)
+#
+# 本包脚本三个职责:
+#   1. 启动日志: 确认脚本被逻辑面模块编译执行
+#   2. 自动打开 ui/demo_panel.psui (演示界面面: ui/ 目录)
+#   3. 提供面板按钮的 on_click 回调函数 (PSUI 的回调从本包 events/*.pss 查找)
+
+const PACK = "ex02_dirs"
+
+var panel_shown = false
+
+# 顶层语句: 启动即执行
+log.info("[{PACK}] tour.pss 已加载 — 本包在 8 个子目录各放一个最小文件 (icons/ 有意留空走模板兜底)")
+
+on game_loaded():
+    log.info("[{PACK}] 游戏加载完成: 1 物品 + 1 机器 + 1 配方 + 1 品质 + 1 面板 + 1 场景 全部就位")
+
+# 进场景后自动弹一次面板 (用标志位保证只弹一次)
+on scene_loaded():
+    if panel_shown == false:
+        panel_shown = true
+        ui.open("demo_panel")
+        log.info("[{PACK}] 进入场景 {event.value}, 已自动打开 demo_panel (仅第一次)")
+
+# PSUI 按钮回调: .psui 里 on_click: demo_btn_clicked 引用的就是这个函数
+func demo_btn_clicked():
+    log.info("[{PACK}] 你点了面板按钮 — on_click 回调走的就是本包 events/*.pss 里的这个函数")
+    ui.close("demo_panel")

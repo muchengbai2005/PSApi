@@ -72,7 +72,7 @@ on shop_opened():
 游戏启动
   │
   ▼
-PSApi.Events 扫描所有包的 events/**/*.pss（子目录递归，按路径排序）
+PSApi 逻辑面扫描所有包的 events/**/*.pss 与 scenes/**/*.pss（子目录递归，按路径排序；`_` 开头库目录先装载）
   │
   ├─ 阶段1 编译: 词法 → 语法 → AST   ✗ 报错: 文件:行:列, 该文件整体不加载
   │
@@ -106,18 +106,22 @@ PSScript 的内置函数分两层，本章只讲**语言层**，游戏层 API �
 
 ## 来自真实包的例子
 
-本章所有语法点都配有可直接运行的示例；此外会频繁引用官方示例包
-`UserData/PSApi/packs/example_hello/events/` 里的真实脚本（`hello.pss`、`e2`~`e6`、`m1`、`u4`），
-它们各自演示一块能力：
+本章所有语法点都配有可直接运行的示例；此外对照仓库 `examples/` 目录的
+语言教学包边学边跑（ex12～ex18，逐一对应本章各篇）：
 
-| 文件 | 演示内容 |
+| 包 | 演示内容 |
 |---|---|
-| `hello.pss` | 语法冒烟：函数/默认参数/循环/插值/字典/事件订阅 |
-| `e2_demo.pss` | state 存档 + 时间/现金/声望 |
-| `e3_demo.pss` | bus.emit 自定义事件 + 商店事件注册 |
-| `e4_demo.pss` | NPC 注册（注释保留）+ 客户句柄 |
-| `e5_demo.pss` | items/quality/machine 三命名空间 |
-| `e6_demo.pss` / `u4_demo.pss` | UI 面板驱动（回调函数 + 事件） |
+| [ex12_pss_basics](../../examples/ex12_pss_basics/README.md) | 类型/var/const/运算/类型转换（[03 值与变量](03-values.md)） |
+| [ex13_pss_strings](../../examples/ex13_pss_strings/README.md) | 插值/转义/format/join/split（[05 字符串](05-strings.md)） |
+| [ex14_pss_flow](../../examples/ex14_pss_flow/README.md) | if/elif/while/for-in/range/break/continue（[06 控制流](06-control-flow.md)） |
+| [ex15_pss_funcs](../../examples/ex15_pss_funcs/README.md) | func 定义/默认参数/返回值/递归（[07 函数](07-functions.md)） |
+| [ex16_pss_containers](../../examples/ex16_pss_containers/README.md) | 数组/字典/map 字面量/嵌套（[08 容器](08-containers.md)） |
+| [ex17_pss_events](../../examples/ex17_pss_events/README.md) | 事件订阅：19 个别名/event 对象（[09 事件](09-events.md)） |
+| [ex18_pss_errors](../../examples/ex18_pss_errors/README.md) | 错误与防御：判空/越界/调试三问（[10 错误](10-errors.md)） |
+
+游戏层 API（state/items/npc/ui...）对应的示例包（ex19～ex24）见
+[05 内置 API 参考](../05-api-reference/README.md)与
+[08 实战示例包](../08-examples/README.md)总导航。
 
 ---
 

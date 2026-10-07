@@ -1,0 +1,54 @@
+# peddler.pss — ex23_api_npc 的唯一脚本
+#
+# 演示自定义客户(npc.*)最小可跑组合(对应文档 08-npc.md; 键位抄自参考包 gunworks
+# 的 cat_shadow.pss「老猫·影」, 同用原版模板 shadyMerchant):
+#   npc.register(config)   加载期顶层注册一个 NPC(身份/交易/对话/排班四组键)
+#   npc.pool_add(池, id, 权重)  把已注册 NPC 挂进原版生成池(五池: client/buy/sell/upper/bm)
+#   on customer_generated()     NPC 到店时 event.client 是客户句柄, 可读可改
+#
+# 注意: npc 类 API 与 shop/store_event 一样是注册类——顶层调用注册, 到店效果
+# 只在开店存档的对局内发生。npc 配置里的物品 id 不做 "game:" 前缀归一化:
+# 原版物品写裸 id(如 common_ore), 模组物品写 包id:名字。
+
+const PACK = "ex23_api_npc"
+
+# ---- 注册: 卖货商人「货郎老周」(顶层一次性; 27 个 config 键, 本包用最小子集) ----
+npc.register({
+    # 身份组
+    id = "ex23_api_npc:old_zhou",          # NPC id(排班/池/customer_generated 都引用它)
+    name = "货郎老周",                       # 显示名(排队 UI/对话署名)
+    base_template = "shadyMerchant",         # 原版模板 id(247 有效键之一; 填错会静默回退拾荒者)
+    faction = "black_market",                # 势力(影响外观与部分系统判定)
+
+    # 交易组
+    intent = "SELL",                         # 出售意图: 他来卖货给你
+    cash = 600,                              # 身上现金(收你货的钱)
+    price = {sell_single = 1.2, sell_bulk = 1.1, buy = 0.9},   # 三向价格系数(1.0=原价)
+    sell_items = [                           # 静态上架清单: "id" / "id:数量" / "id:数量:概率"
+        "ex23_api_npc:street_snack",         # 本包物品 x1(必上)
+        "ex23_api_npc:lucky_charm:2",        # 本包物品 x2(必上)
+        "common_ore:1:0.5",                  # 原版普通矿石, 50% 概率带 1 个
+    ],
+
+    # 对话组(九通道里的四个基础键; 值为字符串或字符串数组)
+    dialogues = {
+        main = "老周来啦, 看看今天的货?",
+        accept = "好眼光, 拿好。",
+        all_done = "货都出完了, 改天再来。",
+        repeat = "还在呢, 慢慢挑。",
+    },
+
+    # 出现规律组: 每隔 2 天必来一次(不写 can_spawn/once/max_times 等可选键)
+    schedule = {mode = "every_ndays", interval = 2, chance = 1.0},
+})
+
+# ---- 池加权: 挂进黑市客户池(3% 权重), 与上面的排班并行生效 ----
+npc.pool_add("bm", "ex23_api_npc:old_zhou", 3.0)
+
+log.info("[{PACK}] NPC「货郎老周」已注册: 每隔 2 天必来 + 黑市池 3% 加权")
+
+# ---- customer_generated: 你的 NPC 到店时 event.client 是客户句柄 ----
+on customer_generated():
+    if event.id == "ex23_api_npc:old_zhou":
+        # 句柄四只读成员: id/name/faction/cash; 想改台词可 event.client.say(通道, 文本)
+        log.info("[{PACK}] 货郎老周到店: 现金 {event.client.cash}, 意图 {event.client.intent}, 来源 {event.source}")

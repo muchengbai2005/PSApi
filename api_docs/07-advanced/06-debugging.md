@@ -16,14 +16,17 @@ PSApi 的日志分级前缀统一为 `[psapi]`（Info/Warning/Error 同前缀）
 
 ## 二、启动链路（健康基线）
 
-两个模组的加载顺序由 MelonPriority 决定：**PSApi.Items（10）先于 PSApi.Events（20）**。一切正常时，Latest.log 里应按序出现：
+PSApi v2.0.0 起为**单 dll 统一宿主**（MelonPriority 10），内部数据面模块先初始化、
+逻辑面模块随后。一切正常时，Latest.log 里应按序出现：
 
 ```
-PSApi.Items v0.9.3 loaded. packs=N items=M qualities=K      ← Items 扫包完成
-item directory ready via ModHook.OnModItemDirectoryInit...   ← 进对局后目录注入成功(或 via poll)
-rescan(init): N pack(s), M pss file(s), K handler(s), 0 compile error(s)   ← Events 扫包+脚本编译
+PSApi v2.0.0 loaded (统一宿主: items+events)                 ← 宿主就绪
+rescan(init): N pack(s), M item def(s), K quality(ies), errors=0   ← 数据面扫包
+[items] 模块初始化完成 (PSApi v2.0.0). packs=N items=M qualities=K
+rescan(init): N pack(s), M pss file(s), K handler(s), S scene(s), 0 compile error(s)   ← 逻辑面扫包+脚本编译
+[events] 模块初始化完成 (PSApi v2.0.0). packs=N
 event bus selftest hits=12 ...                               ← 事件总线自检
-PSApi.Events v1.13.1 loaded. packs=N
+item directory ready via ModHook.OnModItemDirectoryInit...   ← 进对局后目录注入成功(或 via poll)
 ```
 
 对照要点：

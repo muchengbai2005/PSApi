@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 1/2: 神秘礼盒。双击它触发 on_double_click 回调(句柄 get_data/set_data/set_name); 也是 on_target 拖拽的目标。game_loaded 发放的实例自带 data.opened=0。",
+  "items": [
+    {
+      "id": "ex24_api_ui_handles:mystery_box",
+      "name": "神秘礼盒",
+      "desc": "ex24 演示用礼盒。双击开盒(句柄回调), 或把礼签拖上去贴个祝福。",
+      "template": "scrap_metal",
+      "value": 30,
+      "test": true
+    }
+  ]
+}

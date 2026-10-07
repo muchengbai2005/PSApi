@@ -1,0 +1,30 @@
+{
+  "//": "danger=2 的战斗场景。driver=script 不变, points 只留一个战后搜刮点 + 一个撤离点 — 战斗本身不占互动物位, 由 boot.pss 在 scene_enter 时直接 combat.rt_start。layout.json 是本场景的 HUD 布局覆写 (四层覆写的第三层: 框架默认 < 包级 < 场景级 < 用户覆写)。",
+  "id": "ex32_arena",
+  "name": "锈甲竞技场",
+  "desc": "围栏塌了一半的地下竞技场, 锈甲看守还守着当年的军械架。想拿东西, 先过他那一关。 (PSApi 场景示例 ex32)",
+  "loot_hint": "金属 · 矿石",
+  "danger": 2,
+  "entry": "map",
+  "driver": "script",
+  "bg": "bg_arena",
+  "points": [
+    {
+      "id": "armory_rack",
+      "type": "loot",
+      "label": "搜刮军械架",
+      "x": 0.3,
+      "y": 0.55,
+      "loot": ["metal_ingot", "common_ore", "scrap_metal"],
+      "loot_count": "1-2",
+      "times": 1
+    },
+    {
+      "id": "fence_exit",
+      "type": "exit",
+      "label": "从塌方围栏撤离",
+      "x": 0.85,
+      "y": 0.75
+    }
+  ]
+}

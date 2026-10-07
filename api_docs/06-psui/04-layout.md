@@ -40,8 +40,8 @@ window:                    # 顶层 = 隐式竖排
       text: "清空"
 ```
 
-嵌套任意深——`row` 里放 `column` 里再放 `grid` 是常态。gunworks 组装台面板
-（`gunworks/ui/gun_bench.psui`）就是三列 row 中嵌"标签+槽"的 column：
+嵌套任意深——`row` 里放 `column` 里再放 `grid` 是常态。[ex29_psui_machine](../../examples/ex29_psui_machine/README.md)
+的机器面板就是三列 row 中嵌"标签+槽"的 column：
 
 ```text
 row:
@@ -70,7 +70,7 @@ row:
 （第 i 个孩子 → 第 `i % columns` 列、第 `i / columns` 行），行数自动取整。
 `cell` 属性不参与（格尺寸由子元素自己的 size 决定）。
 
-gunworks 部件区的坐标注释就是这个语义：
+机器面板部件区的坐标注释就是这个语义：
 
 ```text
 # 部件区网格坐标 (columns: 2, 子元素按行优先入座):
@@ -115,9 +115,9 @@ CustomUI 后端的 label/button 不吃 `size`（属性被接受但忽略）—�
 要控制它们的占位用 `ui.set_pref_size`（脚本侧，见
 [05 · 09 ui](../05-api-reference/09-ui.md)）。
 
-## 排版实务（来自 gunworks 的调参经验）
+## 排版实务（调参经验）
 
-gunworks 三个机器面板头部都留了"调参区"注释，数值全是试出来的——
+机器面板头部留一段"调参区"注释，数值全是试出来的——
 这本身就是 PSUI 的排版工作流：**声明式骨架 + 注释调参 + 纯包改动热改**：
 
 ```text
@@ -133,7 +133,7 @@ gunworks 三个机器面板头部都留了"调参区"注释，数值全是试出
 
 1. **按钮宽度按最长文字留够**——图元按钮 `size` 定宽后文字放不下会裁切。
 2. **字号倍率错落**：标题 1.0~1.2、槽标签 0.65、状态行 0.7，两三档就够建立层级。
-3. **spacer + 箭头符号做视觉引导**：`→` 加 font_size 1.2 是 gunworks 的"流程感"手法。
+3. **spacer + 箭头符号做视觉引导**：`→` 加 font_size 1.2 是机器面板的"流程感"手法。
 4. 改完 `.psui` 不用重启：`ui.rebuild()` 即时生效（窗口位置自动记忆恢复）。
 
 ---

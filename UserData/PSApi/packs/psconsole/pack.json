@@ -1,0 +1,8 @@
+{
+  "id": "psconsole",
+  "name": "PS 指令台（/ 键控制台）",
+  "version": "0.1.2",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "仿 Minecraft 指令系统: 按 / (Slash) 开关窗口, 上方大日志区 + 底部输入框 (回车或点「执行」提交)。指令: help/give/cash/rep/day/npc/item/state/echo/clear, 前导 / 可选。依赖 Events v1.17.0 (ui.bind_key / input on_submit / npc.list / items.give 的 to 落点与嵌套 data) 与 Items v0.9.8 (GrantToCounterMiddle)。系统工具包, 删除后 / 键控制台不可用。"
+}

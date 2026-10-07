@@ -1418,7 +1418,7 @@ class ItemEditor:
         collisions = []
         used_fnames = {}
         for it in self.items:
-            # 文件名取 id 冒号后的名部分(与现有包惯例一致: gunworks:x → x.json),
+            # 文件名取 id 冒号后的名部分(与包惯例一致: 包id:x → x.json),
             # 非法字符转下划线; id 本身原样写入 JSON
             fname = re.sub(r'[<>:"/\\|?*]', "_", it.item_id.rsplit(":", 1)[-1])
             if fname in used_fnames and used_fnames[fname] != it.item_id:

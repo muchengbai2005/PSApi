@@ -53,7 +53,8 @@ var d3 = {"buyer": "老猫", price = 500}      # 混用也合法
 ```
 
 - 标识符键 `=` 写法是**语法糖**：`{price = 500}` 完全等价 `{"price": 500}`，
-  键就是标识符的文本。example_hello 里大量使用（`{day = time.day()}`）。
+  键就是标识符的文本，教学包里大量使用（如 `{day = time.day()}`，
+  见 [ex16_pss_containers](../../examples/ex16_pss_containers/README.md)）。
 - 键**不能是表达式**（`{x: 1}` 里 x 会被当成字符串 `"x"`，不会取变量 x 的值）。
   运行时动态键请用赋值语句：`d[k] = v`。
 
@@ -138,9 +139,10 @@ log.info("{config}")
 
 ## 惯用法合集
 
-来自真实包的模式，直接抄：
+来自教学包的惯用模式，直接抄：
 
-**累积器**（u4_demo.pss 的打印逻辑）：
+**累积器**（槽位物品筛选的常用写法，对照
+[ex28_psui_slots](../../examples/ex28_psui_slots/README.md)）：
 
 ```pss
 var targets = []

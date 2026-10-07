@@ -1,0 +1,77 @@
+# all_events.pss — ex17: 订阅全部 19 个桥接事件别名
+# 对应文档: api_docs/04-psscript/09-events.md
+#
+# 每个事件触发时打一行 log — 开一个开店存档做一轮 "开店 → 卖货 → 出门 → 睡觉",
+# 就能按时间顺序看到事件流。载荷都在全局 event 变量里 (dict, 缺键返回 null, 见 ex16)。
+# 注意: 别名表以源码 Engine.EventAliases 为准, 共 19 个 (文档 09 写 "15 个" 是 P1 之前的旧数)。
+
+const PACK = "ex17_pss_events"
+
+var tick_seen = 0                       # tick 每秒一次, 只 log 前 3 次免得刷屏
+
+log.info("[{PACK}] all_events.pss 已加载 — 已订阅 19 个事件, 进游戏看事件流")
+
+# ---------- 通用 / 存档 ----------
+on game_loaded():                       # 读档/新开对局完成
+    log.info("[{PACK}] [game_loaded] 对局加载: 存档槽 {event.save_slot}, run_id={event.run_id}")
+
+on scene_loaded():                      # 每次进/切场景 (载荷是字符串 → event.value)
+    log.info("[{PACK}] [scene_loaded] 进入场景: {event.value}")
+
+on tick():                              # 每秒一次 (对局内)
+    tick_seen += 1
+    if tick_seen <= 3:
+        log.info("[{PACK}] [tick] 第 {tick_seen} 秒 (只 log 前 3 次)")
+
+# ---------- 一天的节律 ----------
+on day_wake():                          # 载荷: day=总天数, rel_day=开业第几天, weekday=周几(0=周一)
+    log.info("[{PACK}] [day_wake] 早晨醒来: 总天数 {event.day}, 开业第 {event.rel_day} 天, 周 {event.weekday}")
+
+on day_sleep():
+    log.info("[{PACK}] [day_sleep] 晚上睡觉: 总天数 {event.day}")
+
+on shop_opened():                       # 卷帘门拉开
+    log.info("[{PACK}] [shop_opened] 开店: 开业第 {event.rel_day} 天")
+
+on shop_closed():                       # 卷帘门关闭
+    log.info("[{PACK}] [shop_closed] 打烊: 开业第 {event.rel_day} 天")
+
+on night_services():                    # 夜间结算时刻
+    log.info("[{PACK}] [night_services] 夜间结算: 第 {event.day} 天 (周 {event.weekday})")
+
+# ---------- 出入商店 ----------
+on store_leaving():                     # 离开商店出门
+    log.info("[{PACK}] [store_leaving] 离开商店: 第 {event.day} 天")
+
+on store_returning():                   # 回到商店
+    log.info("[{PACK}] [store_returning] 回到商店: 第 {event.day} 天")
+
+# ---------- 商店事件 ----------
+on store_event_started():               # 载荷: event_id
+    log.info("[{PACK}] [store_event_started] 商店事件激活: {event.event_id}")
+
+on store_event_ended():
+    log.info("[{PACK}] [store_event_ended] 商店事件结束: {event.event_id}")
+
+# ---------- 客户与交易 ----------
+on customer_generated():                # 每位客户进门; event.client 是客户句柄
+    log.info("[{PACK}] [customer_generated] 客户进门: {event.name} ({event.id}, 来源 {event.source}) — 句柄在 event.client")
+
+on dialogue_choice():                   # 载荷: dialogue_id/title/choice/npc_name 等
+    log.info("[{PACK}] [dialogue_choice] 对话选择: {event.npc_name} 的 {event.title}, 选了第 {event.choice} 项")
+
+on trade_completed():                   # 载荷: direction="buy"/"sell", item_id, amount 等
+    log.info("[{PACK}] [trade_completed] 成交: {event.direction} {event.item_id}, 金额 {event.amount}, 对手 {event.npc_name}")
+
+# ---------- 自定义外出场景生命周期 (P1, v1.26+) ----------
+on scene_enter():                       # 载荷: scene/name/danger/day (打开选图面板也会发)
+    log.info("[{PACK}] [scene_enter] 进入外出场景: {event.scene} ({event.name}), 危险度 {event.danger}")
+
+on scene_leave():                       # leave 额外带 reason
+    log.info("[{PACK}] [scene_leave] 离开外出场景: {event.scene} (原因 {event.reason})")
+
+on scene_interact():                    # 载荷: point/type 等
+    log.info("[{PACK}] [scene_interact] 场景点交互: 场景 {event.scene}, 点位 {event.point} (类型 {event.type})")
+
+on scene_loot():                        # 载荷: item/count 等
+    log.info("[{PACK}] [scene_loot] 场景拾取: {event.item} x{event.count} (来自 {event.scene})")

@@ -3,26 +3,27 @@
 > 前面所有面板都要脚本 `ui.open` 打开。还有一种更"原生"的形态：
 > **机器绑定面板**——面板挂在机器物品上，玩家**双击机器**开窗（与原版机器同交互），
 > 槽内物品**随机器存档**（隔夜不丢），关窗不退回。
-> 这是 gunworks 组装台/打印机/分析仪的形态，也是 PSUI 的"重型应用"篇。
+> 这是组装台/打印机/分析仪这类机器的形态（[ex29_psui_machine](../../examples/ex29_psui_machine/README.md)
+> 完整演示），也是 PSUI 的"重型应用"篇。
 
 ## 声明：machines/*.json 加两行
 
 在包的 `machines/*.json` 里把机器的 `ui` 设为 `"psui"`，`panel` 指向面板名
-（`gunworks/ui/gun_bench.psui` 的真实声明）：
+（[ex29_psui_machine](../../examples/ex29_psui_machine/README.md) 的机器声明）：
 
 ```json
 {
   "machines": [
     {
-      "id": "gunworks:gw_bench",
+      "id": "my_pack:my_bench",
       "ui": "psui",
-      "panel": "gun_bench"
+      "panel": "my_bench"
     }
   ]
 }
 ```
 
-- `panel` 写**短名**（省本包前缀，自动补 `gunworks:`），也可写 `"pack:panel"` 全限定
+- `panel` 写**短名**（省本包前缀，自动补 `my_pack:`），也可写 `"pack:panel"` 全限定
   引用他包面板。
 - 机器物品本体在 `items/*.json` 声明（见 [03 · 03 机器](../03-items/03-machines.md)）；
   `ui: "psui"` 之外还有 `"furnace"`（桥接原版工厂 UI）等路线，`psui` = 完全自定义。
@@ -36,7 +37,7 @@
   参数 `{machine}`。它是机器面板的"刷新时机"——读槽、改文本、更新白名单都在这里做。
 
 ```text
-window gun_bench:
+window my_bench:
   title: "枪械组装台"
   persistent: true            # 机器面板天然不退物品, 写上明确意图
   on_open: bench_on_open
@@ -86,10 +87,10 @@ func bench_pick(ev):
 | 开着吗 | `ui.machine_is_open(m) → bool` | |
 | 找机器 | `ui.machine_find_uid(uid) → 句柄\|null` | 按存档稳定 uniqueId 找已登记的 psui 机器 |
 
-**输出槽的标准套路**（gunworks 三面板共用）：
+**输出槽的标准套路**（机器面板通用）：
 
 ```text
-slot sout: whitelist: ["gunworks:__reserved_output"], size: 4x2, on_change: bench_output_changed
+slot sout: whitelist: ["my_pack:__reserved_output"], size: 4x2, on_change: bench_output_changed
 ```
 
 whitelist 填一个**不存在的占位 id**——排他注册后任何手动放入都被拒；
@@ -104,7 +105,7 @@ whitelist 填一个**不存在的占位 id**——排他注册后任何手动放
 > **面板元素树不得增删**——存档按图节点 BFS 索引记录槽内物品位置，
 > 结构变了读档会串槽（部件跑到别的槽去）。
 
-gunworks 在每个面板头部都写着这条，并用血泪教训注释：
+机器面板头部要写明这条，血泪教训注释示例：
 
 ```text
 # v0.8.0: 网格 (1,2) 空单元改零件槽 s5 —— 面板元素树变了 →
@@ -128,7 +129,7 @@ gunworks 在每个面板头部都写着这条，并用血泪教训注释：
 
 发版前自查：对比新旧 `.psui` 的元素树（含 spacer！）逐一对应；
 **任何**增删都意味着旧存档槽位串位，版本注释里必须写迁移方案
-（gunworks 的方案是"取回物品、卖掉重买"）。
+（一种方案是"取回物品、卖掉重买"）。
 
 ## 生命周期小结
 

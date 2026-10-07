@@ -9,7 +9,7 @@
 |---|---|
 | 《Probably Stolen Demo》（playtest 版） | 游戏目录即本说明所在目录 |
 | MelonLoader 已安装 | 游戏根目录存在 `MelonLoader/` 文件夹，启动游戏会先弹控制台黑窗 |
-| PSApi 两模组已装 | `Mods/` 下存在 `PSApi.Items.dll` 与 `PSApi.Events.dll` |
+| PSApi 模组已装 | `Mods/` 下存在 `PSApi.dll`（v2.0.0 起单组件；旧的 `PSApi.Items.dll` + `PSApi.Events.dll` 两件套已合并退役，勿并存） |
 
 > 本指南假定你在标准的 PS-API 开发环境中工作（MelonLoader + PSApi 已就位）。
 > 若 `Mods/` 下缺 PSApi 模组，请先从模组分发处获取并放入，再继续本篇。
@@ -20,10 +20,12 @@
 应出现类似下面的行：
 
 ```text
-[PSApi.Items] [psapi] rescan(init): 3 pack(s), 36 item def(s), 5 quality(ies), errors=0
-[PSApi.Items] [psapi] PSApi.Items v0.9.3 loaded. packs=3 items=36 qualities=5
-[PSApi.Events] [psapi] rescan(init): 3 pack(s), 20 pss file(s), 27 handler(s), 0 compile error(s)
-[PSApi.Events] [psapi] event bus selftest hits=12 (expect 12) sceneSubs=1
+[PSApi] [psapi] PSApi v2.0.0 loaded (统一宿主: items+events)
+[PSApi] [psapi] rescan(init): 3 pack(s), 36 item def(s), 5 quality(ies), errors=0
+[PSApi] [psapi] [items] 模块初始化完成 (PSApi v2.0.0). packs=3 items=36 qualities=5
+[PSApi] [psapi] rescan(init): 3 pack(s), 20 pss file(s), 27 handler(s), 2 scene(s), 0 compile error(s)
+[PSApi] [psapi] [events] 模块初始化完成 (PSApi v2.0.0). packs=3
+[PSApi] [psapi] event bus selftest hits=12 (expect 12) sceneSubs=1
 ```
 
 要点：
@@ -35,15 +37,15 @@
 - `event bus selftest hits=12`：事件总线自检，恒为 12（1+10+1 语义验证），
   少了说明环境异常。
 
-> **版本号小知识**：PSApi.Events 启动时打印的版本是共享库常量（如 `PSApi.Events
-> v0.2.9 loaded. packs=3`），并非模组管理器里显示的 Events 大版本（v1.13.1）。
-> 这是源码中两处版本来源不同所致，属正常现象，判断环境是否正常请看 `errors=0`
-> 与 `selftest hits=12`。
+> **从旧两件套升级**：v2.0.0 起 `PSApi.Events.dll` + `PSApi.Items.dll` 已合并为单个
+> `PSApi.dll`。升级时先删除 Mods/ 里的两个旧 dll 再放新版——并存会弹告警且功能双挂。
+> 旧 `[PSApi.Events]` / `[PSApi.Items]` 配置分类里的自定义热键会自动迁移到新的
+> `[PSApi]` 分类（仅非默认值才迁移，旧类目留档不删）。
 
 进入任意存档后还会出现：
 
 ```text
-[PSApi.Items] [psapi] item directory ready via ModHook.OnModItemDirectoryInit; 36 item def(s) registered total
+[PSApi] [psapi] item directory ready via ModHook.OnModItemDirectoryInit; 36 item def(s) registered total
 ```
 
 表示自定义物品已真正注册进游戏目录——这时 F12 发放、商店购买才可用。
@@ -76,16 +78,14 @@ PS-API 注册了两个 MelonLoader 配置项，默认值即可用：
 
 | 快捷键 | 作用 | 配置项 |
 |---|---|---|
-| **F12** | 把**全部**已注册的自定义物品发到玩家后仓（调试神器） | `PSApi.Items` → `GrantHotkey` |
-| **F6** | 打开/关闭 PS-API 管理面板（由 `psapi_manager` 内容包提供） | `PSApi.Events` → `ManagerHotkey` |
+| **F12** | 把**全部**已注册的自定义物品发到玩家后仓（调试神器） | `PSApi` → `GrantHotkey` |
+| **F6** | 打开/关闭 PS-API 管理面板（由 `psapi_manager` 内容包提供） | `PSApi` → `ManagerHotkey` |
 
 想改键，编辑 `UserData/MelonPreferences.cfg`（游戏目录下）中对应段落，例如：
 
 ```ini
-[PSApi.Items]
+[PSApi]
 GrantHotkey = F9
-
-[PSApi.Events]
 ManagerHotkey = "F7"
 ```
 
@@ -95,10 +95,10 @@ ManagerHotkey = "F7"
 ## 常见安装问题
 
 **启动后完全看不到 `[psapi]` 日志**
-→ `Mods/` 下缺 `PSApi.Items.dll` / `PSApi.Events.dll`，或被杀软/游戏更新清掉。
+→ `Mods/` 下缺 `PSApi.dll`，或被杀软/游戏更新清掉。
 
 **控制台出现 `pack conflict [duplicate]: ...`，主菜单弹"重复加载"窗**
-→ 同一个包 id 同时存在文件夹版和 DLL 版（例如 `packs/gunworks/` 与 `Mods/PSPack.gunworks.dll`
+→ 同一个包 id 同时存在文件夹版和 DLL 版（例如 `packs/my_pack/` 与 `Mods/PSPack.my_pack.dll`
 并存）。开发期可并存用于对照验证，此时 **DLL 版胜出**；正式环境二选一。
 
 **主菜单弹"缺少前置模组"窗**

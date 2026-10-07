@@ -1,0 +1,8 @@
+{
+  "id": "ex10_qualities",
+  "name": "示例 10 · 品质层",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex10: 品质双模式四连 — tag 模式基本款/feature 挂原版 category/自建 category+categoryDisplay/低 priceMul 对比。1 个物品 defaultQuality 引用其中一条, 脚本演示 quality.set/get/price_factor。对应文档 03-items/05-qualities.md。"
+}

@@ -2,7 +2,7 @@
 
 > 本篇逐块讲透 `npc.register()` 配置字典的每一个键：经济、价格体系、收购清单、出售货物、九通道对话、choices、排班。生成管线、模板总表、register/pools 挂载机制见上一篇 [04 · NPC 生成管线与模板](04-npc-pipeline.md)。
 >
-> 事实来源：`_psapi/PSApi.Events/NpcService.cs` 的 `ParseConfig` / `ApplyDef` / `ApplyDialogues` / `BuildChoices` / `RollBuyingList` / `RollStaticSellPlan` / `EvalSchedule`（v1.13.1），游戏程序集 `StoreClient.ClientIntent` 枚举。
+> 事实来源：`_psapi/PSApi/Events/NpcService.cs` 的 `ParseConfig` / `ApplyDef` / `ApplyDialogues` / `BuildChoices` / `RollBuyingList` / `RollStaticSellPlan` / `EvalSchedule`（PSApi v2.0.0），游戏程序集 `StoreClient.ClientIntent` 枚举。
 
 ---
 
@@ -66,7 +66,7 @@ PROCUREMENT_COLLECT · WHOLESALE · APPRAISAL_SERVICE · GUNSMITH · EXPEDITION
 
 ```python
 npc.register({
-    "id": "gunworks:dealer",
+    "id": "my_pack:dealer",
     "price": {
         "sell_single": 0.9,   # 玩家单件买入价 = 基础价 × 0.9（九折）
         "sell_bulk":   0.8,   # 玩家整桌批发价 = 已折单价 × 0.8（再八折）
@@ -115,7 +115,7 @@ npc.register({
 ### buy_pool + buy_count：当日随机加收
 
 ```python
-"buy_pool": ["gunworks:ak47:2.0", "gunworks:mp5", {"id": "gunworks:glock", "weight": 0.5}],
+"buy_pool": ["my_pack:ak47:2.0", "my_pack:mp5", {"id": "my_pack:glock", "weight": 0.5}],
 "buy_count": "2-3",     # 每次来访掷 2~3 种（定数也行，1..20）
 ```
 
@@ -139,9 +139,9 @@ npc.register({
 
 ```python
 "sell_items": [
-    "gunworks:ak47:1:0.3",          # 30% 概率带 1 把
-    "gunworks:glock:1-3:0.8",       # 80% 概率带 1~3 把（每次生成独立掷）
-    {"id": "gunworks:ammo_box", "count": 2, "p": 1.0},
+    "my_pack:ak47:1:0.3",          # 30% 概率带 1 把
+    "my_pack:glock:1-3:0.8",       # 80% 概率带 1~3 把（每次生成独立掷）
+    {"id": "my_pack:ammo_box", "count": 2, "p": 1.0},
 ]
 ```
 
@@ -210,7 +210,7 @@ npc.register({
     "main": {
         "texts": ["老板，有货吗？", "最近风声紧……"],
         "choices": [
-            {"label": "卖给他", "next": "成交。下次还来找你。", "key": "gunworks:ak47"},
+            {"label": "卖给他", "next": "成交。下次还来找你。", "key": "my_pack:ak47"},
             {"label": "举报", "next": "你会后悔的。", "cond": "() -> security_trust() > 50"},
             {"label": "聊聊", "desc": "打听消息"},
         ],
@@ -227,7 +227,7 @@ npc.register({
 ```python
 on dialogue_choice(e):
     # e.dialogue_id / e.choice / e.npc_id ...
-    if e.dialogue_id == "gunworks:dealer_offer" and e.choice == 0:
+    if e.dialogue_id == "my_pack:dealer_offer" and e.choice == 0:
         state.set("dealer_deal_done", "1")
 ```
 
@@ -296,32 +296,32 @@ sell_items 为动态函数       → 只能运行时留意（注册时警告提�
 综合运用本篇全部机制——两段开场链 + 三个选项（一个带 cond）+ buy_pool 当日加收 + {buy_list} 插值 + 批发折扣 + once 排班：
 
 ```python
-# gunworks 包 · story_dealer.pss
+# my_pack 包 · story_dealer.pss
 
 var met = state.get("story_dealer_met", "")    # 首遇标记(按存档槽)
 
 npc.register({
-    "id": "gunworks:story_dealer",
+    "id": "my_pack:story_dealer",
     "name": "独眼老兵",
     "base_template": "retired_gunsmith",        # 剧情系模板(本 NPC 本身就是剧情角色)
     "intent": "SELLNBUY",                       # 既卖枪也收枪
     "budget": [1500, 300],                      # 预算制: 1500±300
     "price": {"sell_single": 0.95, "sell_bulk": 0.85, "buy": 1.10},
     "schedule": {"mode": "once", "put_first": true},   # 只来一次, 开门第一位
-    "buying_ids": ["gunworks:glock"],           # 必收
+    "buying_ids": ["my_pack:glock"],           # 必收
     "buy_pool": [                               # 当日随机加收 1~2 种
-        "gunworks:ak47:2.0",
-        "gunworks:mp5:1.0",
-        {"id": "gunworks:ammo_box", "weight": 3.0},
+        "my_pack:ak47:2.0",
+        "my_pack:mp5:1.0",
+        {"id": "my_pack:ammo_box", "weight": 3.0},
     ],
     "buy_count": "1-2",
     "sell_items": [
-        "gunworks:ak47:1:0.5",                  # 50% 概率带一把 AK
-        "gunworks:ammo_box:2-4:1.0",            # 必带 2~4 盒弹药
+        "my_pack:ak47:1:0.5",                  # 50% 概率带一把 AK
+        "my_pack:ammo_box:2-4:1.0",            # 必带 2~4 盒弹药
     ],
     "dialogues": {
         "main": {
-            "id": "veteran_offer",              # dialogue_id = gunworks:veteran_offer
+            "id": "veteran_offer",              # dialogue_id = my_pack:veteran_offer
             "texts": [
                 "……你是新来的店主？",
                 "今天加收 {buy_list}，价好。",
@@ -341,7 +341,7 @@ npc.register({
 })
 
 on dialogue_choice(e):
-    if e.dialogue_id == "gunworks:veteran_offer":
+    if e.dialogue_id == "my_pack:veteran_offer":
         if e.choice == 0:
             state.set("story_dealer_met", "1")   # 记住见过面
         if e.choice == 1:

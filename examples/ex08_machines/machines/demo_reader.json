@@ -1,0 +1,23 @@
+{
+  "//": "路线② 进度机: 加 progress 块即切换。每晚匹配到配方 → 进度 +34 (电够才涨); 攒满 100 → 消耗材料、产出、进度归零 → 34→68→102 第 3 夜出货。加工中材料被锁定 (LockInv 取不出来); 材料被移走进度清零。desequencer 有 2 个可选输入槽 (槽 2 芯片/槽 3 卡), 输出恒为槽 4; 白名单放宽原生过滤器让自定义/原版卡能进槽。",
+  "machines": [
+    {
+      "id": "ex08_machines:demo_reader",
+      "ui": "desequencer",
+      "inputSlot": 3,
+      "inputSlots": [2, 3],
+      "outputSlot": 4,
+      "drawnPower": 10,
+      "batteryPowered": true,
+      "inputWhitelist": ["game:blank_keycard", "game:ser_keycard"],
+      "outputWhitelist": ["game:ser_keycard"],
+      "slotWhitelists": [
+        { "slot": 2, "whitelist": ["game:blank_keycard", "game:ser_keycard"] }
+      ],
+      "progress": {
+        "progressPerNight": 34,
+        "progressMax": 100
+      }
+    }
+  ]
+}

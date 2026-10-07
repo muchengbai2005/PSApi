@@ -1,0 +1,17 @@
+{
+  "//": "场景级 HUD 布局覆写 (逐区逐键深合并, 后者胜; 只写要改的键, 没写的键回退框架默认)。坐标系: x/y = 相对屏幕 0-1, 原点左下 (title 区取左上角屏比); w/h/font 为 uGUI 像素。改完保存, 游戏内按 F10 热重载即生效; 场景内拖好图元窗按 M 会把钉位键写回本文件。全部区键 (status/action/log/poi/title/ground/container/box/pocket/combat/rt/...) 见 08-scenes-raid.md §七。",
+  "title": {
+    "x": 0.5,
+    "y": 0.94,
+    "font": 26
+  },
+  "box": {
+    "x": 0.26,
+    "y": 0.25
+  },
+  "ground": {
+    "x": 0.64,
+    "y": 0.45,
+    "mode": "free"
+  }
+}

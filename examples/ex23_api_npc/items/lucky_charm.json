@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 2/2: 平安符。NPC 老周卖的东西之二(x2 上架), 也在 F12 测试分类可领。",
+  "items": [
+    {
+      "id": "ex23_api_npc:lucky_charm",
+      "name": "平安符",
+      "desc": "货郎老周摊子上的平安符。据说挂在店里能辟邪, 至少心理上是。",
+      "template": "scrap_metal",
+      "value": 40,
+      "test": true
+    }
+  ]
+}

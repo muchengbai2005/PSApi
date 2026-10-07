@@ -1,0 +1,14 @@
+{
+  "//": "配方专题的宿主机器物品。机器物品必须在 items/ 定义, directory 固定 StationMachinery。",
+  "items": [
+    {
+      "id": "ex09_recipes:demo_furnace",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例配方炉",
+      "desc": "ex09 配方专题的宿主机器: 4 条配方挂在它身上互相竞争。",
+      "value": 400,
+      "test": true
+    }
+  ]
+}

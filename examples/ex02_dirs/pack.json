@@ -1,0 +1,8 @@
+{
+  "id": "ex02_dirs",
+  "name": "示例 02 · 目录全景",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex02: 包内目录全景。8 个子目录各放一个最小文件 + icons/ 有意留空, 演示'谁读它、放什么、不放会怎样'。对应文档 02-pack/02-structure.md。"
+}

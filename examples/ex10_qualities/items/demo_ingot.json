@@ -1,0 +1,15 @@
+{
+  "//": "1 个物品引用 4 条品质, defaultQuality 指定其中一条 (不写则取 qualities[0])。出厂即自带该层。注意: 互斥组只收录 tag 模式品质 (①④); feature 模式 (②③) 可引用, 互斥清理由原版'同类别替换'语义接管。",
+  "items": [
+    {
+      "id": "ex10_qualities:demo_ingot",
+      "name": "示例银锭",
+      "desc": "出厂自带'精良'品质 (×1.5)。品质四连演示的宿主物品。",
+      "template": "metal_ingot",
+      "value": 100,
+      "qualities": ["ex10_qualities:q_fine", "ex10_qualities:q_bargain", "ex10_qualities:q_lab", "ex10_qualities:q_star"],
+      "defaultQuality": "ex10_qualities:q_fine",
+      "test": true
+    }
+  ]
+}

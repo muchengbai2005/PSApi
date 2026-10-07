@@ -9,7 +9,7 @@
 静默回退 `scavGeneral`（拾荒者），PSApi 完全不知情。
 
 **解法**：对照 [07 · 模板总表](../07-advanced/04-npc-pipeline.md)（247 个
-有效 id，★ 为 gunworks 实证）；怀疑中招看客户外观/行为是否拾荒者。
+有效 id，★ 为实测验证）；怀疑中招看客户外观/行为是否拾荒者。
 
 ## 2. NPC 永远不收我的模组物品 / 收购物品清单里混进了 `game:`
 
@@ -39,7 +39,7 @@ if (event.choice == 0 and cash >= 150) or (event.choice == 1 and cash >= 300):
 上线后面板结构改过（增删元素）→ 存档索引对不上。
 
 **解法**：**结构恒定铁律**——运行时只改文本/白名单/锁，不增删元素。
-已经发生：让玩家取回物品、重买机器（gunworks 的官方答案）；面板数值
+已经发生：让玩家取回物品、重买机器（通行解法）；面板数值
 收进 psui 头部"调参区"注释，挤/空改参数不改结构。
 
 ## 5. SELL 型自定义 NPC 不摆货（v1.9.x 时代的回归坑）
@@ -69,7 +69,7 @@ npc eval: xxx day=12 eligible=false roll=0.37/0.50 can_spawn=true → skip(chanc
 **没有弹窗**；档案涨→顾客变少/治安官事件。
 
 **解法**：剧情规避用"证书模式"（`crime.exempt_guns` 扫展示柜，见
-[08 · 经济闭环](../08-examples/07-gunworks-economy.md)第三节）；
+[05 · 03 world](../05-api-reference/03-world.md)）；
 或压根不给物品挂 contraband。
 
 ## 8. 克隆奸商模板后 NPC 收购价是 0 / 摆货行为诡异
@@ -99,7 +99,7 @@ sellPriceModifier）。低于 v1.13.0 的环境别用带私货的模板，或显
 2. `buy_price_mod`/`sell_price_mod` 若还在用：**语义已翻转**（玩家买单加价%），
    改 `price` 三系数；
 3. base_template/皮肤键对照新 dump（模板表见 07 章；皮肤键看 `UserData/probe/`）；
-4. 把修复日期记进 pack.json `//`——gunworks 的做法，下次更新时省一半排查。
+4. 把修复日期记进 pack.json `//`——通行做法，下次更新时省一半排查。
 
 ---
 

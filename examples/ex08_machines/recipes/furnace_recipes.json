@@ -1,0 +1,14 @@
+{
+  "//": "批次机配方: 写法与进度机完全一样 — 运行模式由机器声明的块决定, 配方只是纯数据。",
+  "recipes": [
+    {
+      "id": "ex08_machines:furnace_smelt",
+      "machine": "ex08_machines:demo_furnace",
+      "output": { "id": "game:newspaper", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2, "display": "废金属" } ],
+      "qualityRule": "none",
+      "customName": "批次熔炼：报纸",
+      "description": "路线①验证: 2 废金属 + 8 电, 当晚 1 报纸。"
+    }
+  ]
+}

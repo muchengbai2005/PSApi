@@ -1,0 +1,34 @@
+# uses_demo.pss — ex07_item_uses 的演示脚本
+#
+# 两个职责:
+#   1. on game_loaded: 用 items.give 的 uses 参数发满次数的演示品 (读档/新开对局都会发,
+#      演示包行为, 别在意重复)
+#   2. on day_wake: 每天早晨用掉工具箱 1 次, 把"剩余次数/折价"打进日志
+#
+# 次数体系三件 API: items.uses(h) 剩余 / items.uses_max(h) 上限 / items.use(h[, n]) 用 n 次
+# 注意: 归零销毁后句柄失效 — 所以先读剩余次数, 再决定怎么用。
+
+const PACK = "ex07_item_uses"
+
+on game_loaded():
+    # 第 3 参 uses: 显式发"满次数"的实例, 不依赖 F12 的发放语义
+    items.give(PACK + ":toolbox", 1, 20)
+    items.give(PACK + ":matchbook", 1, 10)
+    log.info("[{PACK}] 已发放满次数的演示品: 工具箱 20/20, 火柴包 10/10 (看背包 tooltip 的余量行)")
+
+on day_wake():
+    var box = items.find(PACK + ":toolbox")
+    if box == null:
+        return
+    var left = items.uses(box)
+    if left <= 1:
+        # 最后一次: 用完即毁, 先把话说完再动手
+        log.info("[{PACK}] 工具箱只剩 {left} 次 — 这次用完触发归零销毁")
+        items.use(box, 1)
+        return
+    if not items.use(box, 1):
+        log.warn("[{PACK}] 工具箱扣次失败 (可能已归零销毁)")
+        return
+    left = items.uses(box)
+    var worth = 10 + 5 * left
+    log.info("[{PACK}] 第 {event.day} 天早晨用掉 1 次: 剩余 {left}/{items.uses_max(box)}, 折价后价值 {worth} (10 底价 + 5x{left})")

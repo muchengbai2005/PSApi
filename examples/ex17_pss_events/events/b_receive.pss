@@ -1,0 +1,13 @@
+# b_receive.pss — ex17: 接收自定义事件 (接收方)
+# 对应文档: api_docs/04-psscript/09-events.md 的 "bus.emit" 一节
+#
+# 自定义事件必须用字符串形式订阅: on "包id:事件名":
+#   - 标识符形式会查内置别名表 (接不到自定义事件)
+#   - 字符串事件名里不能写插值 (on "{PACK}:x": 是编译错误)
+# 载荷经 event 变量注入 (dict); 缺键返回 null — 顶层那次 ping 没有 save_slot 字段,
+# 下面的 {event.save_slot} 会打出 null, 顺便演示 map 的缺键宽容。
+
+const PACK = "ex17_pss_events"
+
+on "ex17_pss_events:ping":
+    log.info("[{PACK}] 收到 ping! from={event.from} lucky={event.lucky} save_slot={event.save_slot}")

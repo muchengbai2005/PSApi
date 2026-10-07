@@ -14,7 +14,7 @@
 | **npc.* 配置**（buying_ids/sell_items/buy_pool/sell_pool/black_*） | 裸 id `"scrap_metal"` | ✘ **不归一化**，带前缀=查无此物+WARNING | **一律裸 id** |
 | **inject.***（sell_shelf/doctor/…） | 裸 id 优先 | 会剥（NormalizeId） | 一律裸 id 最稳 |
 | items.* / shop.* 脚本函数 | 裸 id `"scrap_metal"` | ✔ 统一归一化剥掉（[05 章 §①](../05-api-reference/README.md)） | 裸 id 最稳 |
-| 模组物品（任何地方） | `包id:名字` | — | 全书统一 `gunworks:gw_pistol` 风格 |
+| 模组物品（任何地方） | `包id:名字` | — | 全书统一 `my_pack:my_pistol` 风格 |
 
 **一句话**：模组物品永远带 `包id:` 前缀；原版物品**建议一律裸 id**——
 npc 侧写了 `game:` 必错，别处写了只是多余。

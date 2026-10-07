@@ -1,0 +1,8 @@
+{
+  "id": "ex12_pss_basics",
+  "name": "示例 12 · 值与变量",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex12: PSScript 值与变量。演示: 七种值类型/var/const/type()/len()/算术/比较/逻辑短路/字符串拼接。对应文档 04-psscript/03-values.md 与 04-expressions.md。"
+}

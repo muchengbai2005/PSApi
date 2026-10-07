@@ -1,0 +1,8 @@
+{
+  "id": "ex34_mini_mod",
+  "name": "示例 34 · 迷你温室",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex34 (收官): 物品+机器+配方+NPC+psui+state 全系统串联。数据流: 日光瓜种子袋(F12 领) → 迷你温室过夜产出(custom 批次机, 配方 r_grow: 1 种子→2 瓜) → 日光瓜 → 果贩阿禾上门收购(intent:buy) → 现金(trade_completed.amount) → state 记账(melon_sold/melon_coins) → 晨报面板 greenboard(day_wake 自动弹 / F7 开关)。README 有数据流全图。对应文档 03-items/03-machines.md、03-items/04-recipes.md、06-psui/06-dynamic.md、07-advanced/02-state-deep.md、07-advanced/04-npc-pipeline.md。"
+}

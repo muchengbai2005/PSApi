@@ -1,0 +1,40 @@
+{
+  "//": "场景声明 (SceneService.ScanPacks 识别 scenes/<id>/scene.json)。driver=script = 纯 pss 驱动: C# 只给场景壳 (黑屏进出/外出背包/事件发布), 玩法逻辑在 scripts/boot.pss。points = M1 互动物: loot 搜索点 (loot 物品池必填, 等概率; loot_count 每次掉落件数; times 可搜次数, 耗尽按钮变灰) + exit 撤离点。坐标 x/y 相对 0-1, 原点左下。启动期校验: 缺 id / id 重复 / type 非法 / loot 点缺池 → 不注册+警告。显式 driver=script 不强制配 exit 点 (撤离由脚本 scenes.leave 负责), 但配上更完整。",
+  "id": "ex31_outpost",
+  "name": "前哨废墟",
+  "desc": "废弃的前哨站, 哨位还亮着一盏没人熄的灯。物资不多, 但危险也低。 (PSApi 场景示例 ex31)",
+  "loot_hint": "材料 · 零件",
+  "danger": 1,
+  "entry": "map",
+  "driver": "script",
+  "bg": "bg_outpost",
+  "points": [
+    {
+      "id": "lamp_post",
+      "type": "loot",
+      "label": "搜刮哨位",
+      "x": 0.28,
+      "y": 0.62,
+      "loot": ["scrap_metal", "wire", "common_ore"],
+      "loot_count": "1-2",
+      "times": 2
+    },
+    {
+      "id": "supply_crate",
+      "type": "loot",
+      "label": "翻找补给箱",
+      "x": 0.58,
+      "y": 0.42,
+      "loot": ["common_electronic", "scrap_metal", "wire"],
+      "loot_count": "1",
+      "times": 1
+    },
+    {
+      "id": "gate_exit",
+      "type": "exit",
+      "label": "从断墙豁口撤离",
+      "x": 0.84,
+      "y": 0.8
+    }
+  ]
+}

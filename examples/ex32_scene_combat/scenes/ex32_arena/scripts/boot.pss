@@ -1,0 +1,83 @@
+# boot.pss — ex32 锈甲竞技场 · 搜打撤循环入口
+#
+# 知识点 (对应文档 08-scenes-raid.md §六 combat.* / grid.* 两节):
+#   1. combat.rt_start(cfg, opts) — 实时动作战斗 (方向 QTE):
+#        cfg 键 (照抄文档): id/name/hp(必)/atk("lo-hi")/band(0近1中2远)/
+#          behaviors(行为卡组)/charge/player_hp/posture_sneak/flee(0-95)/
+#          armor/tempo/warn_mul/hitbox_scale/shield/strong/on_hp_change...
+#        opts = {on_end = 回调}; 返回 false = 启动失败 (须自行收尾)。
+#   2. on_end 载荷: result = "win" | "flee" | "lose" (gunworks 另有 "escape"),
+#        另带 player_hp / sp_cost(战斗时长×0.6 体力结算) / enemy_id / enemy_name。
+#   3. grid.* 三件套: ground_show() 幂等显示地面窗 / ground_place(id, count)
+#        返回 {ground=实际放上件数} / ground_count() 当前地面件数。
+#        敌人掉落 → 地面窗, 玩家从地面拖进外出背包, 撤离自动回库。
+#   4. 教学简化: lose 直接 scenes.leave 撞出场景; 完整晕倒链
+#        (major_wound + 体力结算) 见 gunworks scenes/_raid/scripts/。
+
+var EX32_FIGHT_DONE = false      # 本次进场是否已打倒看守 (每次 scene_enter 重置)
+
+# 组装 rt cfg — data.pss 的 ARENA_ENEMY 是"敌人定义", 这里补"开战参数"
+func ex32_enemy_cfg():
+    return {
+        id = ARENA_ENEMY.id,
+        name = ARENA_ENEMY.name,
+        hp = ARENA_ENEMY.hp,                       # 直接 HP 值 (≤10 才回退旧 pip 格)
+        atk = ARENA_ENEMY.atk,
+        band = ARENA_ENEMY.band,
+        behaviors = ARENA_ENEMY.behaviors,
+        charge = ARENA_ENEMY.charge,
+        player_hp = 100,                           # 教学档: 满血进场
+        posture_sneak = false,                     # 无偷袭加成
+        flee = 55,                                # 逃跑成功率 % (0-95, rt 层负责钳制)
+    }
+
+# 战斗结束回调 (on_end)
+func ex32_rt_end(a):
+    if a.result == "win":
+        EX32_FIGHT_DONE = true
+        scene.log(EX32_TEXTS.win)
+        log.info("[ex32_scene_combat] 战斗胜利: {a.enemy_name} 倒下, sp_cost={a.sp_cost}, 剩余 player_hp={a.player_hp}")
+        # 胜利掉落: 地面窗幂等打开 → 逐条上地 → scene.log 报行
+        grid.ground_show()
+        for e in ARENA_ENEMY.loot:
+            var res = grid.ground_place(e.id, e.count)
+            if res.ground > 0:
+                scene.log("看守掉下了 {e.id} x{res.ground} (在地面上)")
+        scene.log("把地上的东西装进外出背包, 再去军械架看看。")
+    elif a.result == "flee":
+        scene.log(EX32_TEXTS.flee)
+        log.info("[ex32_scene_combat] 你逃走了, 战斗结束 (sp_cost={a.sp_cost})")
+    else:
+        # lose — 教学简化: 直接撤离; 完整做法见 _raid 的晕倒链
+        scene.log(EX32_TEXTS.lose)
+        log.info("[ex32_scene_combat] 你被 {a.enemy_name} 打倒了, 撤离 (教学简化)")
+        scenes.leave("knocked_out")
+
+on scene_enter():
+    if event.scene != EX32_SCENE:
+        return
+    EX32_FIGHT_DONE = false
+    log.info("[ex32_scene_combat] 进入场景 {event.scene} (danger={event.danger}) — 看守战开打")
+    scene.log(EX32_TEXTS.enter)
+    var ok = combat.rt_start(ex32_enemy_cfg(), {on_end = ex32_rt_end})
+    if not ok:
+        # rt_start 返回 false = 启动失败: 不留半截状态, 撤离保平安
+        scene.log("战斗系统启动失败 — 请把日志反馈给包作者")
+        scenes.leave("combat_failed")
+
+on scene_interact():
+    if event.scene != EX32_SCENE:
+        return
+    log.info("[ex32_scene_combat] 互动物点击: point={event.point}, type={event.type}")
+    if event.type == "exit":
+        scenes.leave("fence_exit")
+
+on scene_loot():
+    if event.scene != EX32_SCENE:
+        return
+    log.info("[ex32_scene_combat] 搜索掉落: {event.point} → {event.item} x{event.count}")
+
+on scene_leave():
+    if event.scene != EX32_SCENE:
+        return
+    log.info("[ex32_scene_combat] 撤离场景, reason={event.reason}, 看守状态: 已打倒={EX32_FIGHT_DONE}")

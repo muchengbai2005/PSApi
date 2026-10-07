@@ -1,0 +1,15 @@
+{
+  "//": "machines/ 目录: 机器声明。ui=furnace 走原版工厂桥接 (窗口/槽位/电池全部原生); 槽位贴原生布局: 0=电池 1=模组 2=输入 3=输出。progressSpeed=1 每晚加工 1 批; recipeSort=priority 按配方优先级选线。",
+  "machines": [
+    {
+      "id": "ex02_dirs:demo_furnace",
+      "ui": "furnace",
+      "inputSlot": 2,
+      "outputSlot": 3,
+      "drawnPower": 8,
+      "batteryPowered": true,
+      "progressSpeed": 1,
+      "recipeSort": "priority"
+    }
+  ]
+}

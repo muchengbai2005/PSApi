@@ -1,0 +1,8 @@
+{
+  "id": "ex24_api_ui_handles",
+  "name": "示例 24 · 界面与句柄回调",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex24: ui.bind_key 按键开关面板 + PSUI 面板(window/label/button/input)与 on_click/on_submit 回调 + ui.set_text 动态改文本 + items.on_double_click / items.on_target 句柄回调(get_data/set_data/set_name)。对应文档 05-api-reference/09-ui.md 与 10-handles.md, psui 语法见 06-psui/。"
+}

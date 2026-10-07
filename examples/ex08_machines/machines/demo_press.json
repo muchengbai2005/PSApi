@@ -1,0 +1,18 @@
+{
+  "//": "路线③ custom 自装配: CustomMachineFactory 自己拼窗口(左输入栏/右输出栏), 不调原版工厂。槽位固定 inputSlot=0 outputSlot=1; 无电池槽 → batteryPowered=false 必填; 槽位零原生委托 → inputWhitelist/outputWhitelist 必写。inputKind=grid 严格网格(可放多件, 配方 count>1 必须 grid; 缺省 slot=单物品槽)。inputSize 3x4 格 / outputSize 2x2 格。",
+  "machines": [
+    {
+      "id": "ex08_machines:demo_press",
+      "ui": "custom",
+      "inputSlot": 0,
+      "outputSlot": 1,
+      "batteryPowered": false,
+      "progressSpeed": 1,
+      "inputKind": "grid",
+      "inputSize": "3x4",
+      "outputSize": "2x2",
+      "inputWhitelist": ["game:scrap_metal"],
+      "outputWhitelist": ["game:newspaper"]
+    }
+  ]
+}

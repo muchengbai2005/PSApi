@@ -20,7 +20,8 @@
 | `inject.force_client(ptr)` | 管理 | 给队列指定客户立即注入 |
 
 注册类函数（`buy_list/sell_shelf/doctor/barter/loot_pool`）在**加载期顶层调用**；
-管理类在对局内调用。
+管理类在对局内调用。可运行的注入对照包见
+[ex22_api_inject](../../examples/ex22_api_inject/README.md)。
 
 ## inject.buy_list — 买池
 
@@ -37,12 +38,12 @@
 # 静态: 所有收购客户都开始想收报纸
 inject.buy_list("my_pack:my_ledger")
 
-# 动态: 只有大客户想收(m1_inject.pss 真实用法)
-func m1_dynamic_buy(client):
+# 动态: 只有大客户想收
+func dynamic_buy(client):
     if client.cash > 500:
-        return ["example_hello:example_water"]
+        return ["my_pack:example_water"]
     return []
-inject.buy_list(m1_dynamic_buy)
+inject.buy_list(dynamic_buy)
 ```
 
 ## inject.sell_shelf — 出售客户货架

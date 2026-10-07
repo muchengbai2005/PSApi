@@ -44,10 +44,11 @@ PS-API 当前没有热重载（源码中 `Rescan` 仅在启动时调用），所
 
 | 日志行（节选） | 含义 |
 |---|---|
-| `PSApi.Items v… loaded. packs=N items=N qualities=N` | 数据面宿主就绪，包/物品/品质计数 |
+| `PSApi v2.0.0 loaded (统一宿主: items+events)` | 单宿主模组就绪 |
+| `[items] 模块初始化完成 (PSApi v…). packs=N items=N qualities=N` | 数据面就绪，包/物品/品质计数 |
 | `rescan(init): N pack(s), N item def(s), … errors=0` | 数据面解析完成，`errors` 必须为 0 |
-| `PSApi.Events … loaded. packs=N` | 逻辑面宿主就绪 |
-| `rescan(init): N pack(s), N pss file(s), N handler(s), N compile error(s)` | 脚本编译完成，`compile error(s)` 必须为 0 |
+| `[events] 模块初始化完成 (PSApi v…). packs=N` | 逻辑面就绪 |
+| `rescan(init): N pack(s), N pss file(s), N handler(s), N scene(s), N compile error(s)` | 脚本编译完成，`compile error(s)` 必须为 0 |
 | `event bus selftest hits=12 (expect 12)` | 事件总线自检通过 |
 | `item directory ready via …; N item def(s) registered` | 进对局后物品真正注册（F12 此后才可用） |
 | `[pss <包id>] …` | 你的脚本 `log.info/warn` 输出 |
@@ -61,7 +62,7 @@ PS-API 当前没有热重载（源码中 `Rescan` 仅在启动时调用），所
 
 ### 建议的启动检查顺序
 
-1. 搜 `rescan`——两个都 `errors=0` / `0 compile error(s)` 才继续。
+1. 搜 `rescan`——数据面/逻辑面两条都 `errors=0` / `0 compile error(s)` 才继续。
 2. 搜 `pack conflict` / `skipped`——确认没有包被静默丢弃。
 3. 搜 `[pss <你的包id>]`——确认脚本顶层日志出现（脚本能跑的最快证据）。
 

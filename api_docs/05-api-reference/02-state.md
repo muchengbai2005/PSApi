@@ -67,7 +67,8 @@ state.get("nope", 0)  # 0 (默认值)
 
 ## 经典范式：防重记账
 
-示例包 `example_hello/events/e2_demo.pss` 的"每周五津贴"是标准写法——
+"每周五津贴"是标准写法（对照教学包
+[ex19_api_state_world](../../examples/ex19_api_state_world/README.md)）——
 **先查记账、后办事、再记账**：
 
 ```pss
@@ -80,21 +81,22 @@ on day_wake():
             log.info("周五津贴 +100, 现金 {player.cash()}")
 ```
 
-`e3_demo.pss` 的"首次开店激活一次事件"同款：
+"首次开店激活一次事件"同款（对照
+[ex20_api_shop_events](../../examples/ex20_api_shop_events/README.md)）：
 
 ```pss
 on shop_opened():
     if not state.has("flyer_queued"):
         state.set("flyer_queued", true)
-        store_event.queue("example_hello:street_flyer")
+        store_event.queue("my_pack:street_flyer")
 ```
 
 为什么需要记账：`day_wake` / `shop_opened` 等事件**不保证一天只触发一次**
 （重进商店、读档重开都会再触发），用 `state` 按"天"记号才能保证幂等。
-`e5_demo.pss` 的写法更进一步——把天编进键名，每个键天然只用一次：
+更进一步的写法——把天编进键名，每个键天然只用一次：
 
 ```pss
-var key = "e5_demo_day" + str(time.day())
+var key = "daily_" + str(time.day())
 if state.has(key):
     return
 state.set(key, true)

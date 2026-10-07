@@ -1,0 +1,8 @@
+{
+  "id": "ex05_item_basic",
+  "name": "示例 05 · 物品字段全家桶",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex05: 物品定义字段逐个演示。6 个物品各演示一组字段: value/stack/图标省略、shape 占格、types/typesMode、contraband、directory、defaultQuality。对应文档 03-items/02-items.md。"
+}

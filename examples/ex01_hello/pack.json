@@ -1,0 +1,8 @@
+{
+  "id": "ex01_hello",
+  "name": "示例 01 · 第一个包",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex01: PSApi 最小可运行包。演示: pack.json 清单 + 1 个自定义物品 + 1 个 PSScript 脚本。对应文档 01-getting-started/03-first-pack.md。复制本包改 id 即可做出你的第一个包。"
+}

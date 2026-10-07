@@ -1,0 +1,8 @@
+{
+  "id": "ex21_api_items",
+  "name": "示例 21 · 物品 API 全家桶",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex21: items 命名空间全家桶(give/has/value/name/find/find_all/consume/give_counter/tag_get_int) + 物品句柄(get_data/set_data/set_name) + give 第三参 opts(实例定制 name/data 与次数物品)。对应文档 05-api-reference/06-items.md。"
+}

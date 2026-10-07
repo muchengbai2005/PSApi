@@ -1,0 +1,27 @@
+# demo_panel.psui — ex24 演示面板: window + label + button + input 四类基础元素
+#
+# 面板注册 id = "ex24_api_ui_handles:demo_panel"(包id:window 的显式 id);
+# 脚本 ui.bind_key("F8", ...) 把开关绑定到 F8, 进对局后按下开/关切换。
+# 回调函数全部实现写在 events/panel.pss, 启动期校验绑定, 点击时直接调用:
+#   button 的 on_click → 无参函数;  input 的 on_submit(回车) → 1 参 {elem, value}。
+
+window demo_panel:
+  title: "示例 24 · 界面与句柄"
+  size: 430x260
+  draggable: true
+  close_on_escape: true
+
+  label status_lbl:
+    text: "面板已就绪: 点下面的按钮试试"
+  row:
+    button hello_btn:
+      text: "打个招呼"
+      on_click: on_hello_click
+    button reset_btn:
+      text: "恢复默认"
+      on_click: on_reset_click
+  label input_hint:
+    text: "在下面输入文字后回车, 会写进顶部状态行"
+  input msg_input:
+    placeholder: "输入点什么..."
+    on_submit: on_msg_submit

@@ -1,0 +1,139 @@
+# workbench.pss — ex29_psui_machine 的唯一脚本 (机器绑定面板逻辑面)
+#
+# 与独立面板脚本 (ex28 depot.pss) 的三点差别:
+#   1. 不 ui.open / 不 bind_key — 开窗由玩家双击机器物品原生触发
+#   2. 回调全部带 machine 字段: on_click {elem, machine} /
+#      槽位 on_change {elem, value, machine} / on_open {machine}
+#   3. 面板读写走 machine_* API, 首参显式传机器句柄
+#      (ui.machine_slot_items(m, "s_in") / ui.machine_set_text(m, ...) ...)
+#
+# 玩法闭环: 料仓放 >=2 废金属 → [加工] 部分消耗 2 个 → items.give 成品到背包;
+#   [输出槽演示] 按钮演示 machine_spawn 直入 → machine_lock 双锁 → machine_clear 清槽。
+#
+# 隔夜找回 (gunworks bench 同款套路): 句柄不能进 state (读档后失效) —
+#   state 只存机器 uid (存档稳定), 用 ui.machine_find_uid(uid) 恢复引用。
+
+const PACK = "ex29_psui_machine"
+const WB_PRODUCT = "ex29_psui_machine:finished_gear"   # 成品: 包物品 id 保留全名
+const WB_MATERIAL = "scrap_metal"                      # 材料: 原版物品, 句柄 .id 是剥掉 game: 前缀的裸 id
+
+# ---------- 公共辅助 ----------
+
+# 统计料仓废金属总数 (grid_slot 多格仓: 永远用 machine_slot_items 拿句柄列表)
+func wb_scrap_count(m):
+    var n = 0
+    for it in ui.machine_slot_items(m, "s_in"):
+        if it.id == WB_MATERIAL:
+            n = n + it.count
+    return n
+
+# 刷新文本 (machine_set_text 只作用于"这台机器"的面板)
+func wb_refresh(m):
+    var n = wb_scrap_count(m)
+    ui.machine_set_text(m, "lbl_in", "料仓 (grid_slot 3x2): 废金属 x{n}")
+    ui.machine_set_text(m, "lbl_status", "料仓现有 {n} 个废金属 · 加工一次消耗 2 个")
+
+# ---------- on_open: 开窗沿回调 (机器面板专属, 独立面板没有) ----------
+
+func wb_on_open(ev):
+    var m = ev.machine
+    log.info("[{PACK}] [on_open] 加工台面板打开: 机器 uid = {m.uid}")
+    # 记住这台机器: state 存 uid (句柄不能进 state); "wb:list" 登记全部在册机器
+    state.set("wb:last_uid", m.uid)
+    var lst = state.get("wb:list", [])
+    var found = false
+    for u in lst:
+        if u == m.uid:
+            found = true
+    if not found:
+        push(lst, m.uid)
+        state.set("wb:list", lst)
+    wb_refresh(m)
+
+# ---------- 槽位 on_change (ev = {elem, value, machine}) ----------
+
+func wb_in_changed(ev):
+    # 放入/取出/脚本消耗都触发 (轮询差分); 回调里重读刷新 (u4 惯例, 幂等)
+    wb_refresh(ev.machine)
+
+func wb_out_changed(ev):
+    var m = ev.machine
+    var it = ui.machine_slot_item(m, "s_out")
+    if it == null:
+        log.info("[{PACK}] [槽位 on_change] s_out (输出槽) → (空)")
+    else:
+        log.info("[{PACK}] [槽位 on_change] s_out (输出槽) → {it.name} x{it.count} [{it.id}]")
+
+# ---------- 按钮 on_click (ev = {elem, machine}) ----------
+
+func wb_craft(ev):
+    var m = ev.machine
+    log.info("[{PACK}] [机器按钮 on_click] {ev.elem} (机器 uid {m.uid})")
+    if not wb_take_scrap(m, 2):
+        ui.machine_set_text(m, "lbl_status", "材料不足: 需要 2 个废金属 (放入左侧料仓)")
+        log.info("[{PACK}] [加工] 材料不足, 取消")
+        return
+    if not items.give(WB_PRODUCT, 1):
+        ui.machine_set_text(m, "lbl_status", "产出失败: 不在对局?")
+        return
+    # 记账: 按机器 uid 存累计加工数 (每台机器各记各的)
+    var k = "wb:crafts:{m.uid}"
+    state.set(k, state.get(k, 0) + 1)
+    var total = state.get(k, 0)
+    ui.machine_set_text(m, "lbl_status", "已加工: 精工齿轮 x1 已发放到背包 (后仓) · 本机累计 {total} 件")
+    log.info("[{PACK}] [加工] 消耗 2 废金属 → items.give({WB_PRODUCT}, 1) → 本机累计 {total} 件")
+
+# 从料仓逐堆部分消耗 need 个废金属; 返回 false = 不够 (先清点后扣, 不会半扣)
+# v1.39.0: items.consume(句柄, count) 支持部分消耗 (count < 堆数时 unitCount 直减)
+func wb_take_scrap(m, need):
+    var list = ui.machine_slot_items(m, "s_in")
+    var have = 0
+    for it in list:
+        if it.id == WB_MATERIAL:
+            have = have + it.count
+    if have < need:
+        return false
+    var left = need
+    for it in list:
+        if left <= 0:
+            break
+        if it.id != WB_MATERIAL:
+            continue
+        var take = left
+        if take > it.count:
+            take = it.count
+        if items.consume(it, take):
+            left = left - take
+    return left <= 0
+
+# 输出槽三件套演示: 空槽 → machine_spawn 直入成品 + 双锁; 有货 → machine_clear 清槽销毁 + 解锁
+# (生产环境的正式套路是: spawn → 锁 → 玩家取走触发 on_change → 解锁防重复产出)
+func wb_out_demo(ev):
+    var m = ev.machine
+    var cur = ui.machine_slot_item(m, "s_out")
+    if cur == null:
+        var h = ui.machine_spawn(m, "s_out", WB_PRODUCT, 1)   # 不过白名单, 直入输出槽
+        if h != null:
+            ui.machine_lock(m, "s_out", true)                 # 双锁 = 插入锁 + 取出锁
+            ui.machine_set_text(m, "lbl_status", "演示: 成品已 machine_spawn 直入输出槽并上锁 — 再点一次 = 清槽销毁")
+            log.info("[{PACK}] [输出槽演示] machine_spawn 直入 + machine_lock 双锁")
+    else:
+        ui.machine_clear(m, "s_out")                           # 槽内物品全部销毁 (演示用; 玩家物品请让玩家自取)
+        ui.machine_lock(m, "s_out", false)
+        ui.machine_set_text(m, "lbl_status", "演示: 输出槽已 machine_clear 清空并解锁")
+        log.info("[{PACK}] [输出槽演示] machine_clear 清槽 + 解锁")
+
+# ---------- 事件订阅: 读档找回机器 (uid 在 state 里, 句柄现场恢复) ----------
+
+on game_loaded():
+    var uid = state.get("wb:last_uid", "")
+    if uid == "":
+        log.info("[{PACK}] 机器面板包就绪: F12 发放演示加工台 → 双击机器开面板")
+        return
+    var m = ui.machine_find_uid(uid)
+    if m == null:
+        log.info("[{PACK}] 机器面板包就绪: 上次用的加工台 (uid {uid}) 本存档不在场; F12 发放一台新的即可")
+    else:
+        var total = state.get("wb:crafts:{uid}", 0)
+        var open = ui.machine_is_open(m)
+        log.info("[{PACK}] 机器面板包就绪: 找回加工台 (uid {uid}) — 累计加工 {total} 件, 面板开着: {open}")

@@ -1,0 +1,64 @@
+# flow.pss — ex14: PSScript 控制流
+# 对应文档: api_docs/04-psscript/06-control-flow.md
+#
+# if / while / for / break / continue / range — 语法与 Python 几乎一致。
+# 缩进规则最严格: 4 个空格 = 1 级, 同一文件禁止 tab 与空格混用 (混用 = 编译错误)。
+
+const PACK = "ex14_pss_flow"
+
+# ---------- if / elif / else ----------
+func price_level(p):
+    if p > 100:
+        return "高价"
+    elif p > 50:
+        return "中价"
+    elif p > 10:
+        return "低价"
+    else:
+        return "白送"
+
+for p in [120, 80, 20, 5]:
+    log.info("[{PACK}] if/elif/else: {p} → {price_level(p)}")
+
+# 单行块便捷式: 冒号后直接跟一条简单语句 (if/for/func 等复合语句不允许这样写)
+var discount = 0.6
+if discount > 0.5: log.info("[{PACK}] 单行块写法: 折扣 {discount}, 大促销!")
+
+# ---------- while + break ----------
+var i = 0
+while true:                            # while true + break 是标准循环模式
+    i += 1
+    if i >= 3:
+        break                          # 引擎有熔断: 单段超 10 万步报"疑似死循环", 不怕写死
+log.info("[{PACK}] while+break: 循环到 i={i} 跳出")
+
+# ---------- continue ----------
+var odd_sum = 0
+for n in range(1, 10):
+    if n % 2 == 0:
+        continue                       # 跳过本轮剩余, 直接进下一轮
+    odd_sum += n
+log.info("[{PACK}] continue 跳过偶数: 1~9 的奇数和 = {odd_sum}")
+
+# ---------- for-in 数组 ----------
+var stock = ["步枪", "医疗包", "废金属"]
+for name in stock:
+    log.info("[{PACK}] for-in 数组: {name}")
+
+# ---------- for-in 字典 (迭代到的是键, 不是值!) ----------
+var deal = {buyer = "老猫", item = "步枪", price = 500}
+for k in deal:
+    log.info("[{PACK}] for-in 字典: {k} = {deal[k]}")
+
+# ---------- range(起点, 终点, 步长): 终点不含 ----------
+log.info("[{PACK}] range(5)       = {range(5)}")
+log.info("[{PACK}] range(1, 8, 2)  = {range(1, 8, 2)}")
+log.info("[{PACK}] range(5, 0, -1) = {range(5, 0, -1)}  (步长可负, 倒着数)")
+
+# ---------- 嵌套循环: 九九乘法表 ----------
+# 81 次内层循环, 只输出 9 行日志 — 内层拼一行字符串, 外层打一行
+for row in range(1, 10):
+    var cells = []
+    for col in range(1, row + 1):
+        push(cells, "{col}x{row}={col * row}")
+    log.info("[{PACK}] 乘法表  {join(cells, '  ')}")

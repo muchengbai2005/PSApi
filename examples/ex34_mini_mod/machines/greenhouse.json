@@ -1,0 +1,18 @@
+{
+  "//": "迷你温室机器声明 — ui=custom 自装配 (CustomMachineFactory 左输入栏/右输出栏, 免电)。custom 四铁律: ① 槽位固定 inputSlot=0/outputSlot=1 (自装配布局没有原生槽位表); ② 无电池槽 → batteryPowered=false 必填 (缺省 true 会永不停机找电池); ③ 槽位零原生委托 → inputWhitelist/outputWhitelist 必写, 是唯一过滤来源; ④ inputKind=grid 严格网格可放多件 — 左格囤一排种子, 每晚吃 1 袋 (缺省 slot=单物品槽)。progressSpeed=1 = 每晚 1 个批次 (缺省值, 显式写出便于教学)。白名单条目用本包全 id。",
+  "machines": [
+    {
+      "id": "ex34_mini_mod:mini_greenhouse",
+      "ui": "custom",
+      "inputSlot": 0,
+      "outputSlot": 1,
+      "batteryPowered": false,
+      "progressSpeed": 1,
+      "inputKind": "grid",
+      "inputSize": "3x4",
+      "outputSize": "2x2",
+      "inputWhitelist": ["ex34_mini_mod:seed_pouch"],
+      "outputWhitelist": ["ex34_mini_mod:sun_melon"]
+    }
+  ]
+}

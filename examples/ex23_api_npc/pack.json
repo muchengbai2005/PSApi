@@ -1,0 +1,8 @@
+{
+  "id": "ex23_api_npc",
+  "name": "示例 23 · 自定义卖货 NPC",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex23: npc.register 注册一个卖货商人(原版模板 shadyMerchant + 静态 sell_items + 三系数 price + 四通道 dialogues + every_ndays 排班) + npc.pool_add 挂黑市池 + customer_generated 客户句柄。对应文档 05-api-reference/08-npc.md 与 10-handles.md。"
+}

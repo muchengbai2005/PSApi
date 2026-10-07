@@ -1,0 +1,14 @@
+{
+  "//": "温室唯一配方: 1 种子袋 → 2 日光瓜。配方是纯数据 — 运行模式(一晚出货的批次机/多夜累积的进度机)由机器声明里的块决定, 配方写法通吃。id 归一化: 本包物品写全 id; 原版物品才写 game: 前缀 (加载时剥成裸 id)。qualityRule=none 产物无品质层。",
+  "recipes": [
+    {
+      "id": "ex34_mini_mod:r_grow",
+      "machine": "ex34_mini_mod:mini_greenhouse",
+      "output": { "id": "ex34_mini_mod:sun_melon", "count": 2 },
+      "inputs": [ { "id": "ex34_mini_mod:seed_pouch", "count": 1, "display": "日光瓜种子袋" } ],
+      "qualityRule": "none",
+      "customName": "温室育苗：日光瓜",
+      "description": "1 袋种子过夜发芽 → 2 个日光瓜 (每晚 progressSpeed=1 批)。"
+    }
+  ]
+}

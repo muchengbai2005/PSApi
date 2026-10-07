@@ -1,0 +1,79 @@
+# counter.psui — 回调实验室 (静态骨架, CustomUI 后端)
+#
+# 本面板每个控件都接一种回调, 对应文档 06-psui/05-callbacks.md 的回调总表:
+#   button  → on_click   (无参; 点击时调用)
+#   toggle  → on_change  ({elem, value=bool})
+#   slider  → on_change  ({elem, value=float})
+#   dropdown → on_change ({elem, value=int 序号, 0 起})
+#   input   → on_change  (每次键入即触发, {elem, value=string})
+#   input   → on_submit  (回车提交, {elem, value=string}; 回调后框架自动清空输入框 — psconsole 同款)
+#   window  → on_window_closed 不是 psui 属性, 是包级全局函数约定 (脚本里定义即生效)
+#
+# 注意: window 的 on_open 属性是"机器绑定面板"专属 (machines/*.json ui=psui),
+#   普通面板不触发 — 见 ex29_psui_machine。
+
+window counter:
+  title: "回调实验室 · F7"
+  size: 470x430
+  draggable: true
+  close_on_escape: true
+
+  # ---- on_click: 点击 +1 计数 ----
+  label lbl_click:
+    text: "on_click: 按钮点击 0 次"
+  row:
+    spacing: 8
+    button btn_plus:
+      text: "点我 +1"
+      on_click: on_plus
+    button btn_reset:
+      text: "清零"
+      on_click: on_reset
+    button btn_close:
+      text: "关闭"
+      on_click: on_close
+
+  # ---- on_change: toggle ----
+  toggle tg_auto:
+    label: "on_change·toggle: 自动模式"
+    checked: false
+    on_change: on_toggle
+  label lbl_toggle:
+    text: "toggle 当前值: 关"
+
+  # ---- on_change: slider → 反馈闭环到 progress ----
+  slider sl_demo:
+    label: "on_change·slider: 拖动我 (0-100)"
+    min: 0
+    max: 100
+    step: 1
+    value: 0
+    on_change: on_slider
+  progress pg_bind:
+    value: 0
+    label: "progress 跟随 slider (反馈闭环)"
+  label lbl_slider:
+    text: "slider 当前值: 0"
+
+  # ---- on_change: dropdown ----
+  dropdown dd_demo:
+    label: "on_change·dropdown: 选一个"
+    options: ["苹果", "香蕉", "橙子"]
+    index: 0
+    on_change: on_dropdown
+  label lbl_dropdown:
+    text: "dropdown 选中: 苹果 (序号 0)"
+
+  # ---- on_change + on_submit: input (仿 psconsole 指令台) ----
+  input inp_cmd:
+    placeholder: "输入后回车提交 (on_submit); 试试输入 reset"
+    on_change: on_input_draft
+    on_submit: on_input_submit
+  label lbl_draft:
+    text: "草稿: (未输入) — on_change 每次键入都触发"
+  label lbl_applied:
+    text: "已提交: (无) — on_submit 回车才触发, 且输入框被框架清空"
+
+  # ---- 生命周期提示行 ----
+  label lbl_life:
+    text: "关闭本窗口 (× / Esc / F7) → on_window_closed 打日志并复位全部计数"

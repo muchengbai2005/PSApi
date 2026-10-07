@@ -1,0 +1,23 @@
+{
+  "//": "数据面: 2 个演示物品 (槽位面板的「货物」)。shape 全部 2x2 小尺寸, 方便塞进演示格子。template=scrap_metal 兜底图标 (继承原版废金属的目录/形状基线, shape 显式声明覆盖克隆结果); test=true → 归入物品浏览器「测试」分类 (F6 管理面板第 29 类), 也可按 F12 调试键一次性发放全部 PSApi 物品 (含这两个), 方便直接拖进面板槽里做实验。",
+  "items": [
+    {
+      "id": "ex28_psui_slots:demo_gear",
+      "name": "演示齿轮",
+      "desc": "槽位演示物品 A。只进得了白名单写了它的槽 (s1 / g1)。",
+      "template": "scrap_metal",
+      "value": 20,
+      "test": true,
+      "shape": { "w": 2, "h": 2, "cells": [[0, 0], [0, 1], [1, 0], [1, 1]] }
+    },
+    {
+      "id": "ex28_psui_slots:demo_core",
+      "name": "演示齿轮核心",
+      "desc": "槽位演示物品 B。s1 的白名单没收它 → 拖过去会被拒; s2 / g1 收。",
+      "template": "scrap_metal",
+      "value": 60,
+      "test": true,
+      "shape": { "w": 2, "h": 2, "cells": [[0, 0], [0, 1], [1, 0], [1, 1]] }
+    }
+  ]
+}

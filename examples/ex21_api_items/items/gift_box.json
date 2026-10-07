@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 1/3: 礼盒。基础发放/检索/消耗的靶子, give 第三参 opts 会给它做实例定制。",
+  "items": [
+    {
+      "id": "ex21_api_items:gift_box",
+      "name": "礼盒",
+      "desc": "ex21 演示用礼盒。game_loaded 时自动发放, 演示 give/has/find/consume 全流程。",
+      "template": "scrap_metal",
+      "value": 50,
+      "test": true
+    }
+  ]
+}

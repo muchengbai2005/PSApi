@@ -1,0 +1,76 @@
+# workbench.psui — 机器绑定面板 (machines/workbench.json: ui="psui", panel="workbench")
+#
+# 机器面板与独立面板 (ex28 depot) 的四点差别:
+#   · 开窗: 玩家双击机器物品原生开, 脚本不 ui.open / 不 bind_key;
+#     on_open 在每次"关→开"跳变沿触发 (机器面板专属回调)
+#   · 持久: 槽内物品随机器存档 (persistent 天然成立, 写上明确意图)
+#   · 回调: 全部多带一个 machine 字段 — 同一面板定义可能装在多台机器上:
+#     按钮 on_click {elem, machine} / 槽位 on_change {elem, value, machine}
+#   · API: 读写走 machine_* 全家桶 (machine_slot_items / machine_set_text / ...),
+#     首参都要显式传机器句柄
+#
+# 结构恒定铁律 (最重要的一条): 本面板元素树永不增删 — 存档按图节点 BFS 索引
+#   记录槽内物品位置, 结构变了旧存档会串槽 (gunworks v0.8.0 血泪教训)。
+#   想改表现只改文本/白名单/锁 (脚本运行时改写), 不动元素树。
+#
+# 输出槽 s_out 的 whitelist 是一个不存在的占位 id (gunworks 套路):
+#   排他注册后任何手动放入都被拒; 成品由脚本 ui.machine_spawn 直入
+#   (不过白名单), 配合 machine_lock 双锁 / machine_clear 清槽。
+
+window workbench:
+  title: "演示加工台"
+  size: 420x340
+  draggable: true
+  persistent: true            # 机器面板槽内容随机器存档, 关窗不退给玩家
+  on_open: wb_on_open         # 每次开窗沿触发: {machine}
+  spacing: 3
+
+  label lbl_title:
+    text: "料仓放入废金属 (原版物品) → 点[加工]出成品 → 背包收货"
+    font_size: 0.7
+
+  # 主区: 左料仓 grid_slot + 右输出槽 slot (中间 "→" 文本箭头)
+  row:
+    spacing: 12
+    column:
+      spacing: 2
+      label lbl_in:
+        text: "料仓 (grid_slot 3x2)"
+        font_size: 0.65
+      grid_slot s_in:
+        whitelist: ["game:scrap_metal"]
+        size: 3x2
+        on_change: wb_in_changed
+    column:
+      spacing: 2
+      spacer:
+        size: 6x10
+      label:
+        text: "→"
+        font_size: 1.2
+      label lbl_out:
+        text: "输出槽"
+        font_size: 0.65
+      slot s_out:
+        whitelist: ["ex29_psui_machine:__reserved_output"]
+        size: 2x2
+        on_change: wb_out_changed
+
+  # 操作行: 加工 = 真玩法; 输出槽演示 = machine_spawn/lock/clear 三件套教学
+  row:
+    spacing: 8
+    button btn_craft:
+      text: "加工 (耗 2 废金属)"
+      size: 120x22
+      font_size: 0.7
+      on_click: wb_craft
+    button btn_out_demo:
+      text: "输出槽演示"
+      size: 100x22
+      font_size: 0.7
+      on_click: wb_out_demo
+
+  # 状态行: on_open / on_change / 按钮回调里 machine_set_text 改写
+  label lbl_status:
+    text: "状态: (双击机器开窗)"
+    font_size: 0.7

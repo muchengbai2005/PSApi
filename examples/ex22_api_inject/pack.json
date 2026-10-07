@@ -1,0 +1,8 @@
+{
+  "id": "ex22_api_inject",
+  "name": "示例 22 · 物品流通五通道",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex22: inject 五通道(buy_list 收购清单 / sell_shelf 出售货架 / doctor 夜间博士 / barter 野外商人 / loot_pool 原版随机池) + 管理函数(reset_tracking/list)。对应文档 05-api-reference/07-inject.md。注册类顶层调用, 管理类对局内调用。"
+}

@@ -1,0 +1,14 @@
+{
+  "//": "custom 机器配方: count=2 必须 grid (inputKind=grid 已在机器声明)。免电: batteryPowered=false → 不需要电池, 每晚白嫖一批。",
+  "recipes": [
+    {
+      "id": "ex08_machines:press_scrap",
+      "machine": "ex08_machines:demo_press",
+      "output": { "id": "game:newspaper", "count": 1 },
+      "inputs": [ { "id": "game:scrap_metal", "count": 2, "display": "废金属" } ],
+      "qualityRule": "none",
+      "customName": "压块：报纸",
+      "description": "路线③验证: 网格放 2 废金属, 免电, 当晚 1 报纸。"
+    }
+  ]
+}

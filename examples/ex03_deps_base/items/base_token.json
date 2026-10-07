@@ -1,0 +1,13 @@
+{
+  "//": "地基包的全部家当: 一个物品。id 必须写全 (ex03_deps_base:base_token), 跨包引用全靠这个全 id。template=metal_ingot 是原版'金属锭'的裸 id, 提供图标/形状/行为基线。",
+  "items": [
+    {
+      "id": "ex03_deps_base:base_token",
+      "name": "基础代币",
+      "desc": "地基包发行的代币。别小看它——ex04_deps_user 整个包都以它的存在为前提。",
+      "template": "metal_ingot",
+      "value": 50,
+      "test": true
+    }
+  ]
+}

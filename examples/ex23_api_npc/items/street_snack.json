@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 1/2: 街头小吃。NPC 老周卖的东西之一(100% 上架)。",
+  "items": [
+    {
+      "id": "ex23_api_npc:street_snack",
+      "name": "街头小吃",
+      "desc": "货郎老周摊子上的街头小吃。咸香酥脆, 来路不明但很好吃。",
+      "template": "bandage_item",
+      "value": 15,
+      "test": true
+    }
+  ]
+}

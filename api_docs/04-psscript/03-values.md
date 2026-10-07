@@ -45,7 +45,7 @@ const OWNER = "老猫"
 - 大小写敏感：`TAX` 与 `tax` 是两个名字。
 
 > 命名习惯：常量全大写（`TAX`、`PACK`），变量/函数小写下划线（`boot_count`、`describe_stock`）。
-> 这是 example_hello 等真实包的统一风格。
+> 这是 [ex12_pss_basics](../../examples/ex12_pss_basics/README.md) 等教学示例包的统一风格。
 
 ## 未初始化与 null
 
@@ -200,8 +200,9 @@ on customer_generated():
 | 其他（函数/命名空间/句柄） | 恒 true |
 
 > 一个实用惯例：**"可能为 null"的值直接当条件用**。
-> `if event.client:` 等价于"客户句柄存在且非空"。example_hello 的 e5 演示里
-> `if scrap != null:` 是更明确的写法，两者效果一致。
+> `if event.client:` 等价于"客户句柄存在且非空"。`if scrap != null:`
+> 是更明确的写法，两者效果一致（items API 的判空用法见
+> [ex21_api_items](../../examples/ex21_api_items/README.md)）。
 
 ## 类型转换对照表
 

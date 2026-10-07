@@ -67,8 +67,8 @@ icon: my_pack:rifle key=my_pack:rifle from=custom atlas=PSApi/icons sprite=my_pa
 **改了 png 没变化** → 图标在启动时一次性加载，重启游戏；确认没有
 "文件夹+DLL 并存"（DLL 胜出，你改的文件夹没被读）。
 
-**想给机器换图标** → 机器也是物品，同样用 `icon` 字段（`example_processor`
-就用 `icon: {file: "mcb_machine_spp.png"}` 复用了包内另一张图）。
+**想给机器换图标** → 机器也是物品，同样用 `icon` 字段（机器物品可以直接
+`icon: {file: "machine.png"}` 复用包内任意图）。
 
 ---
 

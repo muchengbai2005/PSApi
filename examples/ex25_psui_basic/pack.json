@@ -1,0 +1,8 @@
+{
+  "id": "ex25_psui_basic",
+  "name": "示例 25 · PSUI 全控件一览",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex25: PSUI 静态面板。一张窗口演示 CustomUI 后端全部控件 (label/image/progress/toggle/slider/dropdown/input/button) + 四种布局容器 (row/column/grid/scroll), 每个控件接脚本回调打日志。F8 开关面板。对应文档 06-psui/02-panel-file.md、03-elements.md、04-layout.md。图元后端专属控件 (slot/grid_slot/spacer/rich_label) 见 ex28_psui_slots。"
+}

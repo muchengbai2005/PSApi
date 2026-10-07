@@ -1,0 +1,90 @@
+# counter.pss — ex26_psui_callbacks 的唯一脚本: 回调全覆盖 + 反馈闭环
+#
+# 反馈闭环 = "玩家操作 → 回调 → ui.set_text/set_progress 写回面板 → 玩家看见变化"。
+# 两条红线 (文档 06-psui/05-callbacks.md):
+#   1. 脚本回写不触发 on_change (防自激循环) — 本例 slider 回写 progress 不回写 slider
+#   2. input 每次键入即触发 — 所以用 g_draft(草稿)/g_applied(已提交) 双变量,
+#      on_change 只存草稿, on_submit 才应用 (psconsole 的 g_search/g_applied 同款模式)
+
+const PACK = "ex26_psui_callbacks"
+const DD_OPTIONS = ["苹果", "香蕉", "橙子"]   # 与 .psui 里 dropdown options 一一对应
+
+var click_count = 0     # on_click 计数 (反馈闭环的 +1 计数)
+var g_draft = ""        # 输入框草稿 (on_change 写入)
+var g_applied = ""      # 已提交文本 (on_submit 写入)
+
+# 顶层语句: 按键绑定 (F7 开/关 counter 面板)
+ui.bind_key("F7", "ex26_psui_callbacks:counter")
+
+# ---- on_click (button, 无参) ----
+
+func on_plus():
+    click_count += 1
+    log.info("[{PACK}] [按钮 on_click] 触发: +1 → 计数 {click_count}")
+    ui.set_text("lbl_click", "on_click: 按钮点击 {click_count} 次")
+
+func on_reset():
+    click_count = 0
+    log.info("[{PACK}] [按钮 on_click] 触发: 清零")
+    ui.set_text("lbl_click", "on_click: 按钮点击 0 次")
+
+func on_close():
+    log.info("[{PACK}] [按钮 on_click] 触发: 关闭")
+    ui.close("counter")
+
+# ---- on_change: toggle (value = bool) ----
+
+func on_toggle(ev):
+    var s = "关"
+    if ev.value:
+        s = "开"
+    log.info("[{PACK}] [开关 on_change] 触发: {s} (elem={ev.elem})")
+    ui.set_text("lbl_toggle", "toggle 当前值: {s}")
+
+# ---- on_change: slider (value = float) → 联动 progress 形成闭环 ----
+
+func on_slider(ev):
+    log.info("[{PACK}] [滑条 on_change] 触发: {ev.value}")
+    ui.set_text("lbl_slider", "slider 当前值: {ev.value}")
+    ui.set_progress("pg_bind", ev.value / 100.0, "progress 跟随 slider: {ev.value}")
+
+# ---- on_change: dropdown (value = int 序号, 0 起) ----
+
+func on_dropdown(ev):
+    var name = DD_OPTIONS[ev.value]
+    log.info("[{PACK}] [下拉框 on_change] 触发: {name} (序号 {ev.value})")
+    ui.set_text("lbl_dropdown", "dropdown 选中: {name} (序号 {ev.value})")
+
+# ---- input: on_change 只存草稿, on_submit 才应用 (仿 psconsole) ----
+
+func on_input_draft(ev):
+    g_draft = ev.value
+    log.info("[{PACK}] [输入框 on_change] 键入: '{g_draft}'")
+    ui.set_text("lbl_draft", "草稿: {g_draft} (尚未提交)")
+
+func on_input_submit(ev):
+    g_applied = ev.value
+    log.info("[{PACK}] [输入框 on_submit] 提交: '{g_applied}' (回调后框架已自动清空输入框)")
+    ui.set_text("lbl_applied", "已提交: {g_applied}")
+    # 仿 psconsole 的迷你指令: reset = 清零计数, 其他原样回显
+    if g_applied == "reset":
+        click_count = 0
+        ui.set_text("lbl_click", "on_click: 按钮点击 0 次")
+        ui.set_text("lbl_applied", "已提交: reset → 计数已清零")
+        log.info("[{PACK}] [输入框 on_submit] 执行指令 reset: 计数清零")
+
+# ---- on_window_closed: 包级全局函数约定 (不是 psui 属性) ----
+# 本包任何面板以任何路径关闭 (× / Esc / ui.close / F7 切换) 都会带面板全名调它一次。
+
+func on_window_closed(panel_id):
+    if panel_id != PACK + ":counter":
+        return
+    log.info("[{PACK}] [on_window_closed] {panel_id} 已关闭 — 复位计数与草稿")
+    click_count = 0
+    g_draft = ""
+    g_applied = ""
+
+# ---- 事件订阅 ----
+
+on game_loaded():
+    log.info("[{PACK}] 回调实验包就绪: 按 F7 开/关 counter 面板")

@@ -1,0 +1,14 @@
+{
+  "//": "items/ 目录: 物品定义。本包唯一的物品是一台机器物品——machines/ 里声明的机器必须与某个 items[].id 对上, 否则 audit 警告 never built。directory 固定 StationMachinery (机器物品必须落这个目录); template=furnace 借原版熔炉当底子 (图标/形状/行为基线)。",
+  "items": [
+    {
+      "id": "ex02_dirs:demo_furnace",
+      "directory": "StationMachinery",
+      "template": "furnace",
+      "name": "示例熔炉",
+      "desc": "ex02 目录全景包的机器物品, 与 machines/demo_furnace.json 的声明通过 id 关联。",
+      "value": 400,
+      "test": true
+    }
+  ]
+}

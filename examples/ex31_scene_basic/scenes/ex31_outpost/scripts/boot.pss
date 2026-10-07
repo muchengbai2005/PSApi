@@ -1,0 +1,42 @@
+# boot.pss — ex31 前哨废墟 · 场景入口
+#
+# 知识点 (对应文档 07-advanced/08-scenes-raid.md §五):
+#   1. 场景脚本与 events/*.pss 共享全局环境, 场景间靠 event.scene 判路由:
+#      进场景先判 FullId ("包id:场景id"), 不是自己的就 return。
+#   2. 场景事件四件套:
+#        scene_enter  — 进入场景 (黑屏后), payload: scene/name/danger/day
+#        scene_interact — 互动物点击 (M1 内置按钮列与 psui 路由都会发), 附 point/type
+#        scene_loot   — 搜索点掉落入外出背包, 附 point/type/item/count
+#        scene_leave  — 撤离, 附 reason (scenes.leave 的参数)
+#   3. 显式 driver=script 的场景撤离由脚本负责:
+#        在 scene_interact 里认领 exit 点 → 调 scenes.leave("原因")。
+#        (scenes.leave 清栈黑屏回店, 外出背包自动搬回玩家库存 — 都不用你管。)
+#   4. scene.log(text) 写场景内日志区; log.info 写控制台 — 调试时双通道对照。
+
+# data.pss 已在同目录先装载 (boot/data 谁先谁后无约定, 但常量表放 data 是惯例)
+
+on scene_enter():
+    if event.scene != EX31_SCENE:
+        return
+    log.info("[ex31_scene_basic] 进入场景 {event.scene} (danger={event.danger}, day={event.day})")
+    scene.log(EX31_TEXTS.enter)
+    scene.log(EX31_TEXTS.exit_hint)
+
+on scene_interact():
+    if event.scene != EX31_SCENE:
+        return
+    log.info("[ex31_scene_basic] 互动物点击: point={event.point}, type={event.type}")
+    if event.type == "exit":
+        # 撤离点被点 → 脚本清栈走人; psapi.scene.leave 的 reason 取这里的参数
+        scenes.leave("gate_exit")
+
+on scene_loot():
+    if event.scene != EX31_SCENE:
+        return
+    log.info("[ex31_scene_basic] 搜索掉落: {event.point} → {event.item} x{event.count} (已入外出背包)")
+
+on scene_leave():
+    if event.scene != EX31_SCENE:
+        return
+    log.info("[ex31_scene_basic] 撤离场景, reason={event.reason}")
+    scene.log(EX31_TEXTS.leave)

@@ -1,0 +1,42 @@
+{
+  "//": "模板克隆四连: 前 3 个同用 template=common_ore, 演示'不写的字段=保持模板的值'; 第 4 个不写 template, 演示模板缺省值(取目录里第一个原版物品当模板, 自动跳过其他 mod 物品防链式污染)。每个物品 desc 写明自己改了什么。",
+  "items": [
+    {
+      "//": "① 零覆盖: 数据面字段(value/shape/icon/types)一个都不写, 全部继承 common_ore",
+      "id": "ex06_item_template:ore_plain",
+      "name": "矿克隆甲",
+      "desc": "零覆盖演示: 除 id/名字外什么都不写, value/形状/图标/类型与原版普通矿石完全一致。",
+      "template": "common_ore",
+      "test": true
+    },
+    {
+      "//": "② 覆盖 name + value: 只有这两项变, 图标/形状仍走模板",
+      "id": "ex06_item_template:ore_premium",
+      "name": "富集矿",
+      "desc": "覆盖演示: 只改了 name 和 value(120), 图标和占格仍是 common_ore 的。",
+      "template": "common_ore",
+      "value": 120,
+      "test": true
+    },
+    {
+      "//": "③ 覆盖 shape、icon 省略: 占格变成 2x1 条形, 图标继续走模板切片",
+      "id": "ex06_item_template:ore_shard",
+      "name": "矿片",
+      "desc": "覆盖演示: shape 改成 2x1 条形, icon 省略 → 仍是 common_ore 的图。",
+      "template": "common_ore",
+      "value": 15,
+      "shape": { "w": 2, "h": 1, "cells": [ [0, 0], [1, 0] ] },
+      "test": true
+    },
+    {
+      "//": "④ 裸定义: 不写 template → 模板缺省值 = 显式 directory 里第一个原版物品 (自动跳过 mod 物品)。显式写 directory 让'第一个'可预期",
+      "id": "ex06_item_template:ore_wild",
+      "name": "野生矿晶",
+      "desc": "裸定义对比: 没写 template, 由 directory(MaterialDirectory) 里第一个原版物品当隐藏模板。",
+      "directory": "MaterialDirectory",
+      "value": 30,
+      "tags": ["MATERIAL"],
+      "test": true
+    }
+  ]
+}

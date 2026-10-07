@@ -1,0 +1,45 @@
+# ticker.psui — 动态面板 (静态骨架 + on_build 动态区, CustomUI 后端)
+#
+# 动态面板的标准骨架 (参照官方面板 psapi_manager/ui/manager.psui):
+#   · 恒定结构的元素写死在 .psui (本文件的按钮/标签)
+#   · 数量不定的内容留一个「带 id 的容器」(row_list, scroll), 内容由脚本
+#     events/ticker.pss 的 on_build = build_panel 在构建期命令式填充
+#   · 数据变了 → 脚本 ui.rebuild() → 关闭重开 → on_build 重跑 → 列表刷新
+#
+# on_build 在每次 ui.open / ui.rebuild 的构建期 (Show 之前) 执行;
+# ui.build_* 只能在 on_build 里调, 别处调用会报错 (文档 06-psui/06-dynamic.md 红线)。
+
+window ticker:
+  title: "动态面板 · F9"
+  size: 480x430
+  draggable: true
+  close_on_escape: true
+  on_build: build_panel
+
+  # 构建期信息行 (build_panel 里 ui.set_text 写入 — 构建期也可以改静态元素)
+  label lbl_build:
+    text: "构建状态: (待构建)"
+
+  # 操作按钮 (静态 — 恒定结构)
+  row:
+    spacing: 8
+    button btn_add:
+      text: "添加一行"
+      on_click: on_add_row
+    button btn_clear:
+      text: "清空全部"
+      on_click: on_clear_rows
+    button btn_close:
+      text: "关闭"
+      on_click: on_close
+
+  label:
+    text: "—— 行列表 (on_build 循环生成, 每行带删除按钮; tick 每 5 秒自动加一行) ——"
+
+  # 动态区: 带 id 的空滚动区 — build_panel 里 ui.build_begin("row_list") 定位填充
+  scroll row_list:
+    height: 230
+
+  # 运行信息行 (on tick 里 ui.set_text, 不走 rebuild)
+  label lbl_tick:
+    text: "tick: 0 秒"

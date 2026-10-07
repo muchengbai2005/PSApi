@@ -16,7 +16,7 @@
 | 玩家安装 | 要会找 `UserData/PSApi/packs/` | 扔进 `Mods/` 就完事 |
 | 误改风险 | 高（JSON 手滑就坏） | 低 |
 | 版本固定 | 无 | 有（版本进模组信息，模组列表可见） |
-| 依赖 PSApi | 是 | 是（仍需玩家先装 PSApi 两件套） |
+| 依赖 PSApi | 是 | 是（仍需玩家先装 PSApi 模组） |
 
 > 编译**不改变内容**——包里的 JSON / .pss / .psui 原样内嵌，运行时照样由
 > PSApi 宿主解析执行。"编译"只是资源打包 + 一个自动注册的引导壳。
@@ -26,13 +26,13 @@
 | 条件 | 检查方法 |
 |---|---|
 | .NET SDK（可跑 `dotnet build`） | 终端执行 `dotnet --version` 有输出 |
-| PSApi.Items 已 Release 构建 | 存在 `_psapi/PSApi.Items/bin/Release/PSApi.Items.dll` |
+| PSApi 已 Release 构建 | 存在 `_psapi/PSApi/bin/Release/PSApi.dll`（或 `net6.0/` 子目录下同名文件） |
 | 工具在游戏目录树内 | `_tools/pack_compiler/` 位于游戏根目录下（工具靠向上查找 `MelonLoader/net6/MelonLoader.dll` 定位游戏根） |
 | 包本身合法 | `pack.json` 存在、JSON 合法、含 `id` |
 
-> 为什么需要 PSApi.Items.dll？生成的包 DLL 引用它（仅编译期引用，`Private=false`
-> 不随包拷贝）——引导壳要调用它的注册 API。没构建过的话：
-> `cd _psapi/PSApi.Items && dotnet build -c Release`。
+> 为什么需要 PSApi.dll？生成的包 DLL 引用它（仅编译期引用，`Private=false`
+> 不随包拷贝）——引导壳要调用它的注册 API（命名空间 `PSApi.Items.*` 在合并后保留）。
+> 没构建过的话：`cd _psapi/PSApi && dotnet build -c Release`。
 
 ## 编译步骤
 
@@ -77,11 +77,14 @@ dotnet run -c Release -- --verify "out\PSPack.my_weapon_pack.dll"
 
 ```text
 [verify] PSPack.my_weapon_pack.dll: pspack/ 资源 23 个, 共 148,326 字节
-[verify] pack.json: id=my_weapon_pack version=1.2.0 prerequisites=[gunworks]
+[verify] pack.json: id=my_weapon_pack version=1.2.0 prerequisites=[my_weapon_lib]
+[verify] 程序集引用: …, PSApi, …
 ```
 
 `--verify` 只读 DLL 里的资源与 pack.json，不加载类型，可在任何机器上安全执行。
 发布前跑一遍，确认资源数与源文件夹文件数一致、id/version/prerequisites 无误。
+**v2.0.0 起附程序集引用表**——合并迁移核验用：应引用 `PSApi`（若还引用旧的
+`PSApi.Items` / `PSApi.Events` 程序集名，说明包是用旧工具链编译的，需重编译）。
 
 ### 第 4 步：部署
 
@@ -93,10 +96,10 @@ Copy-Item "out\PSPack.my_weapon_pack.dll" "Mods\"
 
 ```text
 （模组加载阶段）PSPack.my_weapon_pack 已加载          ← MelonLoader 模组列表
-（PSApi.Items 初始化后）rescan(init): N pack(s), …    ← 包数 +1，errors=0
+（PSApi 初始化后）rescan(init): N pack(s), …         ← 包数 +1，errors=0
 ```
 
-玩家端只需要：装好 MelonLoader + `PSApi.Items.dll` + `PSApi.Events.dll`，
+玩家端只需要：装好 MelonLoader + `PSApi.dll`（v2.0.0 起单组件），
 再把 `PSPack.<id>.dll` 扔进 `Mods/`。无需创建任何文件夹。
 
 ## 编译器内部做了什么
@@ -126,8 +129,8 @@ packs/my_weapon_pack/                  _tools/pack_compiler/obj/packbuild_my_wea
 [assembly: MelonInfo(typeof(PSPack_my_weapon_pack.PackPlugin),
     "PSPack.my_weapon_pack", "1.2.0", "你的名字")]
 [assembly: MelonGame("Questing Goose Studio", "Probably Stolen")]
-[assembly: MelonPriority(5)]                       // 必须先于 PSApi.Items(10)
-[assembly: MelonOptionalDependencies("PSApi.Items")] // Items 缺失也不崩
+[assembly: MelonPriority(5)]                       // 必须先于 PSApi(10)
+[assembly: MelonOptionalDependencies("PSApi")]      // PSApi 缺失也不崩 (v2.0.0: 统一宿主)
 
 public class PackPlugin : MelonMod
 {
@@ -144,7 +147,7 @@ public class PackPlugin : MelonMod
     private static void RegisterCore()
     {
         PSApi.Items.EmbeddedPackRegistry.Register("my_weapon_pack", "1.2.0",
-            new string[] { "gunworks" }, typeof(PackPlugin).Assembly, "pspack/");
+            new string[] { "my_weapon_lib" }, typeof(PackPlugin).Assembly, "pspack/");
     }
 }
 ```
@@ -153,12 +156,15 @@ public class PackPlugin : MelonMod
 
 | 设计 | 原因 |
 |---|---|
-| `MelonPriority(5)` | 必须先于 PSApi.Items(10) 执行 `Register`，否则 Items 合并扫描时内嵌包未就位、冲突弹窗永远为空 |
-| `MelonOptionalDependencies("PSApi.Items")` + try/catch | 玩家没装 PSApi 时，包 DLL 只打警告不崩游戏 |
-| `Register(id, version, prerequisites, assembly, "pspack/")` | 把包身份与资源位置登记进 Items 的公共注册表，等两个宿主来合并消费 |
+| `MelonPriority(5)` | 必须先于 PSApi(10) 执行 `Register`，否则合并扫描时内嵌包未就位、冲突弹窗永远为空 |
+| `MelonOptionalDependencies("PSApi")` + try/catch | 玩家没装 PSApi 时，包 DLL 只打警告不崩游戏 |
+| `Register(id, version, prerequisites, assembly, "pspack/")` | 把包身份与资源位置登记进公共注册表（`PSApi.Items.EmbeddedPackRegistry`，合并后命名空间保留），等数据面/逻辑面两模块来合并消费 |
+
+> 引导壳告警文案里的 "PSApi.Items 缺失" 是历史措辞——v2.0.0 起实际指的是
+> 统一宿主 `PSApi.dll` 缺失。
 
 **③ 生成 csproj 调 `dotnet build`**：目标框架 net6.0，只引用 MelonLoader.dll
-和 PSApi.Items.dll（`Private=false`），不需要游戏程序集。构建失败时临时目录
+和 PSApi.dll（`Private=false`），不需要游戏程序集。构建失败时临时目录
 `obj/packbuild_<id>/` 会保留备查。
 
 ## 运行时的完整加载链
@@ -168,8 +174,9 @@ public class PackPlugin : MelonMod
 │
 ├─ MelonLoader 扫描 Mods/
 │    ├─ PSPack.my_weapon_pack.dll (priority 5) → OnInitializeMelon → Register(…)
-│    ├─ PSApi.Items.dll (10)  → 扫描 packs/ + 读注册表 → 合并去重 → 解析数据面
-│    └─ PSApi.Events.dll (20) → 扫描 packs/ + 读注册表 → 合并去重 → 编译 .pss/.psui
+│    └─ PSApi.dll (10, 单宿主) → 扫描 packs/ + 读注册表 → 合并去重
+│         ├─ 数据面模块: 解析 items/machines/recipes/qualities/icons
+│         └─ 逻辑面模块: 编译 events/*.pss + scenes/ + ui/*.psui
 │
 └─ DLL 包与文件夹包在"合并"处汇合，此后一视同仁：
      同 id → DLL 胜（文件夹版记 duplicate 冲突，弹窗提醒）
@@ -182,9 +189,9 @@ public class PackPlugin : MelonMod
 ## 并存冲突：开发期的经典坑
 
 ```text
-packs/gunworks/  +  Mods/PSPack.gunworks.dll   同时存在
+packs/my_pack/  +  Mods/PSPack.my_pack.dll   同时存在
 → DLL 胜出，文件夹版被完全忽略
-→ 日志: pack conflict [duplicate]: gunworks 同时存在 dll 与 pack, 已默认加载 dll
+→ 日志: pack conflict [duplicate]: my_pack 同时存在 dll 与 pack, 已默认加载 dll
 → 主菜单弹"重复加载"窗
 ```
 
@@ -208,11 +215,11 @@ packs/gunworks/  +  Mods/PSPack.gunworks.dll   同时存在
 检查清单:
   1. packDir 是否指向内容包根目录 (含 pack.json 的那层)
   2. pack.json 是否为合法 JSON 且含必填字段 "id"
-  3. PSApi.Items 是否已构建 (_psapi/PSApi.Items → dotnet build -c Release)
+  3. PSApi 是否已构建 (_psapi/PSApi → dotnet build -c Release)
 ```
 
 > 另有两类环境错误直接抛异常文本：找不到 `MelonLoader/net6/MelonLoader.dll`
->（工具不在游戏目录树内）与找不到已构建的 PSApi.Items.dll。
+>（工具不在游戏目录树内）与找不到已构建的 PSApi.dll。
 
 ## 发布模组的建议清单
 
@@ -223,7 +230,7 @@ packs/gunworks/  +  Mods/PSPack.gunworks.dll   同时存在
 3. 编译 + `--verify`：资源数与源文件数一致，pack.json 打印无误。
 4. 干净环境验证：把 `packs/` 里你的包暂时移走，只留 `Mods/PSPack.<id>.dll`，
    重启确认加载正常（避免被"文件夹+DLL 并存"假象骗过）。
-5. 发布页写明：需要 MelonLoader + PSApi（Items/Events 两件套）+ 你的 DLL；
+5. 发布页写明：需要 MelonLoader + PSApi（v2.0.0 起单 dll）+ 你的 DLL；
    涉及的前置包列表；适配的游戏版本（`gameVersions` 字段当前无机器检查，
    信息要靠你写给玩家看）。
 
@@ -250,8 +257,8 @@ packs/gunworks/  +  Mods/PSPack.gunworks.dll   同时存在
 加载合并层面零差别（同一套 `IPackSource` 抽象）。唯一可见差异：冲突时
 DLL 优先，以及 MelonLoader 模组列表里会多出 `PSPack.<id>` 条目。
 
-**编译时报"未找到 PSApi.Items.dll"？**
-按提示先构建：`cd _psapi/PSApi.Items && dotnet build -c Release`。
+**编译时报"未找到 PSApi.dll"？**
+按提示先构建：`cd _psapi/PSApi && dotnet build -c Release`。
 
 **图标等二进制资源嵌入后会被改动吗？**
 字节级原样嵌入（`ReadBytes` 原样读出），PNG 不会被重编码。

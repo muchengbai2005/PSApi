@@ -1,0 +1,65 @@
+# panel.pss — ex24_api_ui_handles 的唯一脚本
+#
+# 三块内容:
+#   一、ui 脚本 API — ui.bind_key 顶层绑定 F8 开关面板; 回调里 ui.set_text 动态改文本。
+#       面板 id 规则: 注册全名 = "包id:面板名"(面板名取 window 的显式 id);
+#       本包脚本内引用自家面板/元素可省前缀(自动补全)。
+#   二、items.on_double_click(id, fn) — 双击该 id 物品时调 fn(物品句柄),
+#       并跳过原生双击行为。句柄上调 get_data / set_data / set_name。
+#   三、items.on_target(src_id, dst_id, fn) — 把物品 A 拖到物品 B 上时调
+#       fn(h_source, h_target); 明确 return false = 放行原生, 其他返回值 = 跳过原生。
+#
+# 回调注册全部在【顶层】执行一次(可调对象不随存档持久化, 每次加载重新注册)。
+
+const PACK = "ex24_api_ui_handles"
+
+# ============ 一、面板: 按键绑定 + 动态改文本 ============
+
+# 顶层绑定: key_name 用 UnityEngine.KeyCode 名(如 F6/Slash), 按下 = 开/关切换。
+# ui.open 需在对局内(CustomUIManager), 所以 F8 进了存档才有效。
+ui.bind_key("F8", "ex24_api_ui_handles:demo_panel")
+
+# button 的 on_click: 无参调用(面板开着才点得到, 所以 set_text 一定有目标)
+func on_hello_click():
+    var n = state.get("hello_count", 0) + 1
+    state.set("hello_count", n)
+    ui.set_text("status_lbl", "你好! 这是第 {n} 次点击(state 计数, 重启也在)")
+
+func on_reset_click():
+    ui.set_text("status_lbl", "面板已就绪: 点下面的按钮试试")
+
+# input 的 on_submit: 回车提交, 1 参 {elem, value}; 框架回调后自动清空输入框
+func on_msg_submit(a):
+    ui.set_text("status_lbl", "收到输入: {a.value}")
+
+# ============ 二、双击句柄回调: 双击神秘礼盒 ============
+
+# 发放演示物品(game_loaded = 读档/新开对局完成, 对局内 give 可用):
+# 礼盒实例自带 data.opened=0; F12 领的礼盒没有 data, get_data 的默认值参数会兜底。
+on game_loaded():
+    items.give("ex24_api_ui_handles:mystery_box", 1, {data = {opened = 0, blessing = "未贴签"}})
+    items.give("ex24_api_ui_handles:gift_tag", 2)
+    log.info("[{PACK}] 演示物品已发放: 神秘礼盒(带 data) + 礼签x2 → 双击礼盒 / 把礼签拖到礼盒上试试")
+
+# fn 收物品句柄: get_data(key[, 默认]) 读 PSD_ 数据, set_data 写, set_name 改实例名
+func on_box_double_click(h):
+    if h.get_data("opened", 0) == 1:
+        log.info("[{PACK}] 双击: 这个礼盒已经开过了(实例名「{h.name}」, uid={h.uid})")
+    else:
+        h.set_data("opened", 1)
+        h.set_name("开过的礼盒")
+        log.info("[{PACK}] 双击礼盒: set_data(opened=1) + set_name 改名 →「{h.name}」, 祝福语 {h.get_data('blessing')}")
+
+items.on_double_click("ex24_api_ui_handles:mystery_box", on_box_double_click)
+
+# ============ 三、拖拽句柄回调: 礼签 → 神秘礼盒 ============
+
+# fn 收两个句柄(h_source, h_target); 处理完 return true 跳过原生 Target
+func on_tag_to_box(h_src, h_dst):
+    h_dst.set_data("blessing", "岁岁平安")
+    h_dst.set_name("贴了签的礼盒")
+    items.consume(h_src, 1)      # 吃掉 1 张礼签(count < 堆数 = 部分消耗)
+    log.info("[{PACK}] 拖拽: 礼签贴上礼盒 → 祝福语已写入({h_dst.get_data('blessing')}), 礼签消耗 1 张")
+    return true
+
+items.on_target("ex24_api_ui_handles:gift_tag", "ex24_api_ui_handles:mystery_box", on_tag_to_box)

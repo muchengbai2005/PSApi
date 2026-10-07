@@ -12,8 +12,7 @@
 
 | 组件 | 版本 | 说明 |
 |---|---|---|
-| PSApi.Items | v0.9.3 | 数据面宿主：物品 / 机器 / 配方 / 品质 / 图标 |
-| PSApi.Events | v1.13.1 | 逻辑面 + 界面面宿主：PSScript / PSUI / NPC / 注入 |
+| PSApi | v2.0.0 | 单宿主模组（`Mods/PSApi.dll`）：数据面（物品/机器/配方/品质/图标）+ 逻辑面（PSScript）+ 界面面（PSUI）+ NPC/注入/场景；v2.0.0 起原 PSApi.Items + PSApi.Events 双组件合并为单 dll，命名空间保留 `PSApi.Items.*` / `PSApi.Events.*` |
 | 适配游戏版本 | playtest | Probably Stolen Demo（Steam 商店名 *Probably Stolen Demo*） |
 
 ## 文档地图
@@ -26,8 +25,8 @@
 | [04 PSScript 语言](04-psscript/README.md) | 脚本语言教程：变量、控制流、函数、容器、事件订阅 | 需要写逻辑/玩法的人 |
 | [05 内置 API 参考](05-api-reference/README.md) | PSScript 全部内置函数，按主题分类 + 完整示例 | 写脚本时的查阅手册 |
 | [06 PSUI 界面](06-psui/README.md) | 声明式 UI：窗口、控件、脚本绑定 | 需要自定义界面的人 |
-| [07 进阶主题](07-advanced/README.md) | 存档状态、原版内容注入、自定义 NPC（完整参考级）、调试与错误对照、item_editor 工具 | 深入开发者 |
-| [08 实战讲解](08-examples/README.md) | example_hello / psapi_manager / gunworks 三个真实内容包逐文件带读 | 想看完整范例的人 |
+| [07 进阶主题](07-advanced/README.md) | 存档状态、原版内容注入、自定义 NPC（完整参考级）、自定义外出场景（搜打撤）、调试与错误对照、item_editor 工具 | 深入开发者 |
+| [08 实战讲解](08-examples/README.md) | 仓库 examples/ 34 个教学示例包（ex01_hello ~ ex34_mini_mod）逐包导航与解剖，psapi_manager 带读 | 想看完整范例的人 |
 | [09 附录](09-appendix/README.md) | 原版物品 id 对照、术语表、FAQ | 查资料 |
 
 ## 推荐阅读路径
@@ -43,12 +42,12 @@
 
 想做剧情 / NPC / 商店玩法
   04-psscript → 05-api-reference（npc / shop / inject 篇）
-  → 07-advanced（NPC 完整参考）→ 08-examples/gunworks 带读
+  → 07-advanced（NPC 完整参考）→ examples 教学包（ex30_npc_full 等）
 ```
 
 ## 全书约定
 
-- **id 命名**：自定义内容一律 `包id:名字`（如 `example_hello:example_water`）；
+- **id 命名**：自定义内容一律 `包id:名字`（如 `ex01_hello:greeting_card`）；
   引用原版物品**建议一律写裸 id**（如 `scrap_metal`）——npc.* 配置侧不归一化，
   带 `game:` 前缀会查无此物并打 WARNING；物品/配方 JSON 等侧虽兼容 `game:` 前缀但非必需。
   逐系统对照表见[附录 · 速查表 §一](09-appendix/03-cheatsheet.md)。

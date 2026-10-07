@@ -3,7 +3,7 @@
 > 本章收官：从零写三张面板，覆盖三条主路径——CustomUI 控件面板、
 > 图元槽位独立面板、机器绑定面板。每例都是**完整可运行**的最小实现
 > （面板 + 脚本全量贴出），物品全部用原版 id（`game:scrap_metal` 废金属、
-> `game:newspaper` 报纸——example_hello 包验证过存在）。
+> `game:newspaper` 报纸——examples 教学包验证过存在）。
 > 建一个测试包跟着做：`packs/my_ui_lab/`，`pack.json` 写 `{"id": "my_ui_lab", ...}`。
 
 ## 示例一：开店仪表盘（CustomUI 后端）
@@ -144,7 +144,7 @@ on shop_opened():
 
 **目标**：可购买的机器物品，双击开面板；放入电池 + 报纸，按"开始孵化"锁槽，
 过一夜（`day_wake`）产出 3 份报纸进输出槽，取走成品解锁回到待机。
-这是 gunworks 组装台状态机的最小化版本。
+这是机器面板状态机的最小化版本（[ex29_psui_machine](../../examples/ex29_psui_machine/README.md) 有同款完整实现）。
 
 需要三个文件 + 一张图标。
 
@@ -303,7 +303,7 @@ on day_wake():                    # 隔夜结算: 按 uid 清单找回机器
 
 注意 `inc_changed` 里那行 done 判定——**成品被取走**（`s_out` 变空）就是
 "回合结束"的信号：状态回 `idle`、槽位解锁、按钮复原。这是输出槽模式的标准收口
-（gunworks 组装台同款：`done` 解锁输出槽 → 取走 → `on_change` → 回 `idle`）。
+（机器面板同款套路：`done` 解锁输出槽 → 取走 → `on_change` → 回 `idle`）。
 
 **验证**：商店进货或 `items.give("my_ui_lab:incubator", 1)` →
 后仓双击机器开窗 → 放报纸+电池 → 开始孵化（槽双锁、按钮变字）→

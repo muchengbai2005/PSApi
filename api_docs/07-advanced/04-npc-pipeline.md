@@ -4,7 +4,7 @@
 >
 > 分工：本篇讲**机制与管线**；NPC 配置字段的逐项语义（对话、价格、摆货、排班）见下一篇 [05 · NPC 配置深度](05-npc-config.md)；`npc.*` 函数签名见 [05-api-reference/08-npc](../05-api-reference/08-npc.md)。
 >
-> 事实来源：`_psapi/PSApi.Events/NpcService.cs`（v1.13.1）、`GameHooks.cs`、游戏程序集 `ModHook.cs` / `StoreClientListDict`（cpp2il ISIL 反编译，模板清单提取自其 `.cctor`）。
+> 事实来源：`_psapi/PSApi/Events/NpcService.cs`、`GameHooks.cs`（PSApi v2.0.0 单工程）、游戏程序集 `ModHook.cs` / `StoreClientListDict`（cpp2il ISIL 反编译，模板清单提取自其 `.cctor`）。
 
 ---
 
@@ -193,11 +193,11 @@ base_template 有值?
 
 ### 数据来源与可靠性
 
-模板 id 全集 = 游戏程序集 `StoreClientListDict.storeClientDict` 字典的键，在其 `.cctor`（静态构造）里逐个注册。本表从 cpp2il ISIL 反编译的 `.cctor` 方法体中完整提取，**共 247 个**，与 v1.13.1 当前游戏版本对应。填总表以外的任何值都会触发上一节的"拾荒者静默回退"。
+模板 id 全集 = 游戏程序集 `StoreClientListDict.storeClientDict` 字典的键，在其 `.cctor`（静态构造）里逐个注册。本表从 cpp2il ISIL 反编译的 `.cctor` 方法体中完整提取，**共 247 个**，与当前游戏版本对应。填总表以外的任何值都会触发上一节的"拾荒者静默回退"。
 
 标注说明：
 
-- ★ = `gunworks` 示例包实际使用的模板（16 个，全部验证可正常克隆）
+- ★ = 经实际 mod 包使用并验证可正常克隆的模板（16 个）
 - **分组按命名推断**，仅为查阅方便，不代表游戏的内部分类
 - `CreateCartelIntro` 带 `Create` 前缀是游戏源码的命名笔误，但它确实是注册键，有效
 - 带 `wanted` / `georgio` / `mentor` / `retired_` 等前缀的是**剧情/任务系模板**，克隆后可能携带剧情对话状态，做常规商人请优先选经济系模板
@@ -293,7 +293,8 @@ dict.Add(entry.Def.Id, FactoryOf(entry));                     // 挂工厂委托
 两个关键语义：
 
 1. **注册的是工厂委托，不是实例**。之后任何系统（包括游戏原版逻辑、其他模组、`npc.spawn_by_id` 类调用）执行 `CreateStoreClient("你的id")` 都会实时走一遍 `BuildClient`——你的配置（当日掷好的收购清单、价格、对话）当场生效。
-2. **原版键占用不覆盖**。如果你的 NPC id 撞了 247 个原版键之一，注册被跳过——所以**永远给你的 NPC id 加包名前缀**（`gunworks:xxx` 形态或至少 `xxx_gw` 形态），这与 [物品 id 规范](../03-items/02-items.md) 是同一要求。
+2. **原版键占用不覆盖**。如果你的 NPC id 撞了 247 个原版键之一，注册被跳过——所以**永远给你的 NPC id 加包名前缀**
+（`my_pack:xxx` 形态或至少 `xxx_mp` 形态），这与 [物品 id 规范](../03-items/02-items.md) 是同一要求。
 
 ---
 

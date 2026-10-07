@@ -1,0 +1,30 @@
+# quality_demo.pss — ex10_qualities 的演示脚本
+#
+# 演示品质三件 API (都接物品句柄):
+#   quality.set(h, 品质全id)   打层 (未注册的品质 id 返回 false, 不报错)
+#   quality.get(h)            读层 (全限定品质 id; 无品质 = null)
+#   quality.price_factor(h)   定价系数 (无品质/异常 = 1)
+#
+# on game_loaded 只在"本存档第一次"演示 (state 防重), 避免每次读档都发新锭。
+
+const PACK = "ex10_qualities"
+
+on game_loaded():
+    if state.has("ex10_demo_done"):
+        return
+    state.set("ex10_demo_done", true)
+
+    items.give(PACK + ":demo_ingot", 1)
+    var ingot = items.find(PACK + ":demo_ingot")
+    if ingot == null:
+        return
+
+    log.info("[{PACK}] 出厂品质: {quality.get(ingot)} 系数 {quality.price_factor(ingot)} (defaultQuality=q_fine ×1.5)")
+
+    # 打上低 priceMul 对比层: 报价系数 1.5 -> 0.5
+    quality.set(ingot, PACK + ":q_bargain")
+    log.info("[{PACK}] 打上 q_bargain 后: {quality.get(ingot)} 系数 {quality.price_factor(ingot)} (半价对比)")
+
+    # 换回溢价层, 再演示 feature 模式 (定价走原版管线, price_factor 读出的是换算系数)
+    quality.set(ingot, PACK + ":q_lab")
+    log.info("[{PACK}] 换成 feature 模式 q_lab: {quality.get(ingot)} — tooltip 是原生 [标签] 行, 标签打印机可改")

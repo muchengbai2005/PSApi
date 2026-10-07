@@ -1,0 +1,8 @@
+{
+  "id": "ex31_scene_basic",
+  "name": "示例 31 · 自定义外出场景",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex31: 自定义外出场景「前哨废墟」— scene.json (driver=script) + M1 points 搜索点/撤离点 + boot.pss 场景事件 (scene_enter/scene_interact/scene_loot/scene_leave)。对应文档 07-advanced/08-scenes-raid.md 前半 (§一~§五)。背景图 icons/bg_outpost.png 由配套资源包提供。"
+}

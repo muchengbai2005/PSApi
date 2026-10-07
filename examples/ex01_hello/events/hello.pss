@@ -1,0 +1,29 @@
+# hello.pss — ex01_hello 的唯一脚本 (逻辑面: events/*.pss, 启动时编译并执行)
+#
+# PSScript 三条入门规则在本文件全部出现:
+#   1. # 是注释; var 声明变量; 字符串支持 {表达式} 插值
+#   2. 顶层语句在游戏启动时立即执行一次 (下面的 log.info 马上出现在控制台)
+#   3. on <事件名>() 订阅事件, 事件触发时执行 (进场景/每秒 tick)
+
+const PACK = "ex01_hello"     # 常量: 包 id, 脚本里引用自家内容统一走它
+
+var load_count = 0            # 变量: 同包脚本共享全局环境
+load_count += 1
+
+# 顶层语句: 启动即打印 → 控制台搜 "ex01_hello" 就能确认脚本在跑
+log.info("[{PACK}] hello.pss 已加载 (第 {load_count} 次) — 这是 ex01_hello 示例包")
+
+# 事件订阅: 游戏加载完成 (psapi.game.loaded)
+on game_loaded():
+    log.info("[{PACK}] 游戏加载完成, 自定义物品 ex01_hello:greeting_card 已注册进目录")
+
+# 事件订阅: 进入任意场景 (payload 是场景名 → event.value)
+on scene_loaded():
+    log.info("[{PACK}] 进入场景: {event.value}")
+
+# 事件订阅: 每秒 tick (psapi.tick, 1Hz) — 用计数器演示跨调用状态
+var tick_count = 0
+on tick():
+    tick_count += 1
+    if tick_count == 10:
+        log.info("[{PACK}] tick 计数到 10 了 — 脚本状态跨事件保留, 教学完毕")

@@ -1,0 +1,659 @@
+# console.pss — PS 指令台逻辑 (仿 Minecraft 指令系统)
+# 窗口 = ui/console.psui; / 键开关 (ui.bind_key, Events v1.16.0); 输入框回车提交 (input on_submit)。
+# 日志 = 包全局环形数组 g_log (最近 60 行), 每条指令执行后 ui.rebuild 重绘日志区。
+# 注意: pss 无 try/catch, 所有指令在调框架 API 前先做参数预检 (is_num/派系白名单/npc 注册表),
+# 避免 PsRuntimeError 穿出回调 (那样只会进日志, 指令台无回显)。
+# v0.1.1: give 支持 {} 块语法 (引号串可含空格, 逗号分隔 k=v, 值可嵌套 {} 字典);
+#         分词器整体重写 (引号/花括号感知的 tokenize); 派系白名单更正为框架合法值。
+
+ui.bind_key("Slash", "psconsole:console")
+
+var g_log = []
+var LOG_KEEP = 59          # 超出 60 行时保留的最新行数
+var FACTIONS = ["sec", "rev", "bm", "cartel", "ul", "ll"]
+var Q = "\""               # 引号字符常量 (字符串比较用)
+var g_err = ""             # 解析错误暂存 (pss 无异常, 用全局标记替代)
+
+# ============ 日志与重绘 ============
+
+func log_line(s):
+    push(g_log, s)
+    if len(g_log) > 60:
+        var nl = []
+        for i in range(len(g_log) - LOG_KEEP, len(g_log)):
+            push(nl, g_log[i])
+        g_log = nl
+
+func redraw():
+    if ui.is_open("console"):
+        ui.rebuild("console")
+
+# on_build: 构建期填充日志区 (静态骨架建完后, Show 前)
+func build_console():
+    ui.build_begin("log_area")
+    if len(g_log) == 0:
+        ui.build_label("(日志空) 输入 help 查看全部指令")
+    else:
+        for line in g_log:
+            ui.build_label(line)
+    ui.build_end()
+
+# ============ 输入入口 ============
+
+# input on_submit 回调 {elem, value}; 框架在回调后自动清空输入框
+func on_submit(a):
+    run_raw(a.value)
+
+# 「执行」按钮: 手动读输入框 + 清空 (on_submit 路径由框架清空)
+func on_exec():
+    var s = ui.get_value("cmd_input")
+    if len(s) > 0:
+        run_raw(s)
+        ui.set_value("cmd_input", "")
+
+# ============ 指令分发 ============
+
+func run_raw(raw):
+    var s = raw
+    # 兼容前导 "/": "/give ..." 与 "give ..." 等价
+    if len(s) > 0 and s[0] == "/":
+        s = substr(s, 1, len(s))
+    g_err = ""
+    var parts = tokenize(s)
+    if len(parts) == 0 and g_err == "":
+        return
+    log_line("> " + raw)
+    if g_err != "":
+        log_line("【错误】" + g_err)
+        redraw()
+        return
+    dispatch(parts)
+    redraw()
+
+func dispatch(parts):
+    var cmd = parts[0]
+    if cmd == "help":
+        cmd_help()
+    elif cmd == "give":
+        cmd_give(parts)
+    elif cmd == "cash":
+        cmd_cash(parts)
+    elif cmd == "rep":
+        cmd_rep(parts)
+    elif cmd == "day":
+        cmd_day()
+    elif cmd == "npc":
+        cmd_npc(parts)
+    elif cmd == "event":
+        cmd_event(parts)
+    elif cmd == "item":
+        cmd_item(parts)
+    elif cmd == "state":
+        cmd_state(parts)
+    elif cmd == "pack":
+        cmd_pack(parts)
+    elif cmd == "save":
+        cmd_save()
+    elif cmd == "echo":
+        cmd_echo(parts)
+    elif cmd == "clear":
+        g_log = []
+    else:
+        log_line("【错误】未知指令 '" + cmd + "' — 输入 help 查看帮助")
+
+# ============ 分词与解析 (v0.1.1) ============
+
+# 分词: 按空格切, 但引号串 "..." 与花括号块 {...} (可嵌套) 保持为一个整体 token。
+# 引号/花括号保留在 token 里, 供下游识别类型。出错置 g_err 并返回已切出的部分。
+func tokenize(s):
+    var toks = []
+    var cur = ""
+    var i = 0
+    var n = len(s)
+    while i < n:
+        var c = s[i]
+        if c == " ":
+            if len(cur) > 0:
+                push(toks, cur)
+                cur = ""
+            i = i + 1
+        elif c == Q:
+            # 引号段: 拼进当前 token (可与其他字符粘连, 如 name="x")
+            cur = cur + Q
+            i = i + 1
+            var qclosed = false
+            while i < n:
+                cur = cur + s[i]
+                if s[i] == Q:
+                    qclosed = true
+                    i = i + 1
+                    break
+                i = i + 1
+            if not qclosed:
+                g_err = "引号未闭合 (第 " + str(i) + " 个字符附近)"
+                return toks
+        elif c == "{{":
+            # 花括号块: 深度配对 + 块内引号跳过, 整体留在当前 token
+            var depth = 0
+            var bclosed = false
+            while i < n:
+                var ch = s[i]
+                cur = cur + ch
+                i = i + 1
+                if ch == Q:
+                    var iq = false
+                    while i < n:
+                        cur = cur + s[i]
+                        if s[i] == Q:
+                            iq = true
+                            i = i + 1
+                            break
+                        i = i + 1
+                    if not iq:
+                        g_err = "花括号内的引号未闭合"
+                        return toks
+                elif ch == "{{":
+                    depth = depth + 1
+                elif ch == "}}":
+                    depth = depth - 1
+                    if depth == 0:
+                        bclosed = true
+                        break
+            if not bclosed:
+                g_err = "花括号未闭合 (缺 }})"
+                return toks
+        else:
+            cur = cur + c
+            i = i + 1
+    if len(cur) > 0:
+        push(toks, cur)
+    return toks
+
+# 取子串 [a, b)
+func substr(s, a, b):
+    var r = ""
+    for i in range(a, b):
+        r = r + s[i]
+    return r
+
+# 去首尾空格
+func trim(s):
+    var a = 0
+    var b = len(s)
+    while a < b and s[a] == " ":
+        a = a + 1
+    while b > a and s[b - 1] == " ":
+        b = b - 1
+    return substr(s, a, b)
+
+# 去掉包裹引号 (有则去, 无则原样)
+func unquote(s):
+    var n = len(s)
+    if n >= 2 and s[0] == Q and s[n - 1] == Q:
+        return substr(s, 1, n - 1)
+    return s
+
+# 按顶层逗号切分 (中英文逗号皆可); 引号与嵌套花括号内的逗号不切
+func split_top(s):
+    var out = []
+    var cur = ""
+    var depth = 0
+    var inq = false
+    for i in range(0, len(s)):
+        var c = s[i]
+        if inq:
+            cur = cur + c
+            if c == Q:
+                inq = false
+        elif c == Q:
+            inq = true
+            cur = cur + c
+        elif c == "{{":
+            depth = depth + 1
+            cur = cur + c
+        elif c == "}}":
+            depth = depth - 1
+            cur = cur + c
+        elif (c == "," or c == "，") and depth == 0:
+            push(out, cur)
+            cur = ""
+        else:
+            cur = cur + c
+    push(out, cur)
+    return out
+
+# 找顶层第一个 = 的位置 (引号/花括号内不算); 找不到返回 -1
+func find_top_eq(s):
+    var depth = 0
+    var inq = false
+    for i in range(0, len(s)):
+        var c = s[i]
+        if inq:
+            if c == Q:
+                inq = false
+        elif c == Q:
+            inq = true
+        elif c == "{{":
+            depth = depth + 1
+        elif c == "}}":
+            depth = depth - 1
+        elif c == "=" and depth == 0:
+            return i
+    return -1
+
+# 纯整数串判定 (允许前导 +/-): int() 解析失败会抛错出回调, 必须先挡
+func is_num(s):
+    if len(s) == 0:
+        return false
+    var start = 0
+    if s[0] == "-" or s[0] == "+":
+        if len(s) == 1:
+            return false
+        start = 1
+    for i in range(start, len(s)):
+        if not has("0123456789", s[i]):
+            return false
+    return true
+
+# 小数字串判定 (恰好一个小数点, 至少一位数字)
+func is_fnum(s):
+    if len(s) == 0:
+        return false
+    var start = 0
+    if s[0] == "-" or s[0] == "+":
+        if len(s) == 1:
+            return false
+        start = 1
+    var dot = false
+    var digits = 0
+    for i in range(start, len(s)):
+        var c = s[i]
+        if c == ".":
+            if dot:
+                return false
+            dot = true
+        elif has("0123456789", c):
+            digits = digits + 1
+        else:
+            return false
+    return dot and digits > 0
+
+# 解析值: "引号串"(可含空格) / {嵌套字典} / 整数 / 小数 / true / false / null / 裸字符串
+func parse_value(vs):
+    var n = len(vs)
+    if n >= 2 and vs[0] == Q and vs[n - 1] == Q:
+        return substr(vs, 1, n - 1)
+    if n >= 1 and vs[0] == "{{":
+        if n < 2 or vs[n - 1] != "}}":
+            g_err = "字典值花括号未配对: " + vs
+            return null
+        return parse_dict(vs)
+    if is_num(vs):
+        return int(vs)
+    if is_fnum(vs):
+        return float(vs)
+    if vs == "true":
+        return true
+    if vs == "false":
+        return false
+    if vs == "null":
+        return null
+    return vs
+
+# 解析 {...} 块为 dict (支持任意深度嵌套); 出错置 g_err 返回 null
+func parse_dict(s):
+    var inner = substr(s, 1, len(s) - 1)
+    var d = {}
+    var entries = split_top(inner)
+    for e0 in entries:
+        var e = trim(e0)
+        if len(e) == 0:
+            continue
+        var eq = find_top_eq(e)
+        if eq <= 0:
+            g_err = "条目 '" + e + "' 须为 k=v 形式"
+            return null
+        var k = trim(substr(e, 0, eq))
+        var vs = trim(substr(e, eq + 1, len(e)))
+        if len(k) == 0 or len(vs) == 0:
+            g_err = "条目 '" + e + "' 的键或值为空"
+            return null
+        var v = parse_value(vs)
+        if g_err != "":
+            return null
+        d[k] = v
+    return d
+
+# 把解析出的 kv 合并进 give 的 opts/data: 内置键(name/desc/flavor/quality/to/value/uses)只收标量,
+# 其余键 (值可嵌套 dict) 进自定义数据 data。出错记日志并返回 false。
+func give_apply(d, opts, data):
+    for k in keys(d):
+        var v = d[k]
+        var t = type(v)
+        if k == "name" or k == "desc" or k == "flavor" or k == "quality":
+            if t == "dict" or t == "array":
+                log_line("【错误】" + k + " 只接受字符串值, 不能是字典")
+                return false
+            opts[k] = str(v)
+        elif k == "to":
+            if t != "string" or (v != "inventory" and v != "counter_out" and v != "counter_in"):
+                log_line("【错误】to 仅支持 inventory/counter_out/counter_in")
+                return false
+            opts["to"] = v
+        elif k == "value" or k == "uses":
+            if t != "int":
+                log_line("【错误】" + k + " 须为整数")
+                return false
+            opts[k] = v
+        else:
+            data[k] = v
+    return true
+
+# 值 → 回显文本 (dict/list 递归拼成 JSON 风格)
+func fmt_val(v):
+    var t = type(v)
+    if t == "dict":
+        var ps = []
+        for k in keys(v):
+            push(ps, k + "=" + fmt_val(v[k]))
+        return "{{" + join(ps, ",") + "}}"
+    if t == "array":
+        var ps2 = []
+        for x in v:
+            push(ps2, fmt_val(x))
+        return "[" + join(ps2, ",") + "]"
+    if t == "string":
+        return Q + v + Q
+    if t == "bool":
+        if v:
+            return "true"
+        return "false"
+    if t == "null":
+        return "null"
+    return str(v)
+
+# ============ 工具 ============
+
+func need_game():
+    var st = shop.status()
+    if not st.in_game:
+        log_line("【错误】不在对局中, 该指令不可用")
+        return false
+    return true
+
+# ============ 指令实现 ============
+
+func cmd_help():
+    log_line("—— 指令清单 (前导 / 可选) ——")
+    log_line("help — 本帮助")
+    log_line("give <id> [count] [k=v ...] [{{k=v,...}}] — 发物品")
+    log_line("  内置键: to=/name=/desc=/flavor=/value=/uses=/quality=; 其余键(可嵌套{{}})进自定义数据")
+    log_line("  to=inventory(默认,背包) | counter_out(门口柜台) | counter_in(店内柜台)")
+    log_line("  例: give ex05_item_basic:quality_ingot 1 {{to=counter_in,name=\"镇店之宝\",value=888}}")
+    log_line("cash / cash add N / cash set N — 查看/加钱/设定 (set=补差额)")
+    log_line("rep [faction] / rep <faction> add N — 派系声望 (" + join(FACTIONS, "/") + ")")
+    log_line("day — 天数/相对天数/星期")
+    log_line("npc list | npc queue | npc spawn <id> | npc leave — 注册表/今日队列/挂起生成/请离当前客户")
+    log_line("event <id> — 立即触发商店事件 (已注册 id 或原版事件 id)")
+    log_line("item <id> — 名称/单价/是否持有")
+    log_line("state get <k> / state set <k> <v> — 本包存档 KV")
+    log_line("pack list — 已加载内容包清单 (id/版本/folder|dll)")
+    log_line("save — 立即存档 (等同晚上睡觉存档, 模组状态同步落盘)")
+    log_line("echo <text> / clear — 回显 / 清屏")
+
+func cmd_give(parts):
+    if len(parts) < 2:
+        log_line("【用法】give <id> [count] [k=v ...] [{{k=v,...}}]")
+        return
+    var id = unquote(parts[1])
+    var count = 1
+    var kvStart = 2
+    if len(parts) >= 3 and is_num(parts[2]):
+        count = int(parts[2])
+        kvStart = 3
+    if count < 1 or count > 9999:
+        log_line("【错误】count 须在 1..9999, 实为 " + str(count))
+        return
+    var opts = {}
+    var data = {}
+    g_err = ""
+    for i in range(kvStart, len(parts)):
+        var tok = parts[i]
+        if len(tok) == 0:
+            continue
+        if tok[0] == "{{":
+            # {} 块: 递归解析后合并
+            if len(tok) < 2 or tok[len(tok) - 1] != "}}":
+                log_line("【错误】花括号块须以 }} 收尾: " + tok)
+                return
+            var dd = parse_dict(tok)
+            if g_err != "":
+                log_line("【错误】" + g_err)
+                return
+            if not give_apply(dd, opts, data):
+                return
+        else:
+            # 旧式 k=v (值可为引号串, 也可直接写嵌套 {} 值)
+            var eq = find_top_eq(tok)
+            if eq <= 0:
+                log_line("【错误】参数 '" + tok + "' 须为 k=v 形式")
+                return
+            var single = {}
+            single[substr(tok, 0, eq)] = parse_value(substr(tok, eq + 1, len(tok)))
+            if g_err != "":
+                log_line("【错误】" + g_err)
+                return
+            if not give_apply(single, opts, data):
+                return
+    if len(data) > 0:
+        opts["data"] = data
+    var where = "背包"
+    if has(opts, "to"):
+        if opts["to"] == "counter_out":
+            where = "门口柜台"
+        elif opts["to"] == "counter_in":
+            where = "店内柜台"
+    if items.give(id, count, opts):
+        var msg = "已发放 " + id + " ×" + str(count) + " → " + where
+        var extras = []
+        for bk in ["name", "desc", "flavor", "quality"]:
+            if has(opts, bk):
+                push(extras, bk + "=" + Q + opts[bk] + Q)
+        for nk in ["value", "uses"]:
+            if has(opts, nk):
+                push(extras, nk + "=" + str(opts[nk]))
+        if len(data) > 0:
+            push(extras, "data=" + fmt_val(data))
+        if len(extras) > 0:
+            msg = msg + " (" + join(extras, ", ") + ")"
+        log_line(msg)
+    else:
+        log_line("【错误】发放失败 (物品 id 不存在或不在对局): " + id)
+
+func cmd_cash(parts):
+    if len(parts) == 1:
+        if not need_game():
+            return
+        log_line("现金: " + str(player.cash()))
+        return
+    var sub = parts[1]
+    if sub == "add" or sub == "set":
+        if len(parts) < 3 or not is_num(parts[2]):
+            log_line("【用法】cash " + sub + " N")
+            return
+        if not need_game():
+            return
+        var n = int(parts[2])
+        if sub == "set":
+            n = n - player.cash()
+        player.add_cash(n)
+        log_line("现金: " + str(player.cash()))
+    else:
+        log_line("【用法】cash / cash add N / cash set N")
+
+func cmd_rep(parts):
+    if len(parts) == 1:
+        if not need_game():
+            return
+        for f in FACTIONS:
+            log_line(f + ": " + str(rep.get(f)))
+        return
+    var f = unquote(parts[1])
+    if not has(FACTIONS, f):
+        log_line("【错误】未知派系 '" + f + "' (可用: " + join(FACTIONS, "/") + ")")
+        return
+    if not need_game():
+        return
+    if len(parts) == 2:
+        log_line(f + ": " + str(rep.get(f)))
+        return
+    if parts[2] == "add":
+        if len(parts) < 4 or not is_num(parts[3]):
+            log_line("【用法】rep <faction> add N")
+            return
+        rep.add(f, int(parts[3]))
+        log_line(f + ": " + str(rep.get(f)))
+    else:
+        log_line("【用法】rep [faction] / rep <faction> add N")
+
+func cmd_day():
+    if not need_game():
+        return
+    log_line("第 " + str(time.day()) + " 天 (rel_day=" + str(time.rel_day()) + ", weekday=" + str(time.weekday()) + ")")
+
+func cmd_npc(parts):
+    if len(parts) < 2:
+        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave")
+        return
+    var sub = parts[1]
+    if sub == "list":
+        var all = npc.list()
+        if len(all) == 0:
+            log_line("(无注册 NPC — 内容包未注册任何自定义客户)")
+        else:
+            for n in all:
+                var label = n.id + " [" + n.intent + "]"
+                if len(n.name) > 0:
+                    label = label + " " + n.name
+                log_line(label + " (schedule: " + n.schedule_kind + ")")
+    elif sub == "queue":
+        var q = shop.queue()
+        if len(q) == 0:
+            log_line("(今日待客队列空)")
+        else:
+            for c in q:
+                log_line(str(c.idx + 1) + ". " + c.name + " [" + c.intent + "] ¥" + str(c.cash))
+    elif sub == "spawn":
+        if len(parts) < 3:
+            log_line("【用法】npc spawn <id>")
+            return
+        var target = unquote(parts[2])
+        var found = false
+        for n in npc.list():
+            if n.id == target:
+                found = true
+                break
+        if not found:
+            log_line("【错误】NPC '" + target + "' 未注册 (npc list 查看已注册)")
+            return
+        npc.schedule(target)
+        log_line("已挂起生成: " + target + " (下次客户生成时强制到店)")
+    elif sub == "leave":
+        if not need_game():
+            return
+        var nm = shop.status().current_name
+        if npc.leave_current():
+            if len(nm) > 0:
+                log_line("已请离: " + nm)
+            else:
+                log_line("已请离当前客户")
+        else:
+            log_line("(当前店内无客户可请离)")
+    else:
+        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave")
+
+# event <id> — 立即触发商店事件 (store_event.trigger, v1.16.1)
+func cmd_event(parts):
+    if len(parts) < 2:
+        log_line("【用法】event <id> — 立即触发商店事件 (已注册 id 或原版事件 id)")
+        return
+    if not need_game():
+        return
+    var eid = unquote(parts[1])
+    if store_event.trigger(eid):
+        log_line("已触发商店事件: " + eid)
+    else:
+        log_line("【错误】事件 '" + eid + "' 未注册且不在原版事件池")
+
+func cmd_item(parts):
+    if len(parts) < 2:
+        log_line("【用法】item <id>")
+        return
+    var id = unquote(parts[1])
+    var nm = items.name(id)
+    if nm == null:
+        nm = "(未知物品)"
+    var held = "否"
+    if items.has(id, 1):
+        held = "是"
+    log_line(id + ": " + nm + " · 单价 " + str(items.value(id)) + " · 持有 " + held)
+
+func cmd_state(parts):
+    if len(parts) >= 2 and parts[1] == "get":
+        if len(parts) < 3:
+            log_line("【用法】state get <k>")
+            return
+        log_line(parts[2] + " = " + str(state.get(parts[2], "(未设置)")))
+    elif len(parts) >= 2 and parts[1] == "set":
+        if len(parts) < 4:
+            log_line("【用法】state set <k> <v>")
+            return
+        var val = unquote(parts[3])
+        if is_num(val):
+            state.set(parts[2], int(val))
+        elif is_fnum(val):
+            state.set(parts[2], float(val))
+        elif val == "true":
+            state.set(parts[2], true)
+        elif val == "false":
+            state.set(parts[2], false)
+        else:
+            state.set(parts[2], val)
+        log_line(parts[2] + " 已写入")
+    else:
+        log_line("【用法】state get <k> / state set <k> <v>")
+
+# pack list — 已加载内容包 (pack.list, Events v1.17.0)
+func cmd_pack(parts):
+    if len(parts) < 2 or parts[1] == "list":
+        var all = pack.list()
+        if len(all) == 0:
+            log_line("(无已加载内容包)")
+            return
+        for p in all:
+            var mark = "folder"
+            if p.source == "dll":
+                mark = "dll"
+            var line = p.id + " v" + p.version + " [" + mark + "]"
+            if len(p.name) > 0:
+                line = line + " " + p.name
+            if not p.valid:
+                line = line + " (无效)"
+            log_line(line)
+    else:
+        log_line("【用法】pack list")
+
+# save — 立即存档 (game.save, Events v1.17.0; 触发原版 SaveGame, 模组状态随钩子同步落盘)
+func cmd_save():
+    if not need_game():
+        return
+    if game.save():
+        log_line("已存档 (与晚上睡觉同一存档管线)")
+    else:
+        log_line("【错误】存档失败 (不在对局?)")
+
+func cmd_echo(parts):
+    var rest = []
+    for i in range(1, len(parts)):
+        push(rest, unquote(parts[i]))
+    log_line(join(rest, " "))

@@ -113,7 +113,8 @@ var handler = double                # 存进变量
 log.info("{handler(5)}")            # 10
 ```
 
-真实案例——npc 注册时传"动态货清单函数"（example_hello e4_demo.pss 注释里的原版演示）：
+真实案例——npc 注册时传"动态货清单函数"（NPC 注册的完整用法见
+[ex23_api_npc](../../examples/ex23_api_npc/README.md)）：
 
 ```pss
 func fence_stock():                 # 每次客户生成时被引擎调用
@@ -162,8 +163,8 @@ events/
 - **任何文件的函数体/on 块里**调用任何函数都没问题（执行时全包已加载完）。
 
 > 实践守则：`a_` 前缀放工具函数，`z_` 前缀放主逻辑；或者干脆顶层只定义、
-> 逻辑全放事件里。example_hello 的命名（hello, e2~e6, m1, u4）就是"顶层只做演示输出，
-> 实际逻辑全在 on 块"的风格。
+> 逻辑全放事件里。examples/ 教学包普遍就是这种"顶层只做注册与演示输出，
+> 实际逻辑全在 on 块"的风格（见 [08 实战示例包](../08-examples/README.md)）。
 
 ## 函数速查表
 

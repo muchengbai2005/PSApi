@@ -134,7 +134,8 @@ on game_loaded():
            + "下层动荡={power.get('lower_unrest')} 上层友好={power.get('upper_friend')}")
 ```
 
-（示例取自 `example_hello/events/e2_demo.pss` 的真实用法。）
+（可运行的对照示例见
+[ex19_api_state_world](../../examples/ex19_api_state_world/README.md)。）
 
 写错键名报 `未知势力 'xxx'(可用: rev/sec/bm/lower_unrest/upper_friend)`。
 

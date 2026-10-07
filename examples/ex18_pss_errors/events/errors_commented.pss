@@ -1,0 +1,47 @@
+# errors_commented.pss — ex18: 错误示例大全 (全部用 # 注释掉了!)
+# 对应文档: api_docs/04-psscript/10-errors.md
+#
+# 玩法: 每次只解开一个示例的 #, 重启游戏, 对照控制台和
+# UserData/PSApi/logs/pack_errors_*.log 看报错, 看完把 # 加回去。
+# 保持全注释状态时, 本包加载零错误零警告。
+
+const PACK = "ex18_pss_errors"
+
+log.info("[{PACK}] errors_commented.pss 已加载 — 错误示例全部注释中, 去 # 亲自试")
+
+# ========== 一、编译错误: if 头缺冒号 ==========
+# 编译错误报 "文件:行:列" 且整个文件不加载 — 连上面那行 "已加载" log 都会消失,
+# 其他文件照常。控制台样例 (行:列 以实际为准):
+#   [pss] compile error: ex18_pss_errors/errors_commented.pss:26:8: 应为 ':', 实为 标识符 'log'
+#   ex18_pss_errors/errors_commented.pss:26:8: 应为 ':', 实为 标识符 'log' (该文件未加载)
+#
+# var x = 1
+# if x > 0
+#     log.info("hi")
+
+# ========== 二、编译错误: 缩进不是 4 的倍数 ==========
+# 2 个空格缩进直接编译失败; tab 与空格混用同样失败 (一个文件只许一种)
+# 控制台样例: 空格缩进须为 4 的倍数(当前 2 个)
+#
+# if true:
+#   log.info("两个空格会编译失败")
+
+# ========== 三、运行错误: 调用未定义函数 ==========
+# 编译能过 (名字到运行时才解析), 执行到该行才炸; 本文件顶层从此中断, 其他文件/事件照常。
+# 注意: 调不存在的名字按"未定义变量"报; 名字存在但不是函数才报 "类型 ... 不可调用"。
+# 控制台样例: [pss] ex18_pss_errors/errors_commented.pss:58 in 顶层: 未定义变量 'teleport_home'
+#
+# teleport_home()
+
+# ========== 四、运行错误: 未定义变量 ==========
+# 拼错名字 / 条件分支里的声明没执行到 / 跨包访问, 都是这个错
+# 控制台样例: [pss] ex18_pss_errors/errors_commented.pss:65 in 顶层: 未定义变量 'nosuchvar'
+#
+# log.info("{nosuchvar}")
+
+# ========== 五、运行错误: 除以零 ==========
+# int 运算分母为 0 直接报错 (不是 inf); 对零取模同样报错
+# 控制台样例: [pss] ex18_pss_errors/errors_commented.pss:72 in 顶层: 除以零
+#
+# var total = 1 / 0
+# log.info("{total}")

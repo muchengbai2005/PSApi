@@ -1,0 +1,10 @@
+{
+  "//": "scenes/ 目录: 自定义外出场景。文件夹形态 scenes/<id>/scene.json 是新式写法。entry=map 注入原版地图面板; driver=script 纯脚本驱动 (撤离逻辑由脚本负责, 不要求 exit 点); bg 是预留的背景图键 (bg_demo 对应的 png 由示例包后续补充, 缺失不影响加载)。",
+  "id": "ex02_demo",
+  "name": "示例02·演示场",
+  "desc": "ex02 目录全景包的最小场景: 只演示注册与列表注入。",
+  "danger": 1,
+  "entry": "map",
+  "driver": "script",
+  "bg": "bg_demo"
+}

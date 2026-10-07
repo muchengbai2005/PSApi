@@ -1,0 +1,24 @@
+# greenboard.psui — 温室状态牌 (迷你温室的 psui 面板, 无槽位 → CustomUI 后端)
+#
+# 结构: 静态骨架 + on_build 动态区 (ex27 的标准动态面板骨架):
+#   · 恒定元素写死在这里 (标题说明行)
+#   · 数量不定的流水行留给带 id 的滚动区 body — events/harvest.pss 的
+#     ex34_board_build 在构建期 (ui.open/ui.rebuild) 用 ui.build_* 填充
+#   · 打开路径两条: 每天早晨 day_wake 自动 ui.open + F7 手动开关 (bind_key)
+#
+# 红线: ui.build_* 只能在 on_build 里调, 别处调用会报错 (文档 06-psui/06-dynamic.md)。
+
+window greenboard:
+  title: "迷你温室 · 晨报"
+  size: 400x300
+  draggable: true
+  close_on_escape: true
+  on_build: ex34_board_build
+
+  # 静态说明行 (恒定结构)
+  label:
+    text: "—— 迷你温室经营流水 (每日晨自动弹出 · F7 随时开关) ——"
+
+  # 动态区: 带 id 的空滚动区 — ex34_board_build 里 ui.build_begin("body") 定位填充
+  scroll body:
+    height: 200

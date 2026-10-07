@@ -74,18 +74,20 @@ PSUI 内部有**两套渲染后端**，由面板内容自动分派，你不用�
 
 ## 来自真实包的例子
 
-本章频繁引用工作区里三个官方包的真实面板（都是可直接运行的完整实现）：
+本章频繁引用仓库 examples/ 目录的教学包与随游戏分发的 `psapi_manager`
+的真实面板（都是可直接运行的完整实现）：
 
 | 包 | 面板 | 演示内容 |
 |---|---|---|
-| `example_hello` | `ui/e6_panel.psui` | CustomUI 全控件：progress/toggle/slider/dropdown/input + on_click/on_change |
-| `example_hello` | `ui/u4_printer.psui` | 图元树后端：grid_slot 槽位 + 白名单 + 槽位 on_change |
+| [ex25_psui_basic](../../examples/ex25_psui_basic/README.md) | 全控件静态面板 | CustomUI 全控件：progress/toggle/slider/dropdown/input + on_click/on_change |
+| [ex28_psui_slots](../../examples/ex28_psui_slots/README.md) | 槽位面板 | 图元树后端：grid_slot 槽位 + 白名单 + 槽位 on_change |
 | `psapi_manager` | `ui/manager.psui` | on_build 动态构建：三个 scroll 动态区 + 分页列表 + ui.rebuild |
-| `gunworks` | `ui/gun_bench.psui` 等 | 机器绑定面板：结构恒定布局 + machine_* API + on_open |
+| [ex29_psui_machine](../../examples/ex29_psui_machine/README.md) | 机器面板 | 机器绑定面板：结构恒定布局 + machine_* API + on_open |
 
 ## 版本速查
 
-PSUI 能力随 PSApi.Events 版本演进（当前 v1.13.1）：
+PSUI 能力随版本演进（当前 **PSApi v2.0.0**；表中 v1.x 为合并前
+PSApi.Events 的能力版本号）：
 
 | 版本 | 能力 |
 |---|---|

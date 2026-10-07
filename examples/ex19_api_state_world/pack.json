@@ -1,0 +1,8 @@
+{
+  "id": "ex19_api_state_world",
+  "name": "示例 19 · 状态与世界查询",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex19: state(按存档槽隔离的 KV 存储) + time(游戏时间) + pack(内容包清单) + rep(派系声望) 四个基础命名空间。对应文档 05-api-reference/02-state.md 与 03-world.md。"
+}

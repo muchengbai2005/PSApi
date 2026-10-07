@@ -1,0 +1,35 @@
+{
+  "//": "3 个物品 = icon 字段三种写法。图标键规则: png 放进 icons/ 后键 = 包id:文件名(无扩展名), 嵌套目录不影响键名 (icons/sub/blue_gem.png 的键仍是 ex11_icons:blue_gem)。本包需要两张 png: icons/red_gem.png 与 icons/sub/blue_gem.png (64x64 红宝石/蓝宝石) — 未放置时图标回退模板切片, 不影响加载。",
+  "items": [
+    {
+      "//": "① 文件对象写法 (推荐, 最明确): 自动取文件名 → 键 ex11_icons:red_gem",
+      "id": "ex11_icons:red_gem",
+      "name": "红宝石",
+      "desc": "演示 icon 对象写法: {\"file\": \"red_gem.png\"} → 键 ex11_icons:red_gem。",
+      "template": "common_ore",
+      "value": 80,
+      "icon": { "file": "red_gem.png" },
+      "test": true
+    },
+    {
+      "//": "② 裸字符串写法 (省扩展名): → 键 ex11_icons:blue_gem; png 放在 icons/sub/ 嵌套子目录也不影响键名",
+      "id": "ex11_icons:blue_gem",
+      "name": "蓝宝石",
+      "desc": "演示 icon 裸串写法: \"blue_gem\" → 键 ex11_icons:blue_gem (png 藏在 icons/sub/ 里)。",
+      "template": "common_ore",
+      "value": 80,
+      "icon": "blue_gem",
+      "test": true
+    },
+    {
+      "//": "③ 全限定字符串写法: 引用其他包 (或本包) 已有键 → 原样使用; 这里复用红宝石的图",
+      "id": "ex11_icons:gem_pendant",
+      "name": "红宝吊坠",
+      "desc": "演示 icon 全限定写法: \"ex11_icons:red_gem\" 复用第一件物品的图标。",
+      "template": "metal_ingot",
+      "value": 150,
+      "icon": "ex11_icons:red_gem",
+      "test": true
+    }
+  ]
+}

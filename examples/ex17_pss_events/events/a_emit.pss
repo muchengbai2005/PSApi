@@ -1,0 +1,16 @@
+# a_emit.pss — ex17: 用 bus.emit 发自定义事件 (发出方)
+# 对应文档: api_docs/04-psscript/09-events.md 的 "bus.emit" 一节
+#
+# 加载顺序保证: 引擎先登记全部包的 on 块, 再统一执行顶层语句 —
+# 所以顶层 emit 时 b_receive.pss 的订阅必定已就位 (与你文件叫什么名字无关)。
+# 事件名建议 "包id:事件名" 命名避免撞车; 载荷必须是 dict (可省略)。
+
+const PACK = "ex17_pss_events"
+
+# 顶层发一次: 启动日志区就能看到 "发出 → 接收" 配对
+log.info("[{PACK}] a_emit.pss 顶层: bus.emit 发出 ping")
+bus.emit("ex17_pss_events:ping", {from = "顶层语句", lucky = rand(1, 6)})
+
+# 运行期再发一次: 游戏加载完成时 (带存档槽号)
+on game_loaded():
+    bus.emit("ex17_pss_events:ping", {from = "game_loaded", save_slot = event.save_slot})

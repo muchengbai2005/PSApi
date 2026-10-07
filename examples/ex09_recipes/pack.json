@@ -1,0 +1,8 @@
+{
+  "id": "ex09_recipes",
+  "name": "示例 09 · 配方专题",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex09: 配方专题。1 台 furnace 批次机 + 4 条配方, 演示单输入/多输入/display 显示名/priority 与 recipeSort 抢占/qualityRule。对应文档 03-items/04-recipes.md。"
+}

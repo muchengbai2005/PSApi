@@ -1,0 +1,50 @@
+# items_demo.pss — ex21_api_items 的唯一脚本
+#
+# 演示 items 命名空间全家桶与物品句柄(对应文档 06-items.md / 10-handles.md):
+#   items.give(id[, count[, uses|opts])   发进后仓; 第三参给整数 = 次数物品,
+#                                        给 opts 字典 = 实例定制(name/desc/value/quality/uses/data/to)
+#   items.has / value / name              持有判定 / 单价 / 显示名
+#   items.find / find_all                找一个 / 找全部 → 物品句柄
+#   items.consume(句柄[, count])           销毁; count < 堆数 = 部分扣减(v1.39.0)
+#   items.give_counter                    摆上店门口柜台(桌面直售区, 归玩家)
+#   items.tag_get_int(句柄, key)           读实例原生整数 tag(如次数物品的 CURRENT_USE_COUNT_INT)
+#   句柄.get_data / set_data / set_name    实例自定义数据(PSD_ 标签)与改名
+#
+# 两套"贴在物品实例上的数据"别搞混:
+#   PSD_ 自定义数据 — give 的 data 键 / 句柄 set_data 写入, get_data 读回(脚本专用)
+#   原生 tag        — 游戏自己的标签(次数/模组效果等), tag_get_int / tag_get_string 读
+
+const PACK = "ex21_api_items"
+
+# game_loaded = 读档/新开对局完成 → 已在对局, items.* 发放可用(对局外 give 只会返回 false)
+on game_loaded():
+    # ---- 基础四连: 发放 → 判持有 → 问价 → 问名 ----
+    var ok = items.give("ex21_api_items:gift_box", 2)
+    log.info("[{PACK}] give 礼盒x2: {ok}, has(>=2)={items.has('ex21_api_items:gift_box', 2)}, 单价 {items.value('ex21_api_items:gift_box')}, 名称「{items.name('ex21_api_items:gift_box')}」")
+
+    # ---- find / find_all: 句柄的四个只读成员 id/count/value/uid ----
+    var box = items.find("ex21_api_items:gift_box")
+    if box != null:
+        log.info("[{PACK}] find 礼盒: id={box.id} x{box.count} 单价{box.value} uid={box.uid}")
+    items.give("ex21_api_items:gift_box", 1)     # 再发一件 → 两堆
+    var all = items.find_all("ex21_api_items:gift_box")
+    log.info("[{PACK}] find_all 礼盒: {len(all)} 堆(find 只回第一堆, 要全量用 find_all)")
+
+    # ---- give 第三参 opts: 实例改名 + 实例数据 → 句柄 get_data 读回 ----
+    items.give("ex21_api_items:lucky_coin", 1, {name = "压岁币", data = {msg = "岁岁平安", level = 7}})
+    var coin = items.find("ex21_api_items:lucky_coin")
+    log.info("[{PACK}] 定制实例: 名称「{coin.name}」, data.msg={coin.get_data('msg')}, data.level={coin.get_data('level')}")
+
+    # ---- 次数物品: give 第三参给整数 3 = 剩余次数 ----
+    items.give("ex21_api_items:energy_cell", 1, 3)
+    var cell = items.find("ex21_api_items:energy_cell")
+    log.info("[{PACK}] 次数物品: 当前={items.tag_get_int(cell, 'CURRENT_USE_COUNT_INT')}, 上限={items.tag_get_int(cell, 'MAX_USE_COUNT_INT')}(原生 int tag 用 tag_get_int 读)")
+
+    # ---- consume: 部分消耗(第 2 参 count=1, 只吃 1 件不整堆销毁) ----
+    if box != null:
+        var eaten = items.consume(box, 1)
+        log.info("[{PACK}] consume 礼盒 1 件: {eaten}(true=已销毁), 剩余判定 has={items.has('ex21_api_items:gift_box')}")
+
+    # ---- give_counter: 摆上店门口柜台(玩家进店可直接拿起) ----
+    var shown = items.give_counter("ex21_api_items:lucky_coin", 1)
+    log.info("[{PACK}] give_counter 幸运币x1 摆上门口柜台: {shown}")

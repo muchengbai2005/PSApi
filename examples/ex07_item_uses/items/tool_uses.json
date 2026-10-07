@@ -1,0 +1,27 @@
+{
+  "//": "次数体系两件套: 工具箱三字段全开 (价值=底价+次价×剩余次数, 满箱 10+5x20=110); 火柴包只开 useCount (tooltip 仍显示余量, 归零销毁, 但不折价)。不启用次数体系的物品这三个字段全部不写。",
+  "items": [
+    {
+      "//": "三字段全开: useCount=20 次; useValuePerUse>0 启用动态定价 价值 = useBaseValue + useValuePerUse × 剩余次数",
+      "id": "ex07_item_uses:toolbox",
+      "name": "多功能工具箱",
+      "desc": "演示次数折价: 满 20 次价值 110 (10 底价 + 5×20), 每用一次折 5 块, 用完即毁。",
+      "template": "scrap_metal",
+      "value": 110,
+      "useCount": 20,
+      "useBaseValue": 10,
+      "useValuePerUse": 5,
+      "test": true
+    },
+    {
+      "//": "只开 useCount: 折价字段不写 → 价值不随次数变化, tooltip 仍显示 余量 N/10, 归零销毁",
+      "id": "ex07_item_uses:matchbook",
+      "name": "火柴包",
+      "desc": "演示纯次数: 10 根火柴, 用完销毁; 不写折价字段, 价值恒为 6。",
+      "template": "scrap_metal",
+      "value": 6,
+      "useCount": 10,
+      "test": true
+    }
+  ]
+}

@@ -58,8 +58,8 @@
 提示稍后再 queue。
 
 ```pss
-# e3_demo.pss 真实用法: 首次开店必出一次"街头传单"
-store_event.register("example_hello:street_flyer", {
+# 教学写法（对照 ex20_api_shop_events）: 首次开店必出一次"街头传单"
+store_event.register("my_pack:street_flyer", {
     pool = "normal",
     odd = 20,
     name = "街头传单",
@@ -71,10 +71,12 @@ store_event.register("example_hello:street_flyer", {
 on shop_opened():
     if not state.has("flyer_queued"):
         state.set("flyer_queued", true)
-        store_event.queue("example_hello:street_flyer")
+        store_event.queue("my_pack:street_flyer")
 ```
 
 注意 `state` 防重——`shop_opened` 一天可触发多次，不记账会连发。
+可运行的商店事件对照包见
+[ex20_api_shop_events](../../examples/ex20_api_shop_events/README.md)。
 
 ## 配套桥接事件：started / ended
 

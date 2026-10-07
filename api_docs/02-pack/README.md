@@ -22,8 +22,8 @@ UserData/PSApi/packs/<你的包>/
 └── pack.json     ← 没有它，整个包被跳过
 ```
 
-游戏启动时，`PSApi.Items` 与 `PSApi.Events` 各自扫描 `packs/` 下的每个子目录，
-读取 `pack.json`，决定这个包：叫什么 id、依赖谁、要不要加载。
+游戏启动时，PSApi（v2.0.0 起单宿主 `PSApi.dll`，内部数据面/逻辑面两模块）各自扫描
+`packs/` 下的每个子目录，读取 `pack.json`，决定这个包：叫什么 id、依赖谁、要不要加载。
 
 **最小合法清单**只要一个字段：
 
@@ -46,8 +46,8 @@ PS-API 解析 `pack.json`（以及所有数据面 JSON）用的是同一套宽�
 | 尾逗号 | `["a", "b",]` | 数组/对象末尾多个逗号不报错 |
 | 字段名大小写不敏感 | `"ID"` 等价 `"id"` | 建议仍按文档统一小写 |
 
-由此衍生出**社区惯例**：用 `"//"` 字段当"文档"写进清单里。三个官方包
-（`example_hello` / `psapi_manager` / `gunworks`）都这么干：
+由此衍生出**社区惯例**：用 `"//"` 字段当"文档"写进清单里。随游戏分发的
+`psapi_manager` 与仓库 examples/ 教学包都这么干：
 
 ```json
 {
@@ -56,13 +56,13 @@ PS-API 解析 `pack.json`（以及所有数据面 JSON）用的是同一套宽�
   "version": "1.0.0",
   "authors": ["psapi"],
   "gameVersions": ["playtest"],
-  "//": "F6 开关(MelonPreferences PSApi.Events.ManagerHotkey 可改)。PSUI 动态面板样板: ..."
+  "//": "F6 开关(MelonPreferences [PSApi] ManagerHotkey 可改)。PSUI 动态面板样板: ..."
 }
 ```
 
 > `"//"` 只是一个普通字段名——解析器不认识它就忽略，人类看得懂就行。
-> 内容包版本历史、变更日志、依赖说明都习惯堆在这里，`gunworks` 的 `"//"` 字段
-> 甚至写了几千字。缺点是 JSON 字符串里不能换行，长文案会用 `;` 分隔。
+> 内容包版本历史、变更日志、依赖说明都习惯堆在这里，大型包的 `"//"` 字段
+> 甚至写几千字。缺点是 JSON 字符串里不能换行，长文案会用 `;` 分隔。
 
 ## 全字段参考
 
@@ -80,7 +80,7 @@ PS-API 解析 `pack.json`（以及所有数据面 JSON）用的是同一套宽�
 > **[保留字段]** 的意思是：字段在数据模型（`PackManifest` DTO）中声明了，
 > 但当前版本加载器没有任何代码读取它。写上无害，也方便未来版本启用；
 > 但**今天**不要指望它们起作用。逐字段核实依据：
-> `_psapi/Shared/PackModels.cs`（DTO）、`PackScanner.cs` / `PackMerger.cs`
+> `_psapi/PSApi/Shared/PackModels.cs`（DTO）、`PackScanner.cs` / `PackMerger.cs`
 > （运行时消费）、`_tools/pack_compiler/Program.cs`（编译期消费）。
 
 下面逐个展开。
@@ -88,7 +88,7 @@ PS-API 解析 `pack.json`（以及所有数据面 JSON）用的是同一套宽�
 ### id —— 包的唯一标识
 
 ```json
-{ "id": "gunworks" }
+{ "id": "my_pack" }
 ```
 
 - **必填**。缺失或为空白字符串 → 整包跳过，警告
@@ -96,19 +96,19 @@ PS-API 解析 `pack.json`（以及所有数据面 JSON）用的是同一套宽�
 - **全局唯一，大小写不敏感**。两个文件夹包同 id → 目录名排序**先加载者胜**；
   文件夹包与 DLL 包同 id → **DLL 胜**。详见[结构与加载](02-structure.md)。
 - **它是你所有内容的命名空间**：包内物品、机器、脚本面板的 id 一律
-  `包id:名字`（如 `gunworks:gw_semi_sniper`）。改 id = 全部内容改身份证。
+  `包id:名字`（如 `my_pack:my_sniper`）。改 id = 全部内容改身份证。
 - **建议与文件夹名一致**。加载器不强制检查 id == 目录名，但日志、冲突弹窗、
   编译产物（`PSPack.<id>.dll`）全都只认 id，两边不一致纯属给自己埋坑。
-- 命名建议：小写字母 + 下划线（`my_pack`、`gunworks`），别用空格和中文。
+- 命名建议：小写字母 + 下划线（`my_pack`、`psapi_manager`），别用空格和中文。
 
 ### name —— 显示名
 
 ```json
-{ "name": "Gunworks · 老祝剧情 + 革命军潜伏网络 + ..." }
+{ "name": "我的枪械包 · 3 把组装枪 + 2 台机器" }
 ```
 
 人类可读的包名。**当前加载器不消费它**——启动日志、冲突弹窗、管理面板显示的都是
-id。它现在的价值是给翻文件夹的人和未来的工具看。三个官方包的惯例是把重要说明
+id。它现在的价值是给翻文件夹的人和未来的工具看。社区惯例是把重要说明
 浓缩在 name 里（可以很长），细节再堆进 `"//"` 字段。
 
 ### version —— 版本号
@@ -155,7 +155,7 @@ id。它现在的价值是给翻文件夹的人和未来的工具看。三个官
 
 | 规则 | 说明 |
 |---|---|
-| 语义 | 每项填一个**内容包 id**，如 `"gunworks"`；大小写不敏感，前后空白会被忽略 |
+| 语义 | 每项填一个**内容包 id**，如 `"my_weapon_lib"`；大小写不敏感，前后空白会被忽略 |
 | 求值时机 | 包合并阶段（所有包扫描完、去重后）统一求值，**不改变加载顺序** |
 | 缺前置 | 只要有任何一个前置 id 不在"已接受的包集合"里 → **整包跳过**，记入冲突 |
 | 弹窗 | 主菜单弹"缺少前置模组"窗：`<你的id> 需要 <缺失的id列表>` |
@@ -171,8 +171,10 @@ id。它现在的价值是给翻文件夹的人和未来的工具看。三个官
 > 循环依赖（A 依赖 B、B 依赖 A）同理：两个 id 都存在，双方都通过，都正常加载，
 > 不会报错。
 
-依赖 **PSApi 模组本身**（想要"我的包需要 Events v1.9+"）怎么办？
+依赖 **PSApi 模组本身**（想要"我的包需要 PSApi v2.0+"）怎么办？
 当前没有字段能表达——版本需求写进 `"//"` 给人类，玩家装不装对版本只能靠自觉。
+（历史包袱：v2.0.0 之前分 Events/Items 两组件，老包注释里的"需 Events vX / Items vY"
+指的是合并前能力版本，对应能力在 v2.0.0 单 dll 中全量保留。）
 
 ### loadAfter —— 加载顺序声明【保留字段】
 
@@ -207,19 +209,20 @@ id。它现在的价值是给翻文件夹的人和未来的工具看。三个官
   "gameVersions": ["playtest"],
 
   // 机器检查的前置：这两个包 id 缺任何一个，本包整包跳过并弹窗
-  "prerequisites": ["gunworks"],
+  "prerequisites": ["my_weapon_lib"],
 
   // 保留字段，当前无效
   "loadAfter": [],
 
   // 社区惯例：变更日志 / 依赖说明 / 备注都堆这里
-  "//": "v1.2.0: 新增狙击枪 gw_sniper_v2 (需 Events v1.11+ 手动安装); v1.1.0: 平衡弹匣价格"
+  "//": "v1.2.0: 新增狙击枪 my_sniper_v2 (需 PSApi v2.0+); v1.1.0: 平衡弹匣价格"
 }
 ```
 
-对照真实包看：`UserData/PSApi/packs/gunworks/pack.json`、
-`UserData/PSApi/packs/psapi_manager/pack.json`、
-`UserData/PSApi/packs/example_hello/pack.json`。
+对照真实包看：随游戏分发的 `UserData/PSApi/packs/psapi_manager/pack.json`，
+以及仓库 examples/ 各教学包的 pack.json——如 [ex01_hello](../../examples/ex01_hello/README.md)
+（最小清单）与依赖对 [ex03_deps_base](../../examples/ex03_deps_base/README.md) /
+[ex04_deps_user](../../examples/ex04_deps_user/README.md)。
 
 ## 字段消费总表（速查）
 

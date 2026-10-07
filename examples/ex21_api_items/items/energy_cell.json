@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 3/3: 能量电池。用来演示次数物品: give 第三参传整数(uses=3), 再用 items.tag_get_int 读原生 tag CURRENT_USE_COUNT_INT / MAX_USE_COUNT_INT。",
+  "items": [
+    {
+      "id": "ex21_api_items:energy_cell",
+      "name": "能量电池",
+      "desc": "ex21 演示用能量电池(3 次型)。tag_get_int 读原生次数 tag 的演示靶子。",
+      "template": "battery",
+      "value": 80,
+      "test": true
+    }
+  ]
+}

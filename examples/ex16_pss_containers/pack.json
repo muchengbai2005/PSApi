@@ -1,0 +1,8 @@
+{
+  "id": "ex16_pss_containers",
+  "name": "示例 16 · 数组与字典",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex16: PSScript 容器。演示: list 的 push/pop/索引/负索引/remove/len, map 两种键写法与点号方括号两种读写, 嵌套容器, 引用语义, for 遍历两种容器。对应文档 04-psscript/08-containers.md。"
+}

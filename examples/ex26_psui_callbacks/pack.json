@@ -1,0 +1,8 @@
+{
+  "id": "ex26_psui_callbacks",
+  "name": "示例 26 · 回调与反馈闭环",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex26: PSUI 回调专题。on_click / on_change(toggle·slider·dropdown) / on_submit(输入框回车提交, 仿 psconsole) / on_window_closed 全覆盖; 每个回调用 ui.set_text 把结果写回面板形成反馈闭环 (点击 +1 计数, 滑条联动进度条)。F7 开关面板。对应文档 06-psui/05-callbacks.md。on_open 是机器绑定面板专属回调, 由 ex29_psui_machine 演示。"
+}

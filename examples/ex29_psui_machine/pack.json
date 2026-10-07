@@ -1,0 +1,8 @@
+{
+  "id": "ex29_psui_machine",
+  "name": "示例 29 · 机器绑定面板",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex29: PSUI 机器绑定面板 (PSUI 系列收官)。三件套 = 机器物品 (items/) + 机器声明 (machines/ 里 ui=psui, panel=workbench) + 面板 (ui/workbench.psui)。玩家双击机器物品原生开窗 (脚本不 ui.open/bind_key); 槽内容随机器存档; on_open 开窗沿回调 (机器面板专属); 全部回调带 machine 字段; 读写走 machine_* API (machine_slot_items/machine_set_text/machine_spawn/machine_lock/machine_clear/machine_find_uid)。输出槽占位白名单套路。state 只存机器 uid (句柄不能进 state), 读档用 machine_find_uid 找回。玩法: 料仓放废金属 → 点[加工]消耗 2 个 → items.give 成品[精工齿轮]到背包。机器与成品均 test:true (F12 调试键发放)。对应文档 06-psui/08-machine-panels.md。"
+}

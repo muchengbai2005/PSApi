@@ -1,0 +1,8 @@
+{
+  "id": "ex28_psui_slots",
+  "name": "示例 28 · 物品槽位面板",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex28: PSUI 图元树后端 (槽位面板)。面板含 slot/grid_slot → 整面板切图元后端: 演示 slot (单格槽, strict_footprint) / grid_slot (多格区, shape 洞) / lock_interactions / spacer / rich_label (图元后端专属控件), whitelist 排他白名单, 槽位 on_change 轮询差分感知, ui.get_slot_item/get_slot_items 读槽。附 2 个 2x2 测试物品 (test:true → F12 调试键发放 / F6 浏览器「测试」分类)。F10 开关面板。对应文档 06-psui/07-slots.md。"
+}

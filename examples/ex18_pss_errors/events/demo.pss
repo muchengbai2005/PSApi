@@ -1,0 +1,41 @@
+# demo.pss — ex18: 正常运行的防御性写法
+# 对应文档: api_docs/04-psscript/10-errors.md
+#
+# PSScript 没有 try/catch — 错误防线 = 动手前先判: 判零、判 null、判索引、判类型。
+# 本文件演示"不出错"的惯用姿势; 出错的姿势全在 errors_commented.pss 里 (注释着)。
+
+const PACK = "ex18_pss_errors"
+
+# ---------- 调试三问: type / 值 / len ----------
+var data = split("rifle,medkit,scrap", ",")
+log.info("[{PACK}] 调试三问: type={type(data)}  值={data}  len={len(data)}")
+# 90% 的运行错误是"以为是 A 类型实际是 B" — 先打这三问再动手
+
+# ---------- 除零守卫: 先判零再除 ----------
+func safe_div(a, b):
+    if b == 0:
+        return null                  # 1/0 是运行错误 "除以零"; 守卫让它安静返回 null
+    return a / b
+
+log.info("[{PACK}] safe_div(7, 2) = {safe_div(7, 2)}")
+log.info("[{PACK}] safe_div(7, 0) = {safe_div(7, 0)} — 守卫返回 null, 不报错")
+
+# ---------- null 判空: 可能没有的值先判再用 ----------
+var maybe_handle = null              # 例如 items.find() 没找到就是 null
+if maybe_handle != null and maybe_handle.count > 0:    # 短路: 左假则右不执行
+    log.info("[{PACK}] 有货")
+else:
+    log.info("[{PACK}] null 判空: maybe={maybe_handle}, 用前先判 (短路保证右边不炸)")
+
+# ---------- 索引守卫: 越界前先比 len ----------
+var stock = ["步枪", "医疗包"]
+var idx = 5
+if idx < len(stock):
+    log.info("[{PACK}] 取到 {stock[idx]}")
+else:
+    log.info("[{PACK}] 索引 {idx} 越界(长度 {len(stock)}), 已被 if 拦下")
+
+# ---------- 三个日志级别 (调试主力, 全部落 MelonLoader 日志) ----------
+log.info("[{PACK}] log.info — 常规信息")
+log.warn("[{PACK}] log.warn — 可疑情况(黄色)")
+log.err("[{PACK}] log.err — 出错了(红色) ↑本行是演示级别用的, 不是真错误")

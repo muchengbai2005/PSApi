@@ -1,0 +1,12 @@
+{
+  "//": "为 items/field_tour.json 的精铸锭提供出厂品质。tag 模式: TagSystem 打标签; priceMul 1.5 → 收购报价 ×1.5; tooltip 注入品质行。品质先于物品加载, 引用顺序天然安全。",
+  "qualities": [
+    {
+      "id": "ex05_item_basic:q_fresh",
+      "tag": "quality_ex05_fresh",
+      "display": "新鲜出炉",
+      "priceMul": 1.5,
+      "tier": 1
+    }
+  ]
+}

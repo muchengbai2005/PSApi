@@ -89,37 +89,38 @@ tooltip: 注入"品质: X ×N"行          tooltip: 原生 [标签] 行 + 价值
 
 ## 示例带读
 
-`example_hello/qualities/example_qualities.json` 五条品质覆盖全部玩法：
+下面五条品质覆盖全部玩法（对照教学包
+[ex10_qualities](../../examples/ex10_qualities/README.md)）：
 
 ```json
 { "qualities": [
   // tag 模式基本款: 半价
-  { "id": "example_hello:q_rusty", "tag": "quality_example_rusty",
+  { "id": "my_pack:q_rusty", "tag": "quality_example_rusty",
     "display": "铁锈", "priceMul": 0.5, "tier": 0 },
 
   // tag 模式溢价款
-  { "id": "example_hello:q_pure", "tag": "quality_example_pure",
+  { "id": "my_pack:q_pure", "tag": "quality_example_pure",
     "display": "纯净", "priceMul": 1.5, "tier": 1 },
 
   // feature 模式 × 原版类别: 并入"化学品纯度"表, 打印机可改
-  { "id": "example_hello:q_lab_pure", "mode": "feature",
+  { "id": "my_pack:q_lab_pure", "mode": "feature",
     "category": "CATEGORY_CHEMICAL_PURITY",
     "display": "星尘纯品", "priceMul": 4.0, "tier": 4 },
 
   // feature 模式 × 自建类别: 打印机出现独立的"星辉品级"分组
-  { "id": "example_hello:q_star_infused", "mode": "feature",
+  { "id": "my_pack:q_star_infused", "mode": "feature",
     "category": "CATEGORY_STAR_QUALITY", "categoryDisplay": "星辉品级",
     "display": "星辉灌注", "priceMul": 5.0, "tier": 5 },
 
   // 自建类别第二档: 测试下拉切换
-  { "id": "example_hello:q_star_faded", "mode": "feature",
+  { "id": "my_pack:q_star_faded", "mode": "feature",
     "category": "CATEGORY_STAR_QUALITY",
     "display": "星辉黯淡", "priceMul": 0.5, "tier": 1 }
 ] }
 ```
 
-配合 `items/_placeholder.json` 的示例净水瓶（`defaultQuality: q_star_infused`
-——出厂即五倍价星辉水）一起读。
+配合物品侧的 `qualities` / `defaultQuality` 挂接（如
+`defaultQuality: my_pack:q_star_infused`——出厂即五倍价星辉水）一起读。
 
 ---
 

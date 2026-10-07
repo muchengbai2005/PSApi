@@ -1,0 +1,32 @@
+{
+  "//": "数据面: 演示加工台 (机器物品) + 成品精工齿轮。一个物品是不是机器, 只看它在不在 machines/*.json 里声明 (不按模板猜) — 本包 machines/workbench.json 声明了 workbench → 双击开 ui/workbench.psui 面板。directory=StationMachinery 让它进'站台机械'目录, template=desequencer 提供机器基底 (形状/图标克隆它, shape 显式 3x3 覆盖)。两个物品 test=true → F12 调试键一次性发放全部 PSApi 物品 (含这两个) / F6 管理面板浏览器'测试'分类。",
+  "items": [
+    {
+      "id": "ex29_psui_machine:workbench",
+      "name": "演示加工台",
+      "desc": "双击打开加工面板: 放入 2 个废金属, 点[加工]产出精工齿轮。",
+      "directory": "StationMachinery",
+      "template": "desequencer",
+      "value": 400,
+      "test": true,
+      "shape": {
+        "w": 3,
+        "h": 3,
+        "cells": [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]]
+      }
+    },
+    {
+      "id": "ex29_psui_machine:finished_gear",
+      "name": "精工齿轮",
+      "desc": "演示加工台的成品: 2 个废金属加工而来。",
+      "template": "scrap_metal",
+      "value": 150,
+      "test": true,
+      "shape": {
+        "w": 2,
+        "h": 2,
+        "cells": [[0, 0], [0, 1], [1, 0], [1, 1]]
+      }
+    }
+  ]
+}

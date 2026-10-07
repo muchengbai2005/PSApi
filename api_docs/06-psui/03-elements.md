@@ -98,7 +98,7 @@ progress brew_bar:
 ## 交互四件套 — toggle / slider / input / dropdown
 
 这四个是"玩家可操作、值会变"的控件，统一用 `on_change` 回调（CustomUI 后端专属；
-图元后端不支持，工作台面板想要"开关"得用按钮切文本模拟——gunworks 打印机正是这么做的）。
+图元后端不支持，工作台面板想要"开关"得用按钮切文本模拟——[ex29_psui_machine](../../examples/ex29_psui_machine/README.md) 的机器面板就是这么做的）。
 
 | 元素 | 特有属性 | `on_change` 收到的 value |
 |---|---|---|

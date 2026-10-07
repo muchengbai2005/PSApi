@@ -19,8 +19,8 @@
 }
 ```
 
-→ 熔炉输入槽放 2 个废金属，过夜产出 1 份报纸。这就是官方基线配方
-（`example_hello/recipes/smelter_tests.json`）。
+→ 熔炉输入槽放 2 个废金属，过夜产出 1 份报纸。这就是基线配方
+（教学包 [ex09_recipes](../../examples/ex09_recipes/README.md)）。
 
 ## 全字段表
 
@@ -104,20 +104,20 @@
 | `recipes[].id` / `machine` | 无冒号 → 加包前缀 |
 | `output.id` / `inputs[].id` / `tools[].id` | `game:` → 剥成裸 id；无冒号 → 加包前缀 |
 
-## 实战带读：读卡器七连配方
+## 实战带读：读卡器链式配方
 
-`example_hello/recipes/example_desequencer_recipes.json` 演示了配方系统的
-常用姿势（配合进度机 34/100）：
+下面这组读卡器配方演示了配方系统的常用姿势（配合进度机；可运行的
+对照包见 [ex09_recipes](../../examples/ex09_recipes/README.md)）：
 
 ```json
 // ① 链式升级：产物回投再加工
-{ "id": "example_hello:deseq_blank_to_ser",
-  "machine": "example_hello:example_desequencer",
+{ "id": "my_pack:deseq_blank_to_ser",
+  "machine": "my_pack:desequencer",
   "output": { "id": "game:ser_keycard", "count": 1 },
   "inputs": [ { "id": "game:blank_keycard", "count": 1, "slot": 3 } ] }
 
 // ② 双输入槽分工（slot 约束）
-{ "id": "example_hello:deseq_blank_ser_to_sup",
+{ "id": "my_pack:deseq_blank_ser_to_sup",
   "output": { "id": "game:sup_keycard", "count": 1 },
   "inputs": [
     { "id": "game:blank_keycard", "count": 1, "slot": 2 },

@@ -8,8 +8,8 @@
 | 术语 | 含义 |
 |---|---|
 | **PS-API / PSApi** | 本书主角：基于 MelonLoader 的内容包式 modding 加载器，双模块（Events + Items） |
-| **PSApi.Items** | 数据面宿主（v0.9.3，MelonPriority 10）：物品/机器/配方/品质/图标 |
-| **PSApi.Events** | 逻辑面+界面面宿主（v1.13.1，MelonPriority 20）：PSScript/PSUI/NPC/注入 |
+| **PSApi** | 统一宿主（v2.0.0，`Mods/PSApi.dll`，MelonPriority 10）：数据面（物品/机器/配方/品质/图标）+ 逻辑面（PSScript/场景/注入/NPC）+ 界面面（PSUI） |
+| **PSApi.Items / PSApi.Events** | 合并前双组件（v0.9.x / v1.x 时代），v2.0.0 起合并为 PSApi 单 dll；名字作为**命名空间与内部模块名**保留（`PSApi.Items.*` / `PSApi.Events.*`），老文档中的"需 Events vX"指合并前能力版本 |
 | *MelonLoader* | 游戏通用 mod 加载器，PS-API 的运行底座 |
 | **IL2CPP** | 本游戏的代码编译形态（运行时只有原生码+元数据）——PS-API 用 cpp2il dump 做参考 |
 | **三面一体** | PS-API 的结构：数据面（JSON）+ 逻辑面（PSScript）+ 界面面（PSUI） |

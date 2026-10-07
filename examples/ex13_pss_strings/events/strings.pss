@@ -1,0 +1,56 @@
+# strings.pss — ex13: PSScript 字符串专题
+# 对应文档: api_docs/04-psscript/05-strings.md
+#
+# 插值 "{表达式}" 是 PSScript 的招牌能力, 本文件顶层跑一遍全部字符串工具。
+# 中文贯穿演示 — 字符串按字符计数, 中英文一视同仁。
+
+const PACK = "ex13_pss_strings"
+
+var buyer = "老猫"
+var price = 500
+var stock_names = ["步枪", "医疗包", "废金属"]
+
+# ---------- 插值: 字符串里直接嵌表达式 ----------
+log.info("[{PACK}] 插值: 买家 {buyer} 出价 {price}")
+log.info("[{PACK}] 插值里可以是任意表达式: 单价 2.5 × 3 = {2.5 * 3}, 第 2 件货 {stock_names[1]}")
+log.info("[{PACK}] 数组/字典也能整体插: {stock_names}")
+
+# ---------- 引号规则: 插值内的字符串必须换一种引号 ----------
+log.info("[{PACK}] 外双内单: 你好 {'老猫'} — 插值里写字符串用单引号")
+log.info('[{PACK}] 反过来外单内双也行: {"老猫"}')
+# 写 "{ "老猫" }" (内外同引号) 是编译错误: 插值表达式内的字符串引号须与外层不同
+
+# ---------- 花括号转义与转义序列 ----------
+log.info("[{PACK}] 字面花括号双写: {{name}} 不会被当成插值")
+log.info("[{PACK}] 转义序列: 前半\n后半 (中间真的换行了), 制表 A\tB, 反斜杠 \\")
+
+# ---------- + 拼接 ----------
+var slogan = "黑市" + "回收"            # string + string
+slogan += " #" + 7                      # string + int → 数字自动转文本
+log.info("[{PACK}] + 拼接: {slogan} (字符串不可变, += 是新建串再赋值)")
+
+# ---------- format(): 模板和参数分开存放时用 ----------
+# 重要: 字符串里裸 {} 是"空插值" = 编译错误, format 的占位必须双写成 {{}}
+var tpl = "{{}} 在 {{}} 买了 {{}}"
+log.info("[{PACK}] format 顺序占位: {format(tpl, buyer, '周三', '废金属')}")
+log.info("[{PACK}] format 索引占位可重复: {format('{{0}} vs {{1}}, 赢家是 {{0}}', '甲', '乙')}")
+# 日常写死文本用插值 "{x}"; 模板本身是变量时才轮到 format
+
+# ---------- join / split: 数组与字符串之间的桥 ----------
+var names = ["老猫", "博士", "警长"]
+log.info("[{PACK}] join(数组→字符串): {join(names, '、')}")
+var parts = split("rifle,medkit,scrap", ",")
+log.info("[{PACK}] split(字符串→数组): {parts} 共 {len(parts)} 项, 第 1 项 {parts[0]}")
+log.info("[{PACK}] 互为逆操作: join(split('a|b|c', '|'), '-') → {join(split('a|b|c', '|'), '-')}")
+
+# ---------- len / 索引 / in ----------
+var s = "黑市行情"
+log.info("[{PACK}] 中文字符串: len = {len(s)} (按字符计, 不是字节)")
+log.info("[{PACK}] 索引取单字符: s[0] = {s[0]}, 负索引 s[-1] = {s[-1]}")
+log.info("[{PACK}] in 判子串: '行情' in '黑市行情' → {'行情' in s}")
+
+# ---------- str(): 与插值同一套转文本规则 ----------
+log.info("[{PACK}] str(): str(3.5)={str(3.5)}  str([1, 'x'])={str([1, 'x'])}")
+
+# 注意: v1.13.1 没有 upper/lower/trim/replace/startswith 这类文本处理函数 —
+# 判断子串/前后缀用 in, 截取用索引 + join, 复杂文本处理放到 JSON 数据面预处理

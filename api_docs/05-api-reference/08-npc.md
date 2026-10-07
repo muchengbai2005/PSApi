@@ -1,7 +1,9 @@
 # 05 · 08 npc 基础：自定义客户
 
 > `npc` 命名空间把**自定义客户**注入游戏生成管线：常客、剧情人物、供货商……
-> 本篇是 **API 签名与配置键总表**——够你照着 `example_hello` 抄出能跑的 NPC；
+> 本篇是 **API 签名与配置键总表**——够你照着 [ex23_api_npc](../../examples/ex23_api_npc/README.md)
+> （最小写法）或 [ex30_npc_full](../../examples/ex30_npc_full/README.md)（三型全配置）
+> 抄出能跑的 NPC；
 > 生成管线五相位、对话选项、条件函数等**完整参考在进阶章**（[07 进阶](../07-advanced/README.md)）。
 
 ## 函数表

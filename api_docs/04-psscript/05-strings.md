@@ -99,7 +99,7 @@ log.info("模板是 {{name}} 占位")         # 模板是 {name} 占位
 
 ```pss
 format("{} 掷骰 d6 得 {}, 随机价 {}", PACK, rand(1, 6), 250)
-# → "example_hello 掷骰 d6 得 4, 随机价 250"
+# → "my_pack 掷骰 d6 得 4, 随机价 250"
 
 format("{0} vs {1}, 赢家 {0}", "甲", "乙")     # 索引占位可重复引用
 # → "甲 vs 乙, 赢家 甲"
@@ -117,7 +117,8 @@ format("字面花括号 {{}}")                       # → "字面花括号 {}"
 模板缺少 `}`、占位符内容不是数字都是运行错误。
 
 插值优先，format 兜底——**日常写死文本用 `"{x}"`，模板是变量时才用 format**。
-这是 example_hello hello.pss 里两种写法并存的原因（`log.warn("format: " + format(...))`）。
+教学示例里两种写法常并存（如 `log.warn("format: " + format(...))`），
+对照包见 [ex13_pss_strings](../../examples/ex13_pss_strings/README.md)。
 
 ## 字符串工具函数
 

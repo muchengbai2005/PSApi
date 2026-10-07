@@ -1,0 +1,22 @@
+# data.pss — ex31 前哨废墟 · 场景数据表
+#
+# 场景脚本与同包 events/*.pss 共享全局环境 (无作用域隔离) —
+# 照 gunworks 惯例把"数据"与"入口"分文件: 本文件只放常量表,
+# boot.pss 放事件入口。哪天想改台词/点位说明, 只动这里。
+
+const EX31_SCENE = "ex31_outpost:ex31_outpost"     # 场景全名 = 包id:场景id
+
+# 场景日志区的文案 (scene.log 写进场景内日志区, log.info 写进控制台 — 两条通道)
+var EX31_TEXTS = {
+    enter = "你钻过铁丝网进了前哨。那盏灯, 真的还亮着。",
+    loot_empty = "翻了个遍, 什么也没有。",
+    exit_hint = "拿够东西后, 从东侧断墙豁口撤离。",
+    leave = "你从断墙豁口退了出去, 身后的灯还亮着。",
+}
+
+# 点位速查表 (与 scene.json 的 points 对应; 纯教学打印用, 改点位请改 scene.json)
+var EX31_POINTS = {
+    lamp_post = "哨位 — 亮灯的桌子, 能搜 2 次",
+    supply_crate = "补给箱 — 只有一箱, 搜 1 次",
+    gate_exit = "断墙豁口 — 撤离点",
+}

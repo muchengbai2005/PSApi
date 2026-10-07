@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 1/2: 古董摆件。走三条通道: buy_list(收购客户想要) + doctor(夜间博士有卖) + loot_pool(野外随机出现)。",
+  "items": [
+    {
+      "id": "ex22_api_inject:curio",
+      "name": "古董摆件",
+      "desc": "ex22 演示用古董摆件。收购客户想收它, 夜间博士有卖, 野外随机池偶尔能捡到。",
+      "template": "scrap_metal",
+      "value": 120,
+      "test": true
+    }
+  ]
+}

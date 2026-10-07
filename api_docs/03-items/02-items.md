@@ -35,8 +35,8 @@ PS-API 不从零造物品，而是**站在原版物品的肩膀上**：
 
 → 能注册、能发放，但名字是 id、图标是兜底图、无类型。**仅适合冒烟测试**。
 
-**一个普通物品**（gunworks 真实用的"解放轻步枪"精简版，原文件
-`packs/example_hello/items/mcb_weapon_gun1.json`）：
+**一个普通物品**（完整字段写法，对照教学包
+[ex05_item_basic](../../examples/ex05_item_basic/README.md)）：
 
 ```json
 {
@@ -58,7 +58,7 @@ PS-API 不从零造物品，而是**站在原版物品的肩膀上**：
           [5,0],[5,1]
         ]
       },
-      "icon": { "file": "mcb_weapon_gun1.png" }
+      "icon": { "file": "rifle_h1.png" }
     }
   ]
 }
@@ -150,7 +150,7 @@ F12 找得到，但跨包引用、脚本 API 全部对不上号。省心铁律�
 原版物品的裸 id（如 `furnace`、`desequencer`、`blank_keycard`、`bottled_water`）。
 模板决定你**没写**的一切：图标切片、占格形状、原生行为。
 
-- 显式 `directory` 与 `template` 可以不对应（如 `example_processor` 落
+- 显式 `directory` 与 `template` 可以不对应（如 `my_pack:processor` 落
   `StationMachinery` 但用 `furnace` 当模板基底）。
 - 对**机器物品**，`template` 同时是原生工厂的第二落点——但窗口/槽位行为由
   `machines/*.json` 的 `ui` 决定（见[机器篇](03-machines.md)），template 只是基底。
@@ -187,7 +187,7 @@ F12 找得到，但跨包引用、脚本 API 全部对不上号。省心铁律�
 
 - `typesMode: "merge"`（默认）：模板的类型 + 你的类型并集。
 - `typesMode: "replace"`：只要你声明的，模板类型清空。
-- `tags` 的额外福利：参与上面的目录映射。`mcb_*` 系列物品就是只写 `tags`
+- `tags` 的额外福利：参与上面的目录映射。上面的"解放轻步枪"就是只写 `tags`
   不写 `directory` 的活例子。
 
 ### qualities / defaultQuality —— 品质组
@@ -228,7 +228,8 @@ F12 找得到，但跨包引用、脚本 API 全部对不上号。省心铁律�
 
 ### useCount / useBaseValue / useValuePerUse —— 使用次数
 
-v0.8.1 起接入**原生** `UseCountHelper`（gunworks 数据卡体系在用）：
+v0.8.1 起接入**原生** `UseCountHelper`（次数体系教学见
+[ex07_item_uses](../../examples/ex07_item_uses/README.md)）：
 
 ```json
 "useCount": 5,

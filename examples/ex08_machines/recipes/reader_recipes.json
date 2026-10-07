@@ -1,0 +1,14 @@
+{
+  "//": "进度机配方: slot 约束是进度机专属 — 限定材料必须在对应槽位。空卡放槽 3, 第 3 夜出安全卡。",
+  "recipes": [
+    {
+      "id": "ex08_machines:reader_blank_to_ser",
+      "machine": "ex08_machines:demo_reader",
+      "output": { "id": "game:ser_keycard", "count": 1 },
+      "inputs": [ { "id": "game:blank_keycard", "count": 1, "display": "空白门卡", "slot": 3 } ],
+      "qualityRule": "none",
+      "customName": "进度写卡：空白→安全",
+      "description": "路线②验证: 空白卡放槽 3, 34/100 → 第 3 夜出安全卡。"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "ex07_item_uses",
+  "name": "示例 07 · 使用次数体系",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex07: useCount/useBaseValue/useValuePerUse 次数体系。工具箱(20次, 按剩余次数折价) + 火柴包(10次, 不折价) 两个物品, 配脚本演示每晚用一次。对应文档 03-items/02-items.md 与 05-api-reference/06-items.md。"
+}

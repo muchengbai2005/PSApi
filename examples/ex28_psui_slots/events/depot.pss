@@ -1,0 +1,71 @@
+# depot.pss — ex28_psui_slots 的唯一脚本 (逻辑面)
+#
+# 三件事:
+#   1. 顶层 ui.bind_key("F10", ...) — 按键绑定必须顶层调用 (此时全部面板已注册)
+#   2. 三个槽位的 on_change (ev = {elem, value}): 槽内容变化即触发 —
+#      逐帧轮询差分, 玩家拖入/取出、脚本消耗都算"变化"
+#   3. 读取按钮: ui.get_slot_item / ui.get_slot_items 主动读槽并打日志
+#
+# u4_printer 惯例: 回调里"重新读槽"而不是直接用 ev.value — items.consume 消耗
+# 槽内物品会再触发一次 on_change, 重读天然幂等 (不会叠加脏状态)。
+
+const PACK = "ex28_psui_slots"
+
+# 顶层语句: 启动即注册按键 → 控制台/日志能看到 [psui] bind_key: F10 → ex28_psui_slots:depot
+ui.bind_key("F10", "ex28_psui_slots:depot")
+
+# ---- 公共辅助 ----
+
+# 把反馈写回状态行 (ui.set_text 定位"本包当前面板"里的元素)
+func set_status(msg):
+    ui.set_text("lbl_status", "状态: {msg}")
+
+# 物品句柄 → 一行描述。句柄读法: .id / .name / .count
+#   包物品 id 保留全名 (ex28_psui_slots:demo_gear); 原版物品剥 game: 前缀变裸 id (scrap_metal)
+func slot_desc(it):
+    if it == null:
+        return "(空)"
+    return "{it.name} x{it.count} [{it.id}]"
+
+# ---- 槽位 on_change (ev = {elem, value}) ----
+# slot 的 value = 首物品句柄 (空槽 = null); grid_slot 的 value = 句柄列表 (空 = 空表)
+
+func on_s1_change(ev):
+    var it = ui.get_slot_item("s1")          # slot 单格槽: 读首件
+    log.info("[{PACK}] [槽位 on_change] s1 (齿轮槽, 严格footprint) → {slot_desc(it)}")
+    set_status("s1 → {slot_desc(it)}")
+
+func on_s2_change(ev):
+    var it = ui.get_slot_item("s2")
+    log.info("[{PACK}] [槽位 on_change] s2 (核心槽, 锁交互) → {slot_desc(it)}")
+    set_status("s2 → {slot_desc(it)}")
+
+func on_g1_change(ev):
+    var list = ui.get_slot_items("g1")       # grid_slot 多格仓: 永远用 get_slot_items
+    log.info("[{PACK}] [槽位 on_change] g1 (4x3 网格区) → {len(list)} 组物品")
+    set_status("g1 → {len(list)} 组物品")
+
+# ---- 按钮 ----
+
+func on_read_slots():
+    log.info("[{PACK}] [按钮 on_click] 读取全部槽位:")
+    var s1 = ui.get_slot_item("s1")
+    var s2 = ui.get_slot_item("s2")
+    var g1 = ui.get_slot_items("g1")
+    log.info("[{PACK}]   s1 → {slot_desc(s1)}")
+    log.info("[{PACK}]   s2 → {slot_desc(s2)}")
+    if len(g1) == 0:
+        log.info("[{PACK}]   g1 → (空)")
+    else:
+        for it in g1:
+            log.info("[{PACK}]   g1 → {slot_desc(it)}")
+    set_status("已读取: s1 {slot_desc(s1)} · s2 {slot_desc(s2)} · g1 共 {len(g1)} 组")
+
+func on_btn_close():
+    log.info("[{PACK}] [按钮 on_click] 关闭: 槽内物品自动退回后仓 (未写 persistent)")
+    ui.close("depot")
+
+# ---- 事件订阅 ----
+
+on game_loaded():
+    log.info("[{PACK}] 槽位面板包就绪: F12 发放演示物品 → F10 开/关 depot 面板")

@@ -1,0 +1,8 @@
+{
+  "id": "ex14_pss_flow",
+  "name": "示例 14 · 控制流与循环",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex14: PSScript 控制流。演示: if/elif/else/while+break/continue/for-in 列表与字典/range/嵌套循环九九乘法表。对应文档 04-psscript/06-control-flow.md。"
+}

@@ -1,0 +1,40 @@
+# ledger.pss — ex33 记账本: state 三件套 (开业天数 / 累计收入 / 一次性标志)
+#
+# 知识点 (对应文档 07-advanced/02-state-deep.md):
+#   1. 三层结构: state.set 编码成字符串 → 内存层 (按 owner=包id 一份) →
+#      磁盘层 UserData/PSApi/state/<槽>/<包id>.json (缩进 JSON, 关游戏可直接手改)。
+#   2. 槽位隔离全自动: 进存档 8 读写槽 8 的文件, 退菜单/换存档由 EnsureSlot
+#      FlushAll 全落盘再换 — 脚本不需要 (也不存在) 指定槽的 API。
+#   3. 初始化判断要放对局内事件 (day_wake), 不能放顶层语句:
+#      主菜单期顶层写入会落进 global/ 槽, 任何存档都看不到。
+#   4. has 只看键在不在, 不看值真假: state.set("flag", false) 之后 has 仍为 true。
+#   5. 落盘时机: 每日 NPC 调度评估后 / 槽切换 / 退出游戏 — 没有手动 flush API,
+#      所以贵重记账放 day_wake / day_sleep, 离落盘点最近 (崩溃窗口 ≤ 1 天)。
+
+const PACK = "ex33_state_deep"
+
+# 每日醒来: 开业天数 +1, 并演示一次性剧情标志 (防重)
+on day_wake():
+    var days = state.get("open_days", 0) + 1
+    state.set("open_days", days)
+    if not state.has("first_day_badge"):
+        # 首次开业纪念: 每个存档槽恰好触发一次 — has 防重 + 槽隔离保证
+        state.set("first_day_badge", true)
+        log.info("[{PACK}] 首次开业! 「开业纪念」标志已写入 (本存档仅此一次)")
+    log.info("[{PACK}] 开门营业, 累计开业 {days} 天 (time.rel_day()={time.rel_day()})")
+
+# 每笔成交: 只记玩家卖出 (direction="sell"), amount 为成交金额, 逐笔累加
+on trade_completed():
+    if event.direction != "sell":
+        return
+    var revenue = state.get("revenue_total", 0) + event.amount
+    state.set("revenue_total", revenue)
+    log.info("[{PACK}] 卖出 {event.item_id} 给 {event.npc_name}, 收入 +{event.amount}, 累计营业收入 {revenue}")
+
+# 每次读档触发 (对局内, state 已切到该存档的槽) — 打一张资产负债快照
+on game_loaded():
+    log.info('[{PACK}] 读档完成, 快照: 开业 {state.get("open_days", 0)} 天 / 累计收入 {state.get("revenue_total", 0)} / 纪念标志 {state.has("first_day_badge")}')
+
+# 夜间睡前记账演示: 与 day_wake 对称, 落盘时机同样安全 (次日 wake 必 FlushAll)
+on day_sleep():
+    log.info("[{PACK}] 打烊盘点: 今日营业结束, 累计数据已随每日调度落盘")

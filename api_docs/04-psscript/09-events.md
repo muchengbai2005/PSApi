@@ -101,7 +101,8 @@ on christmas_parade():        # 不在别名表
        state.set(key, true)
        # ... 首次逻辑
    ```
-   （e5_demo.pss 的"每日一次"防重就是这段的真实原型。）
+   （"每日一次"防重范式的可运行对照见
+   [ex19_api_state_world](../../examples/ex19_api_state_world/README.md)。）
 4. **异常隔离**：你的 handler 抛运行错误只记日志（`[pss] 文件:行 in 事件名: 消息`），
    不影响同事件的其他订阅者，更不会崩游戏。
 5. **event 是共享名**：`event` 注入在包全局，handler 结束后恢复旧值。不要把
@@ -123,21 +124,23 @@ on "my_pack:night_beacon":
 
 规则（源码 `PsBuiltins.CreatePackEnv`）：
 
-- 事件名须为非空字符串；**建议 `包id:事件名` 命名**避免撞车（e3_demo.pss 即此风格）。
+- 事件名须为非空字符串；**建议 `包id:事件名` 命名**避免撞车（教学包
+  [ex17_pss_events](../../examples/ex17_pss_events/README.md) 即此风格）。
 - 载荷必须是 dict（或省略）；发字符串/数字会被拒绝（`bus.emit() 的 payload 须为 dict`）。
 - 订阅方须用**字符串形式** `on "..."`（标识符形式会查别名表+加 `psapi.` 前缀，接不到）。
 - 字符串事件名**不支持插值**（`on "{PACK}:x":` 是编译错误：事件名不支持插值），
   也不可为空串。
 - **跨包隔离只针对变量/函数**，bus.emit 广播所有人都能订。
 
-真实例子（e3_demo.pss）：夜间结算每 3 天发一次信标，订阅方计数存档：
+真实例子（对照 [ex17_pss_events](../../examples/ex17_pss_events/README.md)）：
+夜间结算每 3 天发一次信标，订阅方计数存档：
 
 ```pss
 on night_services():
     if time.day() % 3 == 0:
-        bus.emit("example_hello:night_beacon", {day = time.day()})
+        bus.emit("my_pack:night_beacon", {day = time.day()})
 
-on "example_hello:night_beacon":
+on "my_pack:night_beacon":
     var n = state.get("beacon_count", 0) + 1
     state.set("beacon_count", n)
     log.info("收到 night_beacon(第 {n} 次): day={event.day}")
@@ -158,7 +161,7 @@ on "example_hello:night_beacon":
 on shop_opened():
     if not state.has("flyer_queued"):
         state.set("flyer_queued", true)
-        store_event.queue("example_hello:street_flyer")
+        store_event.queue("my_pack:street_flyer")
 ```
 
 两种变体：

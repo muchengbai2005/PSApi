@@ -1,0 +1,8 @@
+{
+  "id": "ex06_item_template",
+  "name": "示例 06 · 模板克隆机制",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例包 ex06: template 模板克隆专题。同一模板 common_ore 派生 3 个物品 (零覆盖/覆盖 name+value/覆盖 shape) + 1 个不用模板的裸定义物品对比。对应文档 03-items/02-items.md。"
+}

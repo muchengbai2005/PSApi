@@ -1,0 +1,64 @@
+# npc_story.pss — ex30 第 3 位 NPC: 剧情 NPC「陆婆」(intent = "dialogue")
+#
+# 知识点 (对应文档 07-advanced/05-npc-config.md §六对话九通道 + choices):
+#   1. intent = "dialogue" 纯聊天: 不带钱也不带货, main 说完就走
+#      (auto_leave 默认 true, 链尾自动挂 1 秒离场 — 但配了 choices 就不挂, 由选项收尾)。
+#   2. choices 只能挂在 main 链尾, 每个选项 = {label, next, desc?, key?, cond?}:
+#        next  = 选中后的续台词 (单段)
+#        key   = 选项身份键物品 id; 不写则按序轮换 newspaper/paper_towel/scrap_metal
+#                (超过 3 个无 key 选项会循环复用同一物品 — 本例 3 个正好用完)
+#        cond  = 显示条件, 构建对话时求值, falsy = 该选项不显示
+#   3. main 配了 id 时 dialogue_id = "包id:配置id" — dialogue_choice 事件靠它路由。
+#   4. ⚠ 下标前移陷阱: event.choice 是"运行时显示数组"的下标, cond 隐藏前面的选项
+#      会使后续选项下标前移 — 判定逻辑必须与 cond 条件联动 (见文件尾 dialogue_choice)。
+#   5. 剧情 NPC 用 put_first = true: 命中排班时插队开门第一位。
+
+const PACK = "ex30_npc_full"
+
+# cond 须为函数引用 (不能写字符串表达式): 构建对话时调用一次, 返回 falsy = 选项不显示
+func omen_lamp_cond():
+    return time.rel_day() >= 3
+
+npc.register({
+    id = "ex30_storyteller",
+    name = "说书人陆婆",
+    base_template = "lowerLevelElder",             # ⑫ 市民日常组长者 — 经济系模板, 行为干净
+    faction = "lower",
+    intent = "dialogue",
+    dialogues = {
+        main = {
+            id = "omen_talk",                      # → dialogue_id = "ex30_npc_full:omen_talk"
+            texts = [
+                "老身在这条街说了一辈子书。",
+                "今天的书, 说的是前哨废墟。",
+            ],
+            choices = [
+                # 选项 0: 无条件显示
+                {label = "听她讲完", next = "哨兵走了一夜, 灯还亮着。人们说那灯至今没灭。"},
+                # 选项 1: desc 只是按钮副标题, 不影响逻辑
+                {label = "打听前哨废墟", desc = "她在暗示什么",
+                 next = "废墟里的东西认旧主。你若去了, 记得给灯留一件东西。"},
+                # 选项 2: cond 条件 — 开业满 3 天后才显示 (须传函数引用, 返回 falsy = 不显示)
+                {label = "问那盏灯的来历", next = "你店开得够久了, 说得。那灯, 等的是回不来的人。",
+                 cond = omen_lamp_cond},
+            ],
+        },
+        repeat = "想再听一遍? 也成。",
+    },
+    schedule = {mode = "daily", put_first = false},
+})
+
+# 挂进「常规客户主池」— 三个 NPC 各占一池 (sell/buy/client), 五池语义见 04-npc-pipeline.md §七
+npc.pool_add("client", "ex30_storyteller", 3.0)
+
+# dialogue_choice: 玩家点了哪个选项 → event.dialogue_id / event.choice / event.npc_id
+# 选中动作只标记"对话完即离店", 剧情效果全部靠这个事件在脚本侧结算 (框架不替你写剧情)。
+on dialogue_choice():
+    if event.dialogue_id != "ex30_npc_full:omen_talk":
+        return
+    # 选项 2 有 cond: 前 3 天它不显示, 此时可见下标是 0/1;
+    # 第 3 天起它插到最后, 下标才是 0/1/2 — 这就是"下标前移"的联动判定。
+    var heard_lamp = false
+    if time.rel_day() >= 3 and event.choice == 2:
+        heard_lamp = true
+    log.info("[{PACK}] 陆婆对话选项被选: choice={event.choice} (灯的来历: {heard_lamp}), npc={event.npc_id}")

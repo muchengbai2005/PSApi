@@ -1,0 +1,44 @@
+# npc_sell.pss — ex30 第 1 位 NPC: 卖货商「老金」(intent = "sell")
+#
+# 知识点 (对应文档 07-advanced/05-npc-config.md):
+#   1. intent 站在客户视角: "sell" = 客户带货来卖给你 (不是你来卖!)。
+#   2. sell_items 静态清单: "id:数量:概率" 三段式, 每条独立掷骰;
+#      本包物品带前缀, 原版物品 (common_ore) 裸 id。
+#   3. price 三系数全部站在玩家视角:
+#        sell_single = 玩家单件买入折扣 / sell_bulk = 整桌批发折扣 / buy = 收购你的货的加价
+#      纯卖货商用不到 buy, 但三键齐配方便对照记忆。
+#   4. schedule = {mode="every_ndays", interval=2, chance=0.8}:
+#      每隔 2 天评估一次, 每次掷 80% 概率 — 排班日志搜 "npc eval: ex30_peddler"。
+#   5. npc.pool_add("sell", ...): 挂进原版「卖家池」, 不排班的日子也可能被随机抽中。
+
+const PACK = "ex30_npc_full"
+
+npc.register({
+    id = "ex30_peddler",
+    name = "货郎老金",
+    base_template = "scavGenericMaterialSeller",   # ① 拾荒回收组材料贩 — 经济系模板, 克隆行为干净
+    faction = "lower",
+    intent = "sell",                               # 客户视角: 他来卖货给玩家
+    price = {sell_single = 0.95, sell_bulk = 0.8, buy = 1.0},
+    # 静态货架: 90% 带 1 盏头灯 / 70% 带 1-2 个核心 / 80% 带 2-3 块原版矿石压舱
+    sell_items = [
+        "ex30_npc_full:front_lamp:1:0.9",
+        "ex30_npc_full:scrap_core:1-2:0.7",
+        "common_ore:2-3:0.8",
+    ],
+    dialogues = {
+        # main 用 texts 多段链: 播完一段自动下一段 (映射原版 NextDialogue)
+        main = {texts = [
+            "扁担两头晃, 什么都有。",
+            "头灯、核心, 还有河边淘的矿石 — 整桌拿算你八折。",
+        ]},
+        accept = "痛快, 都给你包上。",
+        all_done = "筐空了, 后会。",
+        repeat = "还没挑完? 慢慢看。",
+        # 纯卖货商不收货, wrong_item/right_item 播不到, 不配
+    },
+    schedule = {mode = "every_ndays", interval = 2, chance = 0.8},
+})
+
+# 挂进原版「卖家池」(五池: client/buy/sell/upper/bm) — 排班之外的第二条到场途径
+npc.pool_add("sell", "ex30_peddler", 8.0)

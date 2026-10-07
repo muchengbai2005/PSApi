@@ -1,0 +1,32 @@
+# channels.pss — ex22_api_inject 的唯一脚本
+#
+# 演示 inject 五通道: 把本包物品塞进游戏的【既有出货渠道】——
+# 不生成新 NPC、不改系统规则, 只是让"已有的渠道"多出你的货:
+#   inject.buy_list(id)               买池: 收购意图客户的收购清单追加你的物品(去重)
+#   inject.sell_shelf(id, count)       货架: 出售意图客户上架你的物品(每客户一次)
+#   inject.doctor(id, count)          博士: 夜间博士商店出货(每次访问一次)
+#   inject.barter(id, count)          野外商人: 以物易物商人货架(每商人一次)
+#   inject.loot_pool(表名, id, 权重)   随机池: 原版 LootTable 加权注入(SELL 客户带货/远征掷骰)
+#
+# 注册类五函数全部【加载期顶层调用】; 管理类(list/reset_tracking/tune/force_client)
+# 在【对局内】调用。本包顶层只注册, 管理演示放进 day_wake。
+
+const PACK = "ex22_api_inject"
+
+# ---- 五通道注册(顶层一次性; 表每局重建, 框架按局自动撤旧重注, 脚本无需关心) ----
+inject.buy_list("ex22_api_inject:curio")                      # 所有收购客户开始想收古董摆件
+inject.sell_shelf("ex22_api_inject:ammo_pack", 2)             # 出售客户货架摆 2 个弹药包
+inject.doctor("ex22_api_inject:curio", 1)                     # 夜间博士商店卖 1 个古董摆件
+inject.barter("ex22_api_inject:ammo_pack", 1)                 # 野外商人货架换 1 个弹药包
+inject.loot_pool("material", "ex22_api_inject:curio", 0.05)   # material 池: 约 5% 抽中权重
+
+log.info("[{PACK}] inject 五通道已注册: 古董摆件(买池/博士/loot) + 弹药包(货架/野外商人)")
+
+# ---- day_wake: 管理类演示 → 清"已注入"记账, 同一些客户会重新摆货 ----
+on day_wake():
+    inject.reset_tracking()
+    var mine = 0
+    for row in inject.list():
+        if row.pack == PACK:
+            mine = mine + 1
+    log.info("[{PACK}] 新的一天: 注入记账已重置, 本包通道 {mine} 条继续生效")

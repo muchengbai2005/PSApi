@@ -61,7 +61,7 @@ log.info("hello from my_pack!")
 
 ## 顶层代码什么时候跑一次？
 
-**每次游戏启动、PSApi.Events 完成加载时，每个 .pss 的顶层语句跑一次**——不是每次进对局。
+**每次游戏启动、PSApi 逻辑面完成加载时，每个 .pss 的顶层语句跑一次**——不是每次进对局。
 （进对局、切场景由事件通知你，见 [09 事件与 on 块](09-events.md)。）
 
 想验证"顶层只跑一次、事件每次都触发"，可以放这个脚本：
@@ -134,7 +134,7 @@ PSScript **没有热重载**：脚本在启动时编译一次。改了 `.pss` �
 | 现象 | 去哪看 | 说明 |
 |---|---|---|
 | `log.*` 输出 | `UserData/MelonLoader/Latest.log`，搜 `[pss my_pack]` | 最直接：脚本活了 |
-| 加载统计 | PSApi.Events 启动日志（`selftest` / 加载统计行） | 引擎报告扫到几个文件、几个 handler |
+| 加载统计 | PSApi 启动日志（`selftest` / `[events] 模块初始化完成` 行） | 引擎报告扫到几个文件、几个 handler |
 | 编译错误 | 控制台 `[pss] compile error: ...` + `UserData/PSApi/logs/pack_errors_*.log` | 文件没加载时先查这里 |
 
 如果你的 `log.info` 一条都没出现，按顺序排查：
@@ -143,45 +143,40 @@ PSScript **没有热重载**：脚本在启动时编译一次。改了 `.pss` �
 2. 文件扩展名是 `.pss` 且在 `events/`（或其子目录）下吗？
 3. 日志里有没有 `compile error`？（语法错会让整个文件不加载，见 [10 错误与调试](10-errors.md)）
 
-## 真实例子：example_hello 的 hello.pss
+## 真实例子：ex01_hello 的 hello.pss
 
-官方示例包的冒烟脚本（节选，完整文件在
-`UserData/PSApi/packs/example_hello/events/hello.pss`）：
+教学示例包的冒烟脚本（完整文件在
+`examples/ex01_hello/events/hello.pss`，包说明见
+[ex01_hello](../../examples/ex01_hello/README.md)）：
 
 ```pss
-const PACK = "example_hello"
-var boot_count = 0
+const PACK = "ex01_hello"     # 常量: 包 id, 脚本里引用自家内容统一走它
 
-func describe_stock(name, tags, discount = 0):
-    var price = 120
-    if discount > 0:
-        price = price * (100 - discount) / 100
-    var label = "{name}({len(tags)} 个标签)"
-    for t in tags:
-        if t == "hot":
-            label += " [烫手]"
-            continue
-        label += " [" + t + "]"
-    return "{label} 估价 {price}"
+var load_count = 0            # 变量: 同包脚本共享全局环境
+load_count += 1
 
-var stock = ["contraband", "hot", "clean"]
-var picked = []
-var i = 0
-while true:
-    if i >= len(stock):
-        break
-    if stock[i] != "clean":
-        push(picked, stock[i])
-    i += 1
+# 顶层语句: 启动即打印 → 控制台搜 "ex01_hello" 就能确认脚本在跑
+log.info("[{PACK}] hello.pss 已加载 (第 {load_count} 次) — 这是 ex01_hello 示例包")
 
-log.info("hello.pss 已加载(第 {boot_count} 次): {describe_stock('赃物包', picked, 25)}")
+# 事件订阅: 游戏加载完成
+on game_loaded():
+    log.info("[{PACK}] 游戏加载完成, 自定义物品 ex01_hello:greeting_card 已注册进目录")
 
+# 事件订阅: 进入任意场景 (event.value 是场景名)
 on scene_loaded():
-    log.info("进入场景: {event.value} (scene_loaded handler 生效)")
+    log.info("[{PACK}] 进入场景: {event.value}")
+
+# 事件订阅: 每秒 tick — 用计数器演示跨调用状态
+var tick_count = 0
+on tick():
+    tick_count += 1
+    if tick_count == 10:
+        log.info("[{PACK}] tick 计数到 10 了 — 脚本状态跨事件保留, 教学完毕")
 ```
 
-它一口气演示了常量、函数默认参数、if/for/while/break/continue、数组字典、
-字符串插值、事件订阅——本章后续各篇就是把这里每个语法点逐一讲透。
+它演示了常量与变量、顶层语句立即执行、三个入门事件订阅
+（`game_loaded` / `scene_loaded` / `tick`）、`{表达式}` 插值——
+本章后续各篇就是把每个语法点逐一讲透。
 
 ---
 

@@ -1,0 +1,13 @@
+{
+  "//": "演示物品 2/3: 幸运币。用来演示 give 第三参 opts: 实例改名(name) + 实例自定义数据(data → PSD_ 标签, 句柄 get_data 读回)。",
+  "items": [
+    {
+      "id": "ex21_api_items:lucky_coin",
+      "name": "幸运币",
+      "desc": "ex21 演示用幸运币。会被发成一个带自定义数据(data.msg / data.level)的实例。",
+      "template": "newspaper",
+      "value": 66,
+      "test": true
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+# showcase.psui — PSUI 全控件演示面板 (静态骨架, CustomUI 后端)
+#
+# 语法速记 (详见文档 06-psui/02-panel-file.md):
+#   · 每行一个元素或一条属性; 子内容缩进一级; # 是注释 (引号外)
+#   · 元素行: `type [id]: [行内属性 k: v, ...]`; 带 id 才能被脚本 ui.set_text 等定位
+#   · 本面板不含 slot/grid_slot → 走 CustomUI 后端 (控件窗);
+#     slot/grid_slot/spacer/rich_label 是图元树后端专属, 见 ex28_psui_slots
+#
+# image 的图源写 src: "pack:test_image" → 读本包 icons/test_image.png
+#   (解析器只认 src/size 两个属性; png 缺失 = 警告跳过该元素, 不炸面板)
+
+window showcase:
+  title: "PSUI 全控件演示 · F8"
+  size: 520x560
+  draggable: true
+  close_on_escape: true
+
+  # ---- 文本与图片 ----
+  label lbl_title:
+    text: "—— PSUI 静态面板: 全控件一览 ——"
+  label lbl_sub:
+    text: "操作任意控件 → 看控制台日志 + 下面这行反馈"
+  label fb_lbl:
+    text: "反馈: (尚未操作)"
+
+  # image: 图源三种写法 game:/mod:/pack: (文档 03-elements.md), 尺寸是像素
+  image img_demo:
+    src: "pack:test_image"
+    size: 64x64
+
+  # ---- 进度条 ----
+  progress pg_demo:
+    value: 0.35
+    label: "进度条 (progress) — 拖动下面的滑条看它变"
+
+  # ---- 交互四件套 ----
+  toggle tg_demo:
+    label: "开关 (toggle)"
+    checked: false
+    on_change: on_toggle
+  slider sl_demo:
+    label: "滑条 (slider, 0-100 整数吸附)"
+    min: 0
+    max: 100
+    step: 1
+    value: 35
+    on_change: on_slider
+  dropdown dd_demo:
+    label: "下拉框 (dropdown)"
+    options: ["甲", "乙", "丙"]
+    index: 0
+    on_change: on_dropdown
+  input inp_demo:
+    label: "输入框 (input) — 每次键入即触发 on_change"
+    placeholder: "输入点什么…"
+    on_change: on_input
+
+  # ---- 按钮行 (row = 水平容器) ----
+  row:
+    spacing: 8
+    button btn_a:
+      text: "按钮A"
+      tooltip: "我是 tooltip 悬停提示 (仅 CustomUI 后端)"
+      on_click: on_btn_a
+    button btn_b:
+      text: "按钮B"
+      on_click: on_btn_b
+    button btn_close:
+      text: "关闭"
+      on_click: on_btn_close
+
+  # ---- 网格容器 (grid: columns 列, cell 单元格尺寸) ----
+  grid:
+    columns: 3
+    cell: 120x36
+    spacing: 6
+    label:
+      text: "网格 (1,1)"
+    label:
+      text: "网格 (2,1)"
+    label:
+      text: "网格 (3,1)"
+    label:
+      text: "网格 (1,2)"
+    label:
+      text: "网格 (2,2)"
+    label:
+      text: "网格 (3,2)"
+
+  # ---- 滚动区 (scroll: 固定高度, 内容超出可滚) ----
+  label:
+    text: "↓ 滚动区 (scroll, 高 120) — 8 行内容超出高度即可滚动"
+  scroll scr_demo:
+    height: 120
+    label:
+      text: "滚动区第 1 行"
+    label:
+      text: "滚动区第 2 行"
+    label:
+      text: "滚动区第 3 行"
+    label:
+      text: "滚动区第 4 行"
+    label:
+      text: "滚动区第 5 行"
+    label:
+      text: "滚动区第 6 行"
+    label:
+      text: "滚动区第 7 行"
+    label:
+      text: "滚动区第 8 行"

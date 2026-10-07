@@ -1,0 +1,8 @@
+{
+  "id": "ex15_pss_funcs",
+  "name": "示例 15 · 函数",
+  "version": "1.0.0",
+  "authors": ["psapi"],
+  "gameVersions": ["playtest"],
+  "//": "教学示例 ex15: PSScript 函数。演示: 默认参数/忘写 return 返回 null/守卫子句/函数是值/函数当参数/数组模拟多返回值/递归(深度上限 64, 步数预算 10 万)。对应文档 04-psscript/07-functions.md。"
+}

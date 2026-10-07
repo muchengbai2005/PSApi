@@ -1,0 +1,40 @@
+{
+  "//": "4 条品质覆盖两种模式: ① tag 模式基本款 (溢价 1.5); ② feature 模式挂原版 CATEGORY_CHEMICAL_PURITY 类别 (并入原版表, 标签打印机可改); ③ feature 自建 CATEGORY_EX10_STAR + categoryDisplay 中文标题 (打印机出现独立分组); ④ tag 模式低 priceMul (0.5) 做对比。tier 用于 inherit_max_input 品质继承比大小。校验: 缺 id/缺 display/tag 模式缺 tag 都会被跳过记 error。",
+  "qualities": [
+    {
+      "//": "① tag 模式基本款: TagSystem 打标签, 报价 ×1.5, tooltip 注入品质行",
+      "id": "ex10_qualities:q_fine",
+      "tag": "quality_ex10_fine",
+      "display": "精良",
+      "priceMul": 1.5,
+      "tier": 1
+    },
+    {
+      "//": "② feature 模式 × 原版类别: 走原版 ItemFeature 管线, 并入'化学品纯度'表, 打印机下拉可改",
+      "id": "ex10_qualities:q_lab",
+      "mode": "feature",
+      "category": "CATEGORY_CHEMICAL_PURITY",
+      "display": "实验室纯品",
+      "priceMul": 3.0,
+      "tier": 3
+    },
+    {
+      "//": "③ feature 模式 × 自建类别: 注册全新表, 打印机出现独立的'星辉品级'分组",
+      "id": "ex10_qualities:q_star",
+      "mode": "feature",
+      "category": "CATEGORY_EX10_STAR",
+      "categoryDisplay": "星辉品级",
+      "display": "星辉灌注",
+      "priceMul": 5.0,
+      "tier": 5
+    },
+    {
+      "//": "④ tag 模式低 priceMul: 半价瑕疵品, 与 ① 对照看系数方向",
+      "id": "ex10_qualities:q_bargain",
+      "tag": "quality_ex10_bargain",
+      "display": "瑕疵品",
+      "priceMul": 0.5,
+      "tier": 0
+    }
+  ]
+}

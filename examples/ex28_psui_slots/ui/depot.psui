@@ -1,0 +1,80 @@
+# depot.psui — 槽位面板 (图元树后端)
+#
+# 后端判定只有一条 (文档 06-psui/07-slots.md): 面板元素树任意位置出现
+# slot / grid_slot → 整面板切图元树后端 (与原生机器界面同源), 没有"混合后端"。
+#
+# 图元后端支持边界: label / button / slot / grid_slot / row / column / grid /
+#   spacer / image ✔ ; progress / toggle / slider / input / dropdown / scroll ✖
+#   (警告跳过, 含子树) — 这正是 ex25 面板不含槽位、把 spacer/rich_label
+#   留给本示例演示的原因。
+#
+# 槽位三件套 (强烈建议每个槽都写全):
+#   whitelist  排他白名单: 只接受名单内物品; 不写 → 警告"放入判定不可靠"
+#   size       格数 (宽x高), 不是像素
+#   on_change  槽内容变化回调 (逐帧轮询差分: 拖入/取出/脚本消耗都算变化)
+#
+# 本面板四个演示点:
+#   · slot s1        白名单 + strict_footprint: true (默认 slot 不验物品尺寸, 写了才验)
+#   · slot s2        白名单 + lock_interactions: true (锁死槽内物品双击/右键开启等交互)
+#   · grid_slot g1   白名单 + shape 洞 (行优先 "01" 串, 0=可放 1=永久洞)
+#   · rich_label / spacer   图元后端专属控件 (CustomUI 面板里会被警告跳过)
+#
+# 关窗行为: 本面板未写 persistent → 关窗时槽内物品自动退回玩家后仓 (防丢)。
+#   想做"面板即容器"要加 persistent: true 并自己管物品; 机器面板天然持久 (见 ex29)。
+
+window depot:
+  title: "槽位仓库 · F10"
+  size: 470x520
+  draggable: true
+  close_on_escape: true
+
+  # rich_label (v1.19.2): 图元后端专属 — 可带 color 的标签 (普通 label 也认 color)
+  rich_label rl_head:
+    text: "—— 槽位面板: 白名单 / 尺寸校验 / 锁交互 / shape 洞 ——"
+    color: "orange"
+
+  label lbl_hint:
+    text: "先 F12 发放两种演示物品, 再拖进下面的槽做实验; 下方按钮让脚本汇报槽内容"
+    font_size: 0.7
+
+  label:
+    text: "s1 齿轮槽 (strict_footprint)   |   s2 核心槽 (lock_interactions)"
+    font_size: 0.7
+  row:
+    spacing: 16
+    slot s1:
+      whitelist: ["ex28_psui_slots:demo_gear"]
+      size: 2x2
+      strict_footprint: true
+      on_change: on_s1_change
+    slot s2:
+      whitelist: ["ex28_psui_slots:demo_core"]
+      size: 2x2
+      lock_interactions: true
+      on_change: on_s2_change
+
+  label:
+    text: "grid_slot g1: 4x3 自由摆放区 — 第一行第 2 格被 shape 挖成永久洞 (物品压不上去)"
+    font_size: 0.7
+  grid_slot g1:
+    whitelist: ["ex28_psui_slots:demo_gear", "ex28_psui_slots:demo_core"]
+    size: 4x3
+    shape: "010000000000"
+    on_change: on_g1_change
+
+  # spacer (v1.4.1): 图元后端专属空单元 — 按像素预留空隙 (对角线/错落布局用)
+  spacer:
+    size: 6x14
+
+  row:
+    spacing: 8
+    button read_btn:
+      text: "读取全部槽位"
+      on_click: on_read_slots
+    button btn_close:
+      text: "关闭"
+      on_click: on_btn_close
+
+  # 状态行: 脚本 ui.set_text 随时改写 (图元后端的 label 同样支持 set_text)
+  label lbl_status:
+    text: "状态: (尚未操作)"

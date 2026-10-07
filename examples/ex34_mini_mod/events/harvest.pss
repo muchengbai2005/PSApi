@@ -1,0 +1,58 @@
+# harvest.pss — ex34 收成记账 + 晨报面板 (迷你温室数据流的终点)
+#
+# 知识点:
+#   1. trade_completed.amount 是本笔成交金额 (不是件数!) — 累计进账直接加;
+#      "收成笔数"按每笔成交 +1 计 (事件不带件数字段, 想按件记得自己另存口径)。
+#   2. ui.open 幂等 (已打开只置顶), 且须在对局内 — day_wake 是对局内事件,
+#      早晨自动弹晨报; 另顶层 bind_key F7 随时开关 (两条打开路径同一面板)。
+#   3. ui.build_* 只能在 on_build 构建期调 (红线) — 数据变了走 ui.rebuild():
+#      关闭 → 记忆窗口位置 → on_build 重跑 → 原位重开。
+#   4. state 是数据流的终点, 面板只是 state 的纯显示 — 换存档槽数字自动跟着走。
+#
+# 数据流 (README 有全图):
+#   seed_pouch → mini_greenhouse(每晚 1 批) → sun_melon → 阿禾收购
+#     → trade_completed{direction="sell", amount=金额} → state → greenboard
+
+const PACK = "ex34_mini_mod"
+
+# ---- 晨报面板构建 (on_build: ui.open/ui.rebuild 的构建期被框架调用) ----
+
+func ex34_board_build():
+    var sold = state.get("melon_sold", 0)
+    var coins = state.get("melon_coins", 0)
+    ui.build_begin("body")
+    if sold == 0:
+        ui.build_label("(还没有成交记录)")
+        ui.build_label("F12 领「迷你温室」和「日光瓜种子袋」, 左格放种子, 睡一觉出瓜, 等阿禾上门")
+    else:
+        ui.build_label("累计卖出日光瓜: {sold} 笔 (每笔成交计 1)")
+        ui.build_label("累计进账: {coins}")
+    ui.build_label("果贩阿禾每隔 2 天上门只收日光瓜 (buy 池另有 6% 加权补抽)")
+    ui.build_end()
+
+# 顶层注册: F7 开关状态牌 (与每天早晨自动弹出的晨报是同一块面板)
+ui.bind_key("F7", "ex34_mini_mod:greenboard")
+
+# ---- 每日晨报: day_wake (对局内) log 一份 + 弹面板 ----
+
+on day_wake():
+    var sold = state.get("melon_sold", 0)
+    var coins = state.get("melon_coins", 0)
+    log.info("[{PACK}] 温室晨报: 累计卖出 {sold} 笔 / 累计进账 {coins}")
+    ui.open("greenboard")
+
+# ---- 每笔成交: 只记日光瓜的卖出 (direction="sell" = 玩家卖出, amount = 金额) ----
+
+on trade_completed():
+    if event.direction != "sell" or event.item_id != "ex34_mini_mod:sun_melon":
+        return
+    var sold = state.get("melon_sold", 0) + 1        # 笔数: 每笔成交 +1 (amount 是金额不是件数)
+    state.set("melon_sold", sold)
+    var coins = state.get("melon_coins", 0) + event.amount
+    state.set("melon_coins", coins)
+    log.info("[{PACK}] {event.npc_name} 收走日光瓜, 本笔 +{event.amount} → 累计 {sold} 笔 / {coins}")
+    if ui.is_open("greenboard"):
+        ui.rebuild("greenboard")                     # 面板开着就原地刷新 (on_build 重跑读新 state)
+
+on game_loaded():
+    log.info("[{PACK}] 迷你温室就绪: F12 领种子和温室, F7 看状态牌, 每天早晨自动弹晨报")
