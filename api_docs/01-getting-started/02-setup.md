@@ -20,11 +20,11 @@
 应出现类似下面的行：
 
 ```text
-[PSApi] [psapi] PSApi v2.0.0 loaded (统一宿主: items+events)
+[PSApi] [psapi] PSApi v2.0.8 loaded (统一宿主: items+events)
 [PSApi] [psapi] rescan(init): 3 pack(s), 36 item def(s), 5 quality(ies), errors=0
-[PSApi] [psapi] [items] 模块初始化完成 (PSApi v2.0.0). packs=3 items=36 qualities=5
+[PSApi] [psapi] [items] 模块初始化完成 (PSApi v2.0.8). packs=3 items=36 qualities=5
 [PSApi] [psapi] rescan(init): 3 pack(s), 20 pss file(s), 27 handler(s), 2 scene(s), 0 compile error(s)
-[PSApi] [psapi] [events] 模块初始化完成 (PSApi v2.0.0). packs=3
+[PSApi] [psapi] [events] 模块初始化完成 (PSApi v2.0.8). packs=3
 [PSApi] [psapi] event bus selftest hits=12 (expect 12) sceneSubs=1
 ```
 

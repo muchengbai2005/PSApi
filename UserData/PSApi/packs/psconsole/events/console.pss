@@ -5,6 +5,10 @@
 # 避免 PsRuntimeError 穿出回调 (那样只会进日志, 指令台无回显)。
 # v0.1.1: give 支持 {} 块语法 (引号串可含空格, 逗号分隔 k=v, 值可嵌套 {} 字典);
 #         分词器整体重写 (引号/花括号感知的 tokenize); 派系白名单更正为框架合法值。
+# v0.2.0 (2026-10-08, 需 PSApi ≥ v2.0.2): 指令大扩展 20 条 (提案 _docs/开发向/psconsole指令扩展提案.md 全量落地) —
+#   犯罪系: crime list/add/clear/clearall/evidence (clear/clearall/evidence 走新 builtin crime.clear/clear_all/evidence);
+#   gunworks 系: raid maps/unlock/lock/cd/status + gw parts/repair/tank (跨包存档走新 builtin state.pget/pset/phas/pdel);
+#   原版通用系: power/restock/showcase/attract/goto/bag clear (新 builtin items.inventory)/npc rep。
 
 ui.bind_key("Slash", "psconsole:console")
 
@@ -13,6 +17,48 @@ var LOG_KEEP = 59          # 超出 60 行时保留的最新行数
 var FACTIONS = ["sec", "rev", "bm", "cartel", "ul", "ll"]
 var Q = "\""               # 引号字符常量 (字符串比较用)
 var g_err = ""             # 解析错误暂存 (pss 无异常, 用全局标记替代)
+
+# ---- v0.2.0 数据表 (与各自来源同步维护) ----
+
+# 原版罪名 id (global-metadata.dat 字面量实证, 大写; 输入容错小写转大写)
+var CRIME_IDS = ["WEAPON_TRAFFICKING", "DRUG_TRAFFICKING", "CONTRABAND_TRAFFICKING", "CARD_TRAFFICKING",
+    "FENCING", "BRIBERY", "FRAUD", "ENDANGERMENT"]
+
+# gunworks 10 图 (与 _mods/gunworks/events/map_unlock.pss RAID_SCENES 同步; 控制台只取 id/name/star)
+var RAID_MAPS = [
+    {id = "gunworks:midnight_site", name = "午夜工地", star = 1},
+    {id = "gunworks:slum_ruins", name = "贫民区废墟", star = 1},
+    {id = "gunworks:abandoned_hospital", name = "废弃医院", star = 2},
+    {id = "gunworks:silent_farm", name = "寂静农庄", star = 2},
+    {id = "gunworks:uptown_wilds", name = "上层区郊野", star = 2},
+    {id = "gunworks:abandoned_mine", name = "废弃矿区", star = 3},
+    {id = "gunworks:fallen_mart", name = "沦陷超市", star = 3},
+    {id = "gunworks:raid_depot", name = "废弃军械库", star = 4},
+    {id = "gunworks:brothel", name = "妓院", star = 4},
+    {id = "gunworks:army_logistics", name = "军营后勤驻地", star = 5},
+]
+
+# gunworks 打印材料 7 种 (fuel 不可打印) × 部件 9 种 (printer/01_data.pss; 材质走 mat NBT)
+var GW_MATS = ["iron", "copper", "aluminum", "titanium", "gold", "plastic", "meat"]
+var GW_MAT_CN = {iron = "铁", copper = "铜", aluminum = "铝", titanium = "钛", gold = "金", plastic = "塑料", meat = "肉"}
+var GW_PARTS = ["gunworks:part_receiver_s", "gunworks:part_receiver_l",
+    "gunworks:part_barrel_s", "gunworks:part_barrel_m", "gunworks:part_barrel_l",
+    "gunworks:part_grip_s", "gunworks:part_grip_l", "gunworks:part_bolt", "gunworks:part_mag"]
+var GW_KIT_VALUES = {iron = 25, copper = 40, aluminum = 40, gold = 150, titanium = 200, plastic = 10, meat = 10}
+
+# gunworks 成品枪 6 id (bench/01_data.pss BENCH_WEAPON_OUTPUT) — 耐久三键 ps_dur/ps_dur_max/ps_wear
+var GW_GUNS = ["gunworks:gw_pistol", "gunworks:gw_autopistol", "gunworks:gw_smg",
+    "gunworks:gw_rifle", "gunworks:gw_bolt_sniper", "gunworks:gw_semi_sniper"]
+
+# gunworks 流体 8 种 (00_fluids.pss; 储罐 NBT: fluid/amount/cap)
+var GW_FLUIDS = ["iron", "copper", "aluminum", "titanium", "gold", "plastic", "meat", "fuel"]
+
+# 五势力数值 (power.get/add; StoreOperationManager 字段)
+var POWERS = ["rev", "sec", "bm", "lower_unrest", "upper_friend"]
+
+# 原版派系常量 → rep 短名 (npc rep 用; 与 BuiltinsGame FactionMap 反向)
+var FACTION_TO_REP = {FACTION_SECURITY = "sec", FACTION_REVOLUTION = "rev", FACTION_BLACK_MARKET = "bm",
+    FACTION_CARTEL = "cartel", FACTION_UPPER_LEVEL = "ul", FACTION_LOWER_LEVEL = "ll"}
 
 # ============ 日志与重绘 ============
 
@@ -90,6 +136,24 @@ func dispatch(parts):
         cmd_item(parts)
     elif cmd == "state":
         cmd_state(parts)
+    elif cmd == "crime":
+        cmd_crime(parts)
+    elif cmd == "raid":
+        cmd_raid(parts)
+    elif cmd == "gw":
+        cmd_gw(parts)
+    elif cmd == "power":
+        cmd_power(parts)
+    elif cmd == "restock":
+        cmd_restock()
+    elif cmd == "showcase":
+        cmd_showcase(parts)
+    elif cmd == "attract":
+        cmd_attract()
+    elif cmd == "goto":
+        cmd_goto(parts)
+    elif cmd == "bag":
+        cmd_bag(parts)
     elif cmd == "pack":
         cmd_pack(parts)
     elif cmd == "save":
@@ -192,6 +256,23 @@ func unquote(s):
     if n >= 2 and s[0] == Q and s[n - 1] == Q:
         return substr(s, 1, n - 1)
     return s
+
+# 小写转大写 (crime id 容错用; pss 无内建 upper)
+var LOWERS = "abcdefghijklmnopqrstuvwxyz"
+var UPPERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+func to_upper(s):
+    var r = ""
+    for i in range(0, len(s)):
+        var c = s[i]
+        var hit = false
+        for j in range(0, 26):
+            if c == LOWERS[j]:
+                r = r + UPPERS[j]
+                hit = true
+                break
+        if not hit:
+            r = r + c
+    return r
 
 # 按顶层逗号切分 (中英文逗号皆可); 引号与嵌套花括号内的逗号不切
 func split_top(s):
@@ -384,22 +465,20 @@ func need_game():
 # ============ 指令实现 ============
 
 func cmd_help():
-    log_line("—— 指令清单 (前导 / 可选) ——")
-    log_line("help — 本帮助")
-    log_line("give <id> [count] [k=v ...] [{{k=v,...}}] — 发物品")
-    log_line("  内置键: to=/name=/desc=/flavor=/value=/uses=/quality=; 其余键(可嵌套{{}})进自定义数据")
-    log_line("  to=inventory(默认,背包) | counter_out(门口柜台) | counter_in(店内柜台)")
-    log_line("  例: give ex05_item_basic:quality_ingot 1 {{to=counter_in,name=\"镇店之宝\",value=888}}")
-    log_line("cash / cash add N / cash set N — 查看/加钱/设定 (set=补差额)")
-    log_line("rep [faction] / rep <faction> add N — 派系声望 (" + join(FACTIONS, "/") + ")")
-    log_line("day — 天数/相对天数/星期")
-    log_line("npc list | npc queue | npc spawn <id> | npc leave — 注册表/今日队列/挂起生成/请离当前客户")
-    log_line("event <id> — 立即触发商店事件 (已注册 id 或原版事件 id)")
-    log_line("item <id> — 名称/单价/是否持有")
-    log_line("state get <k> / state set <k> <v> — 本包存档 KV")
-    log_line("pack list — 已加载内容包清单 (id/版本/folder|dll)")
-    log_line("save — 立即存档 (等同晚上睡觉存档, 模组状态同步落盘)")
-    log_line("echo <text> / clear — 回显 / 清屏")
+    log_line("—— 指令清单 (前导 / 可选; 分组) ——")
+    log_line("[基础] help / echo <text> / clear / save / day / pack list")
+    log_line("[物品] give <id> [count] [k=v ...] [{{k=v,...}}] — 发物品 (内置键 to=/name=/desc=/flavor=/value=/uses=/quality=)")
+    log_line("  to=inventory(默认) | counter_out(门口柜台) | counter_in(店内柜台); item <id> 查物品")
+    log_line("[玩家] cash [add N|set N] / rep [faction] [add N] / power [which] [add N]")
+    log_line("[商店] npc list|queue|spawn <id>|leave|rep / event <id> / showcase [clear yes] / attract / restock")
+    log_line("[犯罪] crime list / crime add <ID> <n> [\"显示名\"] / crime clear <ID> / crime clearall / crime evidence [set N]")
+    log_line("  罪名: " + join(CRIME_IDS, "/") + " (小写自动转大写)")
+    log_line("[gunworks] raid maps / raid unlock all|<场景id> / raid lock <场景id> / raid cd [clear|<场景id> <天数>] / raid status [heal]")
+    log_line("  gw parts <材料> / gw repair [break] / gw tank <流体> [mB]")
+    log_line("  材料: " + join(GW_MATS, "/") + "; 流体加 fuel")
+    log_line("[移动] goto [场景id|back] (无参=列场景)")
+    log_line("[危险] bag clear yes / showcase clear yes — 需 yes 二次确认")
+    log_line("[存档] state get <k> / state set <k> <v> (本包 KV)")
 
 func cmd_give(parts):
     if len(parts) < 2:
@@ -523,7 +602,7 @@ func cmd_day():
 
 func cmd_npc(parts):
     if len(parts) < 2:
-        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave")
+        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave | npc rep")
         return
     var sub = parts[1]
     if sub == "list":
@@ -569,8 +648,21 @@ func cmd_npc(parts):
                 log_line("已请离当前客户")
         else:
             log_line("(当前店内无客户可请离)")
+    elif sub == "rep":
+        if not need_game():
+            return
+        var cc = shop.current_client()
+        if cc == null:
+            log_line("(当前店内无客户)")
+            return
+        var rs = "(非六大派系, 无声望数值)"
+        if has(FACTION_TO_REP, cc.faction):
+            var rk = FACTION_TO_REP[cc.faction]
+            rs = rk + " " + str(rep.get(rk))
+        log_line(cc.name + " [" + cc.intent + "] 派系 " + cc.faction + " · 声望 " + rs)
+        log_line("(原版无单 NPC 好感 — 只有派系级声望 rep 与势力值 power upper_friend)")
     else:
-        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave")
+        log_line("【用法】npc list | npc queue | npc spawn <id> | npc leave | npc rep")
 
 # event <id> — 立即触发商店事件 (store_event.trigger, v1.16.1)
 func cmd_event(parts):
@@ -657,3 +749,403 @@ func cmd_echo(parts):
     for i in range(1, len(parts)):
         push(rest, unquote(parts[i]))
     log_line(join(rest, " "))
+
+# ============ v0.2.0 扩展指令 (20 条; 需 PSApi ≥ v2.0.2) ============
+
+# ---- 犯罪系 (crime) ----
+
+func cmd_crime(parts):
+    if len(parts) < 2:
+        log_line("【用法】crime list | crime add <ID> <n> [\"显示名\"] | crime clear <ID> | crime clearall | crime evidence [set N]")
+        return
+    var sub = parts[1]
+    if sub == "list":
+        if not need_game():
+            return
+        var r = crime.list()
+        if len(r.crimes) == 0:
+            log_line("治安档案干净 (无犯罪记录)")
+        else:
+            for c in r.crimes:
+                log_line("  " + c.id + " ×" + str(c.amount) + " (累计 " + str(c.total) + ")")
+        log_line("证据等级: " + str(r.evidence) + " (" + r.evidence_display + ") · 总罪值 " + str(r.total_value) + " · 罚款 " + str(r.fine))
+        if r.biggest != null:
+            log_line("最重罪: " + str(r.biggest) + " · 预估: " + str(r.sentence))
+    elif sub == "add":
+        if len(parts) < 4 or not is_num(parts[3]):
+            log_line("【用法】crime add <ID> <n> [\"显示名\"] — 罪名小写自动转大写")
+            return
+        if not need_game():
+            return
+        var cid = to_upper(unquote(parts[2]))
+        var nm = null
+        if len(parts) >= 5:
+            nm = unquote(parts[4])
+        if not has(CRIME_IDS, cid) and nm == null:
+            log_line("【错误】未知罪名 '" + cid + "' (可用: " + join(CRIME_IDS, "/") + "; 表外罪名须带显示名)")
+            return
+        var amt = int(parts[3])
+        if nm == null:
+            crime.commit(cid, amt)
+            log_line("已记罪: " + cid + " ×" + str(amt) + " — crime list 查看")
+        else:
+            crime.commit(cid, amt, nm)
+            log_line("已记罪: " + cid + " ×" + str(amt) + " (显示名: " + nm + ")")
+    elif sub == "clear":
+        if len(parts) < 3:
+            log_line("【用法】crime clear <ID>")
+            return
+        if not need_game():
+            return
+        var cid2 = to_upper(unquote(parts[2]))
+        var n = crime.clear(cid2)
+        if n > 0:
+            log_line("已清除 " + cid2 + " 共 " + str(n) + " 条 (三表同删)")
+        else:
+            log_line("档案里没有 " + cid2 + " (crime list 核对)")
+    elif sub == "clearall":
+        if not need_game():
+            return
+        crime.clear_all()
+        log_line("治安档案已清空 (原版 ResetCrime)")
+    elif sub == "evidence":
+        if not need_game():
+            return
+        if len(parts) == 2:
+            log_line("证据等级: " + str(crime.evidence()) + " /100")
+        elif len(parts) == 4 and parts[2] == "set" and is_num(parts[3]):
+            log_line("证据等级: " + str(crime.evidence(int(parts[3]))) + " /100 (写值钳 0-100)")
+        else:
+            log_line("【用法】crime evidence [set N] — N 钳 0..100")
+    else:
+        log_line("【用法】crime list | crime add <ID> <n> [\"显示名\"] | crime clear <ID> | crime clearall | crime evidence [set N]")
+
+# ---- gunworks 系 (raid/gw; 跨包存档走 state.pget/pset) ----
+
+func raid_map_info(sid):
+    for m in RAID_MAPS:
+        if m.id == sid:
+            return m
+    return null
+
+func raid_unlocks_read():
+    var un = state.pget("gunworks", "ps_raid_unlocks", null)
+    if type(un) != "array":
+        return []
+    return un
+
+func raid_cd_read():
+    var cd = state.pget("gunworks", "ps_raid_cd", null)
+    if type(cd) != "dict":
+        return {}
+    return cd
+
+# dict 删除键 = 重建 (pss 无 del d[k]; 防留 null 值坑坏 gunworks 遍历)
+func dict_without(d, drop):
+    var r = {}
+    for k in keys(d):
+        if k != drop:
+            r[k] = d[k]
+    return r
+
+func cmd_raid(parts):
+    if len(parts) < 2:
+        log_line("【用法】raid maps | raid unlock all|<场景id> | raid lock <场景id> | raid cd [clear|<场景id> <天数>] | raid status [heal]")
+        return
+    var sub = parts[1]
+    if sub == "maps":
+        if not need_game():
+            return
+        var un = raid_unlocks_read()
+        var cd = raid_cd_read()
+        for m in RAID_MAPS:
+            var st = "[锁]"
+            if m.id in un:
+                st = "[开]"
+            var extra = ""
+            if has(cd, m.id):
+                var e = cd[m.id]
+                var ed = 0
+                var eu = 0
+                if has(e, "d"):
+                    ed = e.d
+                if has(e, "u"):
+                    eu = e.u
+                if eu > 0:
+                    extra = " · 动荡 " + str(ed) + " 天"
+                else:
+                    extra = " · 冷却 " + str(ed) + " 天"
+            log_line(st + " " + m.name + " " + str(m.star) + "★ (" + m.id + ")" + extra)
+    elif sub == "unlock":
+        if len(parts) < 3:
+            log_line("【用法】raid unlock all|<场景id>")
+            return
+        if not need_game():
+            return
+        var target = unquote(parts[2])
+        var un2 = raid_unlocks_read()
+        if target == "all":
+            for m2 in RAID_MAPS:
+                if not (m2.id in un2):
+                    push(un2, m2.id)
+            state.pset("gunworks", "ps_raid_unlocks", un2)
+            log_line("已解锁全部 10 图 (ps_raid_unlocks 共 " + str(len(un2)) + " 条, 门禁下帧重读生效)")
+        else:
+            var info = raid_map_info(target)
+            if info == null:
+                log_line("【错误】未知场景 '" + target + "' (raid maps 查看 10 图 id)")
+                return
+            if info.id in un2:
+                log_line(info.name + " 本就已解锁")
+                return
+            push(un2, info.id)
+            state.pset("gunworks", "ps_raid_unlocks", un2)
+            log_line("已解锁: " + info.name + " (" + info.id + ") — 区域选择处立即可进")
+    elif sub == "lock":
+        if len(parts) < 3:
+            log_line("【用法】raid lock <场景id>")
+            return
+        if not need_game():
+            return
+        var info2 = raid_map_info(unquote(parts[2]))
+        if info2 == null:
+            log_line("【错误】未知场景 '" + unquote(parts[2]) + "' (raid maps 查看 10 图 id)")
+            return
+        var un3 = raid_unlocks_read()
+        if not (info2.id in un3):
+            log_line(info2.name + " 本就是锁定状态")
+            return
+        var nu = []
+        for x in un3:
+            if x != info2.id:
+                push(nu, x)
+        state.pset("gunworks", "ps_raid_unlocks", nu)
+        log_line("已重新锁定: " + info2.name + " (剩 " + str(len(nu)) + " 图解锁)")
+    elif sub == "cd":
+        if not need_game():
+            return
+        if len(parts) == 2:
+            var cd2 = raid_cd_read()
+            var ks = keys(cd2)
+            if len(ks) == 0:
+                log_line("(无冷却/动荡中的地图)")
+            else:
+                for k in ks:
+                    var e2 = cd2[k]
+                    var tag = "冷却"
+                    if has(e2, "u") and e2.u > 0:
+                        tag = "动荡"
+                    var dd = 0
+                    if has(e2, "d"):
+                        dd = e2.d
+                    log_line("  " + k + ": " + tag + " " + str(dd) + " 天")
+        elif len(parts) == 3 and parts[2] == "clear":
+            state.pset("gunworks", "ps_raid_cd", {})
+            log_line("已清空全部地图冷却/动荡")
+        elif len(parts) == 4 and is_num(parts[3]):
+            var sid = unquote(parts[2])
+            var info3 = raid_map_info(sid)
+            if info3 == null:
+                log_line("【错误】未知场景 '" + sid + "' (raid maps 查看 10 图 id)")
+                return
+            var days = int(parts[3])
+            if days < 0 or days > 30:
+                log_line("【错误】天数须在 0..30 (0=清除该图冷却)")
+                return
+            var cd3 = raid_cd_read()
+            if days == 0:
+                state.pset("gunworks", "ps_raid_cd", dict_without(cd3, sid))
+                log_line("已清除 " + info3.name + " 的冷却/动荡")
+            else:
+                cd3[sid] = {d = days, u = 0}
+                state.pset("gunworks", "ps_raid_cd", cd3)
+                log_line("已设 " + info3.name + " 冷却 " + str(days) + " 天 (门禁显示 冷却中)")
+        else:
+            log_line("【用法】raid cd [clear|<场景id> <天数>] — 天数 0=清除, clear=全清")
+    elif sub == "status":
+        if not need_game():
+            return
+        if len(parts) == 2:
+            var s = state.pget("gunworks", "ps_raid_status", null)
+            if s == null:
+                log_line("人物状态: 满 (无 raid 损伤记录, hp 100/100 · 体力 100/100)")
+            else:
+                log_line("人物状态: hp " + str(s.hp) + "/100 · 体力 " + str(s.stamina) + "/100")
+        elif len(parts) == 3 and parts[2] == "heal":
+            state.pset("gunworks", "ps_raid_status", {hp = 100, stamina = 100})
+            log_line("已回满: hp 100/100 · 体力 100/100")
+        else:
+            log_line("【用法】raid status [heal]")
+    else:
+        log_line("【用法】raid maps | raid unlock all|<场景id> | raid lock <场景id> | raid cd [clear|<场景id> <天数>] | raid status [heal]")
+
+func cmd_gw(parts):
+    if len(parts) < 2:
+        log_line("【用法】gw parts <材料> | gw repair [break] | gw tank <流体> [mB]")
+        return
+    var sub = parts[1]
+    if sub == "parts":
+        if len(parts) < 3 or not has(GW_MATS, parts[2]):
+            log_line("【用法】gw parts <材料> (" + join(GW_MATS, "/") + ")")
+            return
+        if not need_game():
+            return
+        var m = parts[2]
+        var ok = 0
+        for pid in GW_PARTS:
+            if items.give(pid, 1, {data = {mat = m}}):
+                ok = ok + 1
+        if items.give("gunworks:repair_kit", 1, {data = {mat = m}, value = GW_KIT_VALUES[m]}):
+            ok = ok + 1
+        log_line("已发放 " + GW_MAT_CN[m] + "制套件 " + str(ok) + "/10 (9 部件+维修件, 全带 mat NBT, 落背包)")
+    elif sub == "repair":
+        if not need_game():
+            return
+        var breaking = len(parts) >= 3 and parts[2] == "break"
+        var fixed = 0
+        var seen = 0
+        for gid in GW_GUNS:
+            for h in items.find_all(gid):
+                var mx = h.get_data("ps_dur_max", 0)
+                if mx <= 0:
+                    continue
+                seen = seen + 1
+                if breaking:
+                    h.set_data("ps_dur", 1)
+                else:
+                    h.set_data("ps_dur", mx)
+                    h.set_data("ps_wear", 0)
+                    h.set_data("ps_broken", null)
+                fixed = fixed + 1
+        if breaking:
+            log_line("已打残 " + str(fixed) + " 把成品枪 (ps_dur=1; 背包+后仓扫到 " + str(seen) + " 把带耐久枪)")
+        else:
+            log_line("已修满 " + str(fixed) + " 把 (ps_dur=max·磨损清零·破损标记已除; 扫到 " + str(seen) + " 把)")
+    elif sub == "tank":
+        if len(parts) < 3 or not has(GW_FLUIDS, parts[2]):
+            log_line("【用法】gw tank <流体> [mB=100] (" + join(GW_FLUIDS, "/") + ")")
+            return
+        var amt = 100
+        if len(parts) >= 4:
+            if not is_num(parts[3]):
+                log_line("【用法】gw tank <流体> [mB=100] — mB 须为整数")
+                return
+            amt = int(parts[3])
+        if amt < 1 or amt > 100:
+            log_line("【错误】mB 须在 1..100 (单罐容量 100)")
+            return
+        if not need_game():
+            return
+        if items.give("gunworks:fluid_tank", 1, {data = {fluid = parts[2], amount = amt, cap = 100}}):
+            log_line("已发放储罐: " + parts[2] + " " + str(amt) + "/100 mB → 背包")
+        else:
+            log_line("【错误】发放失败 (不在对局?)")
+    else:
+        log_line("【用法】gw parts <材料> | gw repair [break] | gw tank <流体> [mB]")
+
+# ---- 原版通用系 ----
+
+func cmd_power(parts):
+    if len(parts) == 1:
+        if not need_game():
+            return
+        for k in POWERS:
+            log_line(k + ": " + str(power.get(k)))
+        return
+    var k2 = parts[1]
+    if not has(POWERS, k2):
+        log_line("【错误】未知势力 '" + k2 + "' (可用: " + join(POWERS, "/") + ")")
+        return
+    if not need_game():
+        return
+    if len(parts) == 2:
+        log_line(k2 + ": " + str(power.get(k2)))
+        return
+    if parts[2] == "add" and len(parts) >= 4 and is_num(parts[3]):
+        power.add(k2, int(parts[3]))
+        log_line(k2 + ": " + str(power.get(k2)))
+    else:
+        log_line("【用法】power [which] [add N] — 五势力数值 (" + join(POWERS, "/") + ")")
+
+func cmd_restock():
+    if not need_game():
+        return
+    log_line("已强刷当前商人上架表 (注入 " + str(inject.restock_current()) + " 件)")
+
+func cmd_showcase(parts):
+    if len(parts) >= 2 and parts[1] == "clear":
+        if len(parts) >= 3 and parts[2] == "yes":
+            if not need_game():
+                return
+            var n2 = 0
+            for h2 in shop.showcase_items():
+                if items.consume(h2):
+                    n2 = n2 + 1
+            log_line("已清空展示柜 (移除 " + str(n2) + " 堆, 不返还)")
+        else:
+            log_line("【确认】展示柜清空不可恢复 — 输入 showcase clear yes 执行")
+        return
+    if not need_game():
+        return
+    var hs = shop.showcase_items()
+    if len(hs) == 0:
+        log_line("(展示柜空)")
+    else:
+        for h in hs:
+            log_line("  " + h.id + " ×" + str(h.count))
+        log_line("共 " + str(len(hs)) + " 堆 (清空: showcase clear yes)")
+
+func cmd_attract():
+    if not need_game():
+        return
+    var r = shop.attract()
+    if r == null:
+        log_line("(吸引力数据当前不可用)")
+        return
+    log_line("吸引力: " + str(r.value) + " · 生成率 " + str(r.spawn_chance) + " · 普通客 " + str(r.normal_count))
+    log_line("门槛 t1/t2/t3: " + str(r.t1) + "/" + str(r.t2) + "/" + str(r.t3) + " · extra10/25/50: " + str(r.extra10) + "/" + str(r.extra25) + "/" + str(r.extra50) + " · rich400/650: " + str(r.rich400) + "/" + str(r.rich650))
+    log_line("(只读 — 吸引力由店内陈设决定, 无设置接口)")
+
+func cmd_goto(parts):
+    if len(parts) >= 2 and parts[1] == "back":
+        if not need_game():
+            return
+        if scenes.back():
+            log_line("已返回上一场景")
+        else:
+            log_line("【错误】返回失败 (不在场景中?)")
+        return
+    if not need_game():
+        return
+    if len(parts) < 2:
+        var rows = scenes.list()
+        if len(rows) == 0:
+            log_line("(无外出场景 — 内容包未注册或不在地图状态)")
+        else:
+            for s in rows:
+                var tag = "[开]"
+                if s.locked:
+                    tag = "[锁]"
+                log_line(tag + " " + s.id + " " + s.name + " 危险" + str(s.danger) + "★")
+            log_line("用法: goto <场景id> / goto back (锁定图先 raid unlock)")
+        return
+    var sid = unquote(parts[1])
+    if scenes.enter(sid):
+        log_line("已进入场景: " + sid + " (返回: goto back)")
+    else:
+        log_line("【错误】进不去 " + sid + " (不存在/门禁锁定/当前不可用 — raid maps 查解锁)")
+
+func cmd_bag(parts):
+    if len(parts) >= 2 and parts[1] == "clear":
+        if len(parts) >= 3 and parts[2] == "yes":
+            if not need_game():
+                return
+            var n = 0
+            for h in items.inventory():
+                if items.consume(h):
+                    n = n + 1
+            log_line("已清空背包+后仓 (移除 " + str(n) + " 堆, 不返还)")
+        else:
+            log_line("【确认】背包+后仓清空不可恢复 — 输入 bag clear yes 执行")
+        return
+    log_line("【用法】bag clear yes — 清空背包+后仓 (需 yes 二次确认)")

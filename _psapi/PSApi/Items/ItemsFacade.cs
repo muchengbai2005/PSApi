@@ -206,7 +206,8 @@ namespace PSApi.Items
                     {
                         string key = $"item_{id}_name";
                         string loc = LocHelper.GetLocalizedItem(key);
-                        if (!string.IsNullOrWhiteSpace(loc) && loc != key) name = loc;
+                        // v2.0.7: 未注册键原版返回 "Translation Error" 错误字符串而非抛异常, 须剔除
+                        if (!string.IsNullOrWhiteSpace(loc) && loc != key && !LocService.IsTranslationError(loc)) name = loc;
                     }
                     catch { }
                 }
@@ -954,6 +955,25 @@ namespace PSApi.Items
                         try { iid = item.identifier; } catch { }
                         if (string.Equals(iid, id, StringComparison.Ordinal)) result.Add(item);
                     }
+                }
+            }
+            catch { }
+            return result;
+        }
+
+        /// <summary>v2.0.2: 玩家库存 (随身背包+后仓) 全量物品句柄源 (不限 id; psconsole bag clear 用)。异常 = 空表。</summary>
+        public static List<GameItem> AllInPlayer()
+        {
+            var result = new List<GameItem>();
+            try
+            {
+                foreach (var inv in PlayerInvs())
+                {
+                    Il2CppSystem.Collections.Generic.List<GameItem> children = null;
+                    try { children = inv?.childItems; } catch { }
+                    if (children == null) continue;
+                    foreach (var item in children)
+                        if (item != null) result.Add(item);
                 }
             }
             catch { }

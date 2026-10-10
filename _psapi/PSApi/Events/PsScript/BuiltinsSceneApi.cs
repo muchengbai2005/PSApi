@@ -164,6 +164,12 @@ namespace PSApi.Events.PsScript
                 try { return grid.AfterhourPlace(id, count); }
                 catch (Exception e) { throw new PsRuntimeError("grid.afterhour_place 失败: " + e.Message, line); }
             });
+            ns.Members["rescue_backpack"] = PsBuiltins.BF("grid.rescue_backpack", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 0, 0, "grid.rescue_backpack() → bool — 原版外出栏背包槽救回 (胸式槽空→入胸式槽, 否则兜底称重台; 无可救=false)", line);
+                try { return grid.RescueBackpack(); }
+                catch (Exception e) { throw new PsRuntimeError("grid.rescue_backpack 失败: " + e.Message, line); }
+            });
             env.Define("grid", ns, true, 0);
         }
 

@@ -72,7 +72,13 @@ namespace PSApi.Items
             return false;
         }
 
-        internal static void Init(MelonLogger.Instance log) { _log = log; }
+        internal static void Init(MelonLogger.Instance log)
+        {
+            _log = log;
+            // v2.0.8: 向 LocService 注入 def 文本查询, 供 ItemLocPatch 对模组物品未注册 item_ 键兜底
+            // (TryFallbackItemLoc — 原版管线对未注册键返回 "Translation Error" 错误串, 模组键绝不放行)。
+            LocService.SetModItemLookup(id => TryGetDef(id, out var d) ? (d.Name, d.Desc, d.Flavor) : ((string, string, string)?)null);
+        }
 
         // ==================== 解析 (启动时，纯托管) ====================
 
@@ -409,10 +415,17 @@ namespace PSApi.Items
             }
             catch { }
 
-            // 文本：走原版本地化管线 (ItemLocPatch 注入包内文本; 失败回退直写)
-            try { item.SetName(LocHelper.GetLocalizedItem($"item_{def.Id}_name")); } catch { try { item.SetName(def.Name ?? def.Id); } catch { } }
-            try { item.shortDescription = LocHelper.GetLocalizedItem($"item_{def.Id}_desc"); } catch { try { item.shortDescription = def.Desc ?? ""; } catch { } }
-            try { item.flavorText = LocHelper.GetLocalizedItem($"item_{def.Id}_flavor"); } catch { try { item.flavorText = def.Flavor ?? ""; } catch { } }
+            // 文本: 先查包内登记表 LocService.TryGet, 未命中直接回退 def 文本 (flavor 空 = 不显示风味行,
+            // 与原版无 flavor 物品一致——GunsItemDirectory 全 30 枪厂零 set_flavorText 实证空 flavor 是常态)。
+            // v2.0.7 修复: 不要再无条件走 LocHelper.GetLocalizedItem — 未注册键落到原版管线会**返回**
+            // "Translation Error '...' in Item" 错误字符串而非抛异常, try/catch 拦不住, 错误文本被写进
+            // flavorText 直接显示 (没写 flavor 的模组物品信息栏底部全挂错误串)。
+            string txtName = LocService.TryGet($"item_{def.Id}_name", out var ln) ? ln : (def.Name ?? def.Id);
+            string txtDesc = LocService.TryGet($"item_{def.Id}_desc", out var ld) ? ld : (def.Desc ?? "");
+            string txtFlavor = LocService.TryGet($"item_{def.Id}_flavor", out var lf) ? lf : (def.Flavor ?? "");
+            try { item.SetName(txtName); } catch { }
+            try { item.shortDescription = txtDesc; } catch { }
+            try { item.flavorText = txtFlavor; } catch { }
 
             // 违禁品等级 (官方机制一次性完成标签/特性/tooltip/安检注册)
             if (def.ContrabandLevel > 0)

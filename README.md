@@ -9,7 +9,7 @@
 
 | 组件 | 版本 | 说明 |
 |---|---|---|
-| PSApi | **v2.0.0** | 框架本体（单 dll，v2.0.0 起合并原 Items/Events 双组件） |
+| PSApi | **v2.0.8** | 框架本体（单 dll，v2.0.0 起合并原 Items/Events 双组件） |
 | examples/ | 1.0.0 | **34 个教学示例包**（ex01_hello ~ ex34_mini_mod，每个知识小节一个，全部实跑验证） |
 | psapi_manager | — | 系统包：游戏内 F6 管理面板 |
 | psconsole | — | 调试控制台包：游戏内指令行 |
@@ -45,7 +45,7 @@ D:\game\steam\steamapps\common\Probably Stolen Demo\
 1. **前置**：游戏已安装 MelonLoader（IL2CPP 版）。没有的话去 [MelonLoader Releases](https://github.com/LavaGang/MelonLoader/releases) 下载安装器，选中游戏目录安装。
 2. **装框架**：把 `Mods/PSApi.dll` 复制到 `<游戏根>/Mods/`。
 3. **装内容包**：把想要的包目录复制到 `<游戏根>/UserData/PSApi/packs/`（推荐先装 `psapi_manager`；学习时按文档装对应 `examples/exNN`）。
-4. **验证**：启动游戏，MelonLoader 控制台出现 `PSApi v2.0.0 loaded` 与 `rescan(init): N pack(s), ... 0 compile error(s)` 即成功；游戏内按 **F6** 可打开 psapi_manager 管理面板。
+4. **验证**：启动游戏，MelonLoader 控制台出现 `PSApi v2.0.8 loaded` 与 `rescan(init): N pack(s), ... 0 compile error(s)` 即成功；游戏内按 **F6** 可打开 psapi_manager 管理面板。
 
 ---
 

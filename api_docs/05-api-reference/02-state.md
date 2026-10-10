@@ -65,6 +65,42 @@ state.get("nope", 0)  # 0 (默认值)
 注意：外层 JSON 的 value 一律是**字符串**（内层才是你的值的 JSON 编码）。
 这是框架的骨架设计（string→string，规避嵌套序列化的坑），脚本侧完全无感。
 
+## 跨包存档 KV：state.pget / pset / phas / pdel（v2.0.2 新增）
+
+上面四个函数只能读写**自己包**的 state 文件；跨包版把目标换成**指定包**的
+命名空间——语义与单包版完全一致，只是多出第一个参数 `pack`（目标包 id）。
+官方场景：psconsole 的 `raid.*` 指令读写 gunworks 的
+`ps_raid_unlocks / ps_raid_cd` 等键，做袭击地图解锁与冷却查询。
+
+| 函数 | 签名 | 返回 |
+|---|---|---|
+| 读 | `state.pget(pack, key[, 默认值])` | 存的值（自动反序列化）；无此键且给了默认值 → 默认值；无默认值 → `null` |
+| 写 | `state.pset(pack, key, value)` | `null`（value 会经 JSON 编码后存储） |
+| 有无 | `state.phas(pack, key)` | `bool` |
+| 删 | `state.pdel(pack, key)` | `null` |
+
+```pss
+# 说明性举例: 像 psconsole 的 raid 指令那样查 gunworks 的袭击解锁/冷却
+var cd = state.pget("gunworks", "ps_raid_cd", 0)   # 没有该键 = 默认值 0
+if cd > 0:
+    log.info("袭击冷却中, 剩余 {cd}")
+if not state.phas("gunworks", "ps_raid_unlocks"):
+    log.info("gunworks 尚未记录任何解锁进度")
+
+# 跨包写: 替 gunworks 记一个键 (gunworks 侧 state.get 原样读回)
+state.pset("gunworks", "ps_raid_unlocks", ["depot"])
+state.pdel("gunworks", "ps_raid_cd")               # 清冷却
+```
+
+注意：
+
+- **`pack` 只允许纯包 id**（如 `gunworks`）；含 `/` `\` `:` 会报
+  `xxx 的包 id 含非法字符 (只允许纯 id, 如 gunworks)`——框架以此防越目录读写。
+- 按存档槽隔离、JSON 序列化、值类型限制均与单包版一致；目标包未安装或
+  键不存在**不算错误**（`pget` 走默认值、`phas` 返回 `false`）。
+- 跨包写 = 替别的包记账，仅建议官方工具包 / 深度联动场景使用——随手改写
+  其他包的 state 可能破坏它的玩法逻辑。
+
 ## 经典范式：防重记账
 
 "每周五津贴"是标准写法（对照教学包

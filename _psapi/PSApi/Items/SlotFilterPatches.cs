@@ -72,11 +72,16 @@ namespace PSApi.Items
 
         /// <summary>v0.9.9: 白名单统一匹配 — 普通条目按物品 id; "#TAG" 条目按物品 itemTypes 标签命中
         /// (大小写不敏感; 鉴定机"只收武器"用 whitelist: ["#WEAPON"])。标签条目只放行不报错。
+        /// v2.0.3: "#TAG" 追加运行时标签命中 (state/modifiedState 的 IsTag) — 原版背包/挎包/腰包的
+        /// BACKPACK_TAG 是 ContainerHelper.InitBackpackItem 的 EnableTag 运行时标签, itemTypes 够不着
+        /// (ContainerItemDirectory 七工厂实证: BackpackSmall/Medium/MediumMilitary/Large/LargeMilitary/
+        /// FannyPack/Satchel 全部调 InitBackpackItem; SaveBag 系不调)。旅行物品箱胸式槽 ["#BACKPACK_TAG"]。
         /// v0.9.13: "#DATA:key=value" 条目按物品 NBT 数据匹配 — 多个 DATA 条目之间是 AND 语义
         /// (全部命中才算), 与 id/#TAG 的 OR 组并存时两组都必须过 (旅行物品箱"appraised=1 且 wtype=gun")。
         /// 比较: 两侧都能解析为数值时按数值比 (double), 否则按字符串 OrdinalIgnoreCase 比。
         /// v0.9.14: "!" 前缀排除条目 (黑名单) — 任一命中即拒, 先于所有放行组判定;
-        /// "!id" 按物品 id 排除; "!#TAG" 按 itemTypes 标签排除; 特例 "!#CONTAINER" 额外按运行时容器判定
+        /// "!id" 按物品 id 排除; "!#TAG" 按 itemTypes+运行时标签排除 (v2.0.3 同步扩展);
+        /// 特例 "!#CONTAINER" 额外按运行时容器判定
         /// (item.contentWindow 非空 = 容器/机器 — 原版背包/腰包/储物柜是 EnableTag 运行时标签, itemTypes 够不着)。
         /// 纯排除名单 (无放行条目) = 默认全放行只挡排除项 (旅行物品箱口袋/大件 ["!#CONTAINER","!#MACHINE"])。
         /// v0.9.19: internal → public (测试台段 106c 谓词钉值; 行为不变)。
@@ -105,17 +110,19 @@ namespace PSApi.Items
                 if (e[0] != '#' || e.Length < 2) continue;   // 普通 id 条目: 直接 Contains 已判过
                 if (item != null)
                 {
+                    string tag = e.Substring(1);
                     try
                     {
                         var types = item.itemTypes;
                         if (types != null)
                         {
-                            string tag = e.Substring(1);
                             foreach (var t in types)
                                 if (string.Equals(t, tag, StringComparison.OrdinalIgnoreCase)) { orHit = true; break; }
                         }
                     }
                     catch { }
+                    // v2.0.3: itemTypes 不中再查运行时标签 (EnableTag 系, 原版背包 BACKPACK_TAG 等)
+                    if (!orHit && RuntimeHasTag(item, tag)) orHit = true;
                 }
                 if (orHit) break;
             }
@@ -130,7 +137,8 @@ namespace PSApi.Items
         }
 
         /// <summary>v0.9.14: 单条排除条目 ("!" 之后的主体) 匹配。"#CONTAINER" 特例: itemTypes 标签 +
-        /// 运行时容器 (contentWindow 非空 — 机器面板也是 contentWindow, 故机器同样被挡)。</summary>
+        /// 运行时容器 (contentWindow 非空 — 机器面板也是 contentWindow, 故机器同样被挡)。
+        /// v2.0.3: 其余 "!#TAG" 同步查运行时标签 (与放行组同语义, 先 CONTAINER 特例再标签)。</summary>
         private static bool MatchesExclusion(string body, GameItem item, string itemId)
         {
             if (string.IsNullOrEmpty(body)) return false;
@@ -150,6 +158,16 @@ namespace PSApi.Items
                         if (string.Equals(t, tag, StringComparison.OrdinalIgnoreCase)) return true;
             }
             catch { }
+            return RuntimeHasTag(item, tag);   // v2.0.3
+        }
+
+        /// <summary>v2.0.3: 运行时标签命中 (EnableTag 写入的 state 标签; modifiedState 兜底 —
+        /// TagGetInt 同款 modifiedState??state 模式的双向版, 槽位变化重建 modifiedState 后仍命中)。</summary>
+        internal static bool RuntimeHasTag(GameItem item, string tag)
+        {
+            if (item == null || string.IsNullOrEmpty(tag)) return false;
+            try { var st = item.state; if (st != null && st.IsTag(tag)) return true; } catch { }
+            try { var mt = item.modifiedState; if (mt != null && mt.IsTag(tag)) return true; } catch { }
             return false;
         }
 
@@ -251,6 +269,27 @@ namespace PSApi.Items
             catch { return false; }   // 场景卸载后机器引用失效 → 不锁
         }
 
+        /// <summary>v2.0.6: 所有权闸门 (NPC 待售货盗窃漏洞修复) — 受管槽位 (whitelist 注册) 拒收
+        /// 非玩家所有物品。原版语义实证 (ISIL): 所有权 = GameItem 的 IS_OWNED_TAG 标签
+        /// (GeneralHelper.IsItemOwned = IsTag("IS_OWNED_TAG")); DirectoryMaster.Item 工厂默认
+        /// isOwned=true (玩家获取的一切物品自带标签), NPC 货品由客户清单工厂显式
+        /// SetItemOwned(false) 摘除 (例: StoreClientListCartel); 原版容器/背包由
+        /// ContainerHelper.AllowOnlyOwnedItems 挂 mayAdd 谓词拒收无标签物品 — 但 psui 槽位是裸
+        /// GameGridInventory/GameSlotInventory (零原生谓词), 白名单强放路径 (AcceptUnchecked/
+        /// UncheckedAccept) 又绕过一切原生判定 → 交易未完成即可把 NPC 柜台货拖进机器槽, 送走
+        /// NPC 即白拿, 必须自闸。读取失败保守拒 (反盗窃闸门宁可误拦); item=null 不拦。</summary>
+        internal static bool IsItemPlayerOwned(GameItem item)
+        {
+            if (item == null) return true;
+            try { return GeneralHelper.IsItemOwned(item); }
+            catch { return false; }
+        }
+
+        /// <summary>纯函数 (无头可测, 测试台段 134): 受管槽位的所有权放行判定 — 不受管槽位
+        /// 永不拦 (原生谓词链自己管, 如柜台谈判桌上整理 NPC 货是合法原生行为);
+        /// 受管槽位仅玩家所有物品可放。</summary>
+        public static bool OwnershipAllows(bool slotManaged, bool itemOwned) => !slotManaged || itemOwned;
+
         internal static void Clear()
         {
             _slotWhitelists.Clear();
@@ -284,6 +323,17 @@ namespace PSApi.Items
             {
                 if (__result) __result = false;
                 if (probeId != null) SlotFilterRegistry.Dbg($"slot-filter dbg: MayHaveValidSlot item={probeId} slotPtr={slotPtr.ToInt64()} insert-locked (machine busy)");
+                return;
+            }
+
+            // v2.0.6: 所有权闸门 — 受管槽位 (whitelist 注册) 拒收非玩家所有物品 (NPC 待售货),
+            // 高亮预检阶段即拒 (红=禁放); 不受管槽位放行原生 (谈判桌整理 NPC 货合法)
+            if (SlotFilterRegistry.TryGetWhitelist(slotPtr, out _) && !SlotFilterRegistry.IsItemPlayerOwned(item))
+            {
+                if (__result) __result = false;
+                string oid = probeId;
+                try { if (oid == null && item != null) oid = item.identifier; } catch { }
+                SlotFilterRegistry.Dbg($"slot-filter dbg: MayHaveValidSlot item={(oid ?? "?")} slotPtr={slotPtr.ToInt64()} not-owned (NPC ware?) -> reject");
                 return;
             }
 
@@ -363,6 +413,16 @@ namespace PSApi.Items
             {
                 if (__result != null) __result = null;
                 if (probeId != null) SlotFilterRegistry.Dbg($"slot-filter dbg: TryInventorySlot item={probeId} slotPtr={slotPtr.ToInt64()} insert-locked (machine busy)");
+                return;
+            }
+
+            // v2.0.6: 所有权闸门 — 受管槽位拒收非玩家所有物品 (NPC 待售货), Drag 阶段不产 marker
+            if (SlotFilterRegistry.TryGetWhitelist(slotPtr, out _) && !SlotFilterRegistry.IsItemPlayerOwned(item))
+            {
+                if (__result != null) __result = null;
+                string oid = probeId;
+                try { if (oid == null && item != null) oid = item.identifier; } catch { }
+                SlotFilterRegistry.Dbg($"slot-filter dbg: TryInventorySlot item={(oid ?? "?")} slotPtr={slotPtr.ToInt64()} not-owned (NPC ware?) -> reject");
                 return;
             }
 
@@ -451,6 +511,13 @@ namespace PSApi.Items
                 if (__result) __result = false;
                 return;
             }
+            // v2.0.6: 所有权闸门 — 受管网格槽拒收非玩家所有物品 (NPC 待售货)
+            if (SlotFilterRegistry.TryGetWhitelist(slotPtr, out _) && !SlotFilterRegistry.IsItemPlayerOwned(item))
+            {
+                if (__result) __result = false;
+                SlotFilterRegistry.Dbg($"slot-filter dbg: grid MayHaveValidSlot slotPtr={slotPtr.ToInt64()} not-owned (NPC ware?) -> reject");
+                return;
+            }
             if (!SlotFilterRegistry.IsExclusive(slotPtr)) return;   // 非排他网格槽: 原生判定
 
             string itemId = null;
@@ -479,6 +546,13 @@ namespace PSApi.Items
             if (SlotFilterRegistry.IsInsertLocked(slotPtr))
             {
                 if (__result != null) __result = null;
+                return;
+            }
+            // v2.0.6: 所有权闸门 — 受管网格槽拒收非玩家所有物品 (NPC 待售货), 作废原生 marker
+            if (SlotFilterRegistry.TryGetWhitelist(slotPtr, out _) && !SlotFilterRegistry.IsItemPlayerOwned(item))
+            {
+                if (__result != null) __result = null;
+                SlotFilterRegistry.Dbg($"slot-filter dbg: grid TryInventorySlot slotPtr={slotPtr.ToInt64()} not-owned (NPC ware?) -> reject");
                 return;
             }
             if (!SlotFilterRegistry.IsExclusive(slotPtr)) return;
@@ -523,6 +597,20 @@ namespace PSApi.Items
             {
                 __result = 0;
                 SlotFilterRegistry.Dbg($"slot-filter dbg: TryAcceptOnce item={(probeId ?? "?")} slotPtr={slotPtr.ToInt64()} insert-locked (machine busy) -> reject");
+                return false;
+            }
+
+            // v2.0.6: 所有权闸门 (NPC 待售货盗窃漏洞根修) — 受管槽位 (whitelist 注册) 拒收
+            // 非玩家所有物品 (__result=0 回弹)。原版容器/背包由 AllowOnlyOwnedItems 谓词拒收
+            // 无 IS_OWNED_TAG 物品; psui 裸槽无原生谓词且下方强放路径 (AcceptUnchecked/
+            // UncheckedAccept) 绕过一切原生判定, 不拦则交易未完成拖 NPC 柜台货进机器=白拿。
+            // 不受管槽位 (谈判桌等) 放行原生 — 谈判中整理 NPC 货是合法原生行为, 不可误伤。
+            if (SlotFilterRegistry.TryGetWhitelist(slotPtr, out _) && !SlotFilterRegistry.IsItemPlayerOwned(item0))
+            {
+                __result = 0;
+                string nid = probeId;
+                try { if (nid == null && item0 != null) nid = item0.identifier; } catch { }
+                SlotFilterRegistry.Dbg($"slot-filter dbg: TryAcceptOnce item={(nid ?? "?")} slotPtr={slotPtr.ToInt64()} not-owned (NPC ware?) -> reject");
                 return false;
             }
 

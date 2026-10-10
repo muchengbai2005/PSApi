@@ -3,7 +3,7 @@ using System.IO;
 using MelonLoader;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(PSApi.PsApiPlugin), "PSApi", "2.0.0", "Research")]
+[assembly: MelonInfo(typeof(PSApi.PsApiPlugin), "PSApi", "2.0.8", "Research")]
 [assembly: MelonGame("Questing Goose Studio", "Probably Stolen")]
 [assembly: MelonPriority(10)]
 

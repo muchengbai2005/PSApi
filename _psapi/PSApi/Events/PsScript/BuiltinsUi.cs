@@ -230,6 +230,15 @@ namespace PSApi.Events.PsScript
                 PsBuiltins.Need(a, 1, 1, "ui.machine_is_open(machine) → bool", line);
                 return ui.MachineIsOpen(AsMachine(a[0], "ui.machine_is_open", line), line);
             });
+            // v2.0.5 诊断: 句柄失效/无头不抛 (诊断专用, 脚本无需判空)
+            ns.Members["machine_dump_layout"] = PsBuiltins.BF("ui.machine_dump_layout", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 1, 2, "ui.machine_dump_layout(machine [, tag=\"psui\"])  — v2.0.5 诊断: 面板子元素数+label 尺寸一行日志", line);
+                Il2Cpp.GameItem dm = null;
+                try { if (a[0] is PsItemHandle dh) dm = dh.NeedItem(line); } catch { }
+                string dtag = a.Count >= 2 && a[1] != null ? PsValues.Fmt(a[1]) : "psui";
+                return ui.MachineDumpLayout(dm, dtag);
+            });
             ns.Members["machine_find_uid"] = PsBuiltins.BF("ui.machine_find_uid", (itp, a, line) =>
             {
                 PsBuiltins.Need(a, 1, 1, "ui.machine_find_uid(uid) → 物品句柄|null (按存档稳定 uniqueId 找 psui 机器)", line);

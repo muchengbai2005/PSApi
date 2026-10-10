@@ -12,7 +12,7 @@ namespace PSApi
     /// </summary>
     internal static class PsApi
     {
-        internal const string Version = "2.0.0";
+        internal const string Version = "2.0.8";
 
         internal static readonly string RootDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserData", "PSApi");
         internal static readonly string PacksDir = Path.Combine(RootDir, "packs");

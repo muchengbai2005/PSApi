@@ -575,6 +575,73 @@ namespace PSApi.Events.Scenes
             try { return ItemsFacade.CreateIntoSlot(afterhour, itemId, count) != null; } catch { return false; }
         }
 
+        /// <summary>grid.rescue_backpack 后端 (v2.0.3): 原版外出栏背包槽 (afterhourPocketSlotInvBackpack)
+        /// 里的背包救回 — 旧档玩家外出槽带包 + hide_afterhour 藏窗后包会卡死在里面, raid_enter 调一次:
+        /// 胸式槽 (物品箱 s_chest) 空 → Expel 双亲后 UncheckedAccept 入胸式槽 (保 NBT 实例搬移);
+        /// 胸式槽占用/无物品箱/入槽失败 → 兜底 MoveToCounter (店里称重台)。
+        /// 无可救背包 = false (不写日志); 救回成功 = true + 信息栏提示。</summary>
+        internal bool RescueBackpack()
+        {
+            try
+            {
+                GameSlotInventory pocketSlot = null;
+                try { pocketSlot = EmporiumEntry.Instance?.afterhourPocketSlotInvBackpack; } catch { }
+                if (pocketSlot == null) return false;
+                List<GameItem> items = null;
+                try { items = ItemsFacade.SlotItems(pocketSlot); } catch { }
+                if (items == null || items.Count == 0) return false;
+                var bp = items[0];
+                if (bp == null) return false;
+                // 首选: 胸式槽 (旅行物品箱 s_chest, 空槽才接)
+                GameInventory chest = null;
+                try { if (_boxItem != null && Ui != null) chest = Ui.TryMachineSlotInventory(_boxItem, "s_chest"); } catch { }
+                if (chest != null)
+                {
+                    List<GameItem> chestItems = null;
+                    try { chestItems = ItemsFacade.SlotItems(chest); } catch { }
+                    if (chestItems == null || chestItems.Count == 0)
+                    {
+                        try
+                        {
+                            var parents = bp.parents;
+                            if (parents != null)
+                                foreach (var p in parents)
+                                {
+                                    if (p == null) continue;
+                                    GameInventory inv = null;
+                                    try { inv = p.TryCast<GameInventory>(); } catch { }
+                                    if (inv != null) { try { inv.Expel(bp); } catch { } }
+                                }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (chest.UncheckedAccept(bp))
+                            {
+                                Log("外出栏里的背包已放回物品箱胸式槽");
+                                PsApi.Log(_logger, "[grid] 外出栏背包救回: 已入胸式槽");
+                                return true;
+                            }
+                        }
+                        catch (Exception e) { PsApi.Warn(_logger, "[grid] 外出栏背包入胸式槽失败: " + e.Message); }
+                    }
+                }
+                // 兜底: 店里称重台 (MoveToCounter 内部再 Expel 一次, 幂等无害)
+                try
+                {
+                    if (ItemsFacade.MoveToCounter(bp))
+                    {
+                        Log("外出栏里的背包已放回店里称重台");
+                        PsApi.Log(_logger, "[grid] 外出栏背包救回: 兜底搬称重台");
+                        return true;
+                    }
+                }
+                catch (Exception e) { PsApi.Warn(_logger, "[grid] 外出栏背包救回兜底失败: " + e.Message); }
+                return false;
+            }
+            catch (Exception e) { PsApi.Warn(_logger, "[grid] 外出栏背包救回失败: " + e.Message); return false; }
+        }
+
         // ==================== 物品生成 / 自动寻位 / 瀑布兜底 (v1.25.0 实证同款) ====================
 
         /// <summary>建一个未入格的新物品实例 (永远单件 stack=1); 失败 = null + Warn。</summary>

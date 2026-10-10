@@ -242,6 +242,7 @@ namespace PSApi.Events.PsUI
                         // v1.5.0: font_size = TMP fontSize 倍率 (构建应用 + FontScales 登记, set_text 后重放)
                         float lfs = FontScaleOf(elem);
                         if (lfs > 0f) { ApplyFontScale(tag.textNode, lfs, pp.FontBaseSizes, elem.Id, _logger, $"{panel.File}:{elem.Line}"); if (elem.Id != null) pp.FontScales[elem.Id] = lfs; }
+                        ResetTagHeight(tag, _logger, $"{panel.File}:{elem.Line}"); // v2.0.4: 背景按最终字号归位 (SetText 测量早于字号缩放)
                         if (elem.Id != null) pp.Labels[elem.Id] = tag;
                         return tag.TryCast<PixelElement>();
                     }
@@ -331,6 +332,7 @@ namespace PSApi.Events.PsUI
                         rt.SetText(elem.GetString("text", ""), 10000, PaletteOf(elem, panel, _logger));
                         float rfs = FontScaleOf(elem);
                         if (rfs > 0f) { ApplyFontScale(rt.handler, rfs, pp.FontBaseSizes, elem.Id, _logger, $"{panel.File}:{elem.Line}"); if (elem.Id != null) pp.FontScales[elem.Id] = rfs; }
+                        ResetRichHeight(rt, _logger, $"{panel.File}:{elem.Line}"); // v2.0.4: 同 label 构建归位
                         // v1.38.0: rich_label 注册进 RichLabels — ui.machine_set_text 可寻址 (此前漏注册只能静态显示)
                         if (elem.Id != null) pp.RichLabels[elem.Id] = rt;
                         return rt.TryCast<PixelElement>();
@@ -553,6 +555,86 @@ namespace PSApi.Events.PsUI
                 tmp.fontSize = ScaledFontSize(baseSizes, elemId, tmp.fontSize, factor);
             }
             catch (Exception e) { PsApi.Warn(log, $"[psui:pixel] {ctx}: font_size 应用失败: {e.Message}"); }
+        }
+
+        /// <summary>v2.0.4: 原生 TagElement.HeightPixelsClamp 公式复刻 (ISIL 实证, 无头可测纯函数);
+        /// v2.0.5 签名扩写补 storedHeight: 优选高 preferredHeight≤0 (空文本测不出) 时回退读「已存高」
+        /// storedHeight —— 注意不是传入高; 然后 canResize=true → Math.Max(传入高, 生效高)+topPadding;
+        /// canResize=false → 生效高+topPadding。
+        /// 病灶: SetText 尾部以「当前已存高」作传入高重触 ResizePixels, 已存高已含上次 topPadding
+        /// → canResize 标签每次 SetText 单调 +topPadding 永不回落 (背景=widthPixels×heightPixels)。
+        /// v2.0.5 补完: 空文本时回退读已存高 → v2.0.4 的「传 0 收敛」对空标签无效 (生效高=已存高照涨),
+        /// 空文本必须走 ClearTagText 直清路径 (见下)。</summary>
+        internal static int NativeHeightPixelsClamp(int argHeight, int preferredHeight, int storedHeight, int topPadding, bool canResize)
+        {
+            int eff = preferredHeight > 0 ? preferredHeight : storedHeight;
+            return (canResize ? Math.Max(argHeight, eff) : eff) + topPadding;
+        }
+
+        /// <summary>v2.0.5: 原生 WidthPixelsClamp 的空文本回退段复刻 (ISIL 实证): fixedWidth&lt;0 且
+        /// 优选宽≤0 (空文本) → 回退「已存宽」再 +leftPadding+rightPadding → 每次 SetText 单调 +5px。
+        /// 与高度累加叠加 = 空标签黑块逐代长大 (组装台预览空行阶梯黑块的根因)。</summary>
+        internal static int NativeWidthPixelsClampFallback(int storedWidth, int leftPadding, int rightPadding)
+        {
+            return storedWidth + leftPadding + rightPadding;
+        }
+
+        /// <summary>v2.0.5: 空文本判定 — null/空白皆为空。空文本走 ClearTagText/ClearRichText 直清,
+        /// 不进原生 SetText (原生钳制对空文本双向累加, 见上两条)。</summary>
+        internal static bool TagTextIsEmpty(string text) => string.IsNullOrWhiteSpace(text);
+
+        /// <summary>v2.0.4: SetText 高度累加修复 — SetText 后补一枪 ResizePixels(widthPixels, 0):
+        /// 高度 = Math.Max(0, 优选高)+topPadding = 纯内容驱动幂等收敛 (canResize 与否同值);
+        /// 宽度侧 WidthPixelsClamp 定宽透传 arg/自适应忽略 arg 重测, RichTextElement fixedHeight≥0
+        /// 透传 arg — 均不受影响。且在 ApplyFontScale 之后调用 = 宽/高按最终字号重测。
+        /// ⚠ 仅对非空文本有效 — 空文本优选高测不出会回退已存高 (v2.0.5 实证), 空文本走 ClearTagText。
+        /// 文本节点懒初始化/无头/原生异常 = 静默跳过 (下次 set_text 自愈, 与 ApplyFontScale 同款容错)。</summary>
+        internal static void ResetTagHeight(TagElement tag, MelonLogger.Instance log, string ctx)
+        {
+            try { if (!(tag is null)) tag.ResizePixels(tag.widthPixels, 0); }
+            catch (Exception e) { PsApi.Warn(log, $"[psui:pixel] {ctx}: 标签高度重置失败: {e.Message}"); }
+        }
+
+        /// <summary>v2.0.4: RichTextElement 同款修复 (HeightPixelsClamp 同病; fixedHeight≥0 透传不受动)。
+        /// ⚠ 同 ResetTagHeight, 仅非空文本有效; 空文本走 ClearRichText。</summary>
+        internal static void ResetRichHeight(RichTextElement rt, MelonLogger.Instance log, string ctx)
+        {
+            try { if (!(rt is null)) rt.ResizePixels(rt.widthPixels, 0); }
+            catch (Exception e) { PsApi.Warn(log, $"[psui:pixel] {ctx}: 富文本高度重置失败: {e.Message}"); }
+        }
+
+        /// <summary>v2.0.5: 空文本标签直清 (绕开原生 SetText 的空文本双向累加): TMP text 直写空串
+        /// + 宽高字段清零到 padding 级 + Validate 重贴背景 (背景≈padding 大小, 视觉不可见)。
+        /// 下次非空 SetText 走正常路径按内容重测, 自愈。懒初始化/无头/异常 = 静默跳过。</summary>
+        internal static void ClearTagText(TagElement tag, MelonLogger.Instance log, string ctx)
+        {
+            try
+            {
+                if (tag is null) return;
+                var tmp = tag.textNode is null ? null : tag.textNode.text;
+                if (!(tmp is null)) tmp.text = "";
+                int w = 6, h = 5;
+                try { w = tag.leftPadding + tag.rightPadding + 1; h = tag.topPadding * 2 + 1; } catch { }
+                tag._widthPixels_k__BackingField = w;
+                tag._heightPixels_k__BackingField = h;
+                tag.Validate();
+            }
+            catch (Exception e) { PsApi.Warn(log, $"[psui:pixel] {ctx}: 空文本清理失败: {e.Message}"); }
+        }
+
+        /// <summary>v2.0.5: RichTextElement 空文本同款直清 (熔炉空流体行等同病场景)。</summary>
+        internal static void ClearRichText(RichTextElement rt, MelonLogger.Instance log, string ctx)
+        {
+            try
+            {
+                if (rt is null) return;
+                var tmp = rt.handler is null ? null : rt.handler.text;
+                if (!(tmp is null)) tmp.text = "";
+                rt._widthPixels_k__BackingField = 6;
+                rt._heightPixels_k__BackingField = 5;
+                rt.Validate();
+            }
+            catch (Exception e) { PsApi.Warn(log, $"[psui:pixel] {ctx}: 空富文本清理失败: {e.Message}"); }
         }
 
         /// <summary>"pack:名" → IconService 命名空间键 (缺省补本包前缀; 已含 ":" 视为全限定跨包键)。</summary>

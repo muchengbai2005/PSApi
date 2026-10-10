@@ -20,11 +20,11 @@ PSApi v2.0.0 起为**单 dll 统一宿主**（MelonPriority 10），内部数据
 逻辑面模块随后。一切正常时，Latest.log 里应按序出现：
 
 ```
-PSApi v2.0.0 loaded (统一宿主: items+events)                 ← 宿主就绪
+PSApi v2.0.8 loaded (统一宿主: items+events)                 ← 宿主就绪
 rescan(init): N pack(s), M item def(s), K quality(ies), errors=0   ← 数据面扫包
-[items] 模块初始化完成 (PSApi v2.0.0). packs=N items=M qualities=K
+[items] 模块初始化完成 (PSApi v2.0.8). packs=N items=M qualities=K
 rescan(init): N pack(s), M pss file(s), K handler(s), S scene(s), 0 compile error(s)   ← 逻辑面扫包+脚本编译
-[events] 模块初始化完成 (PSApi v2.0.0). packs=N
+[events] 模块初始化完成 (PSApi v2.0.8). packs=N
 event bus selftest hits=12 ...                               ← 事件总线自检
 item directory ready via ModHook.OnModItemDirectoryInit...   ← 进对局后目录注入成功(或 via poll)
 ```

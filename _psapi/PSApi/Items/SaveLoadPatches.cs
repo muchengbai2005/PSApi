@@ -100,6 +100,33 @@ namespace PSApi.Items
 
                 if (savedItems == null) return;
 
+                // v2.0.8: 清洗存档里固化的 "Translation Error" 错误串 —— v2.0.7 前建物时 flavorText 等字段
+                // 被写入错误串并随 SaveItemNode 序列化 (name/shortDescription/flavorText 均为存档字段),
+                // 只修建物路径救不了旧档。decode 前直接改写节点文本字段 (回退口径与 ItemStore.CreateItem
+                // 一致: LocService 登记文本优先, 未登记用 def 文本, flavor 空="")。
+                int scrubbed = 0;
+                foreach (var n in savedItems)
+                {
+                    if (n == null) continue;
+                    string nid;
+                    try { nid = n.identifier; } catch { continue; }
+                    if (string.IsNullOrEmpty(nid) || !ItemStore.TryGetDef(nid, out var sdef)) continue;
+                    try
+                    {
+                        string nm = LocService.ScrubTranslationError(n.name,
+                            LocService.TryGet($"item_{sdef.Id}_name", out var ln) ? ln : (sdef.Name ?? sdef.Id));
+                        if (!ReferenceEquals(nm, n.name)) { n.name = nm; scrubbed++; }
+                        string sd = LocService.ScrubTranslationError(n.shortDescription,
+                            LocService.TryGet($"item_{sdef.Id}_desc", out var ld) ? ld : (sdef.Desc ?? ""));
+                        if (!ReferenceEquals(sd, n.shortDescription)) { n.shortDescription = sd; scrubbed++; }
+                        string fv = LocService.ScrubTranslationError(n.flavorText,
+                            LocService.TryGet($"item_{sdef.Id}_flavor", out var lf) ? lf : (sdef.Flavor ?? ""));
+                        if (!ReferenceEquals(fv, n.flavorText)) { n.flavorText = fv; scrubbed++; }
+                    }
+                    catch { }
+                }
+                if (scrubbed > 0) PsApi.Log(_log, $"save scrub: {scrubbed} Translation Error field(s) cleaned from save nodes");
+
                 var byUuid = new Dictionary<long, SaveItemNode>();
                 foreach (var n in savedItems)
                 {

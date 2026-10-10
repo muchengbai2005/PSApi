@@ -119,6 +119,19 @@ namespace PSApi.Events.PsScript
                 catch (Exception e) { throw new PsRuntimeError("items.find_all 失败: " + e.Message, line); }
                 return result;
             });
+            // v2.0.2: 玩家库存全量枚举 (psconsole bag clear 用; 随身背包+后仓, 无=空表)
+            ns.Members["inventory"] = PsBuiltins.BF("items.inventory", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 0, 0, "items.inventory() → [物品句柄...] (玩家随身背包+后仓全部物品; 无=空表)", line);
+                var result = new List<object>();
+                try
+                {
+                    foreach (var item in ItemsFacade.AllInPlayer())
+                        if (item != null) result.Add(new PsItemHandle(item));
+                }
+                catch (Exception e) { throw new PsRuntimeError("items.inventory 失败: " + e.Message, line); }
+                return result;
+            });
             // U4: 消耗物品 (从所在库存取出并销毁; 与 RecipeService 探测物回收同路径)
             // v1.39.0: 可选第 2 参 count — 部分消耗: count < 堆数时 unitCount 直减 (整堆销毁不走
             // Expel/Destroy, 对拖拽中挂在鼠标指针上的物品更稳); count ≥ 堆数 = 旧行为整堆销毁

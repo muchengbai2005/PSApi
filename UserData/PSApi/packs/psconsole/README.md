@@ -1,5 +1,7 @@
 # PS 指令台（/ 键控制台）· 完整教程
 
+> **v0.2.0 起新增 20 条扩展指令**（crime / raid / gw / power / restock / showcase / attract / goto / bag clear / npc rep），完整用法见仓库文档 `_docs/开发向/psconsole指令手册.md`；本文的通用规则与基础指令依然适用。
+
 仿 Minecraft 指令系统的调试控制台。游戏内按 `/`（Slash 键）开关窗口：上方是大日志区，底部输入框，**回车**或点「执行」按钮提交。指令的前导 `/` 可加可不加（`/give ...` 与 `give ...` 完全等价）。
 
 > 截图位留白：<!-- 此处放窗口截图 -->

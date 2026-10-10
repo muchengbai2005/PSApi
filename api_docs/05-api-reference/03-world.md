@@ -74,6 +74,10 @@ on night_services():
 |---|---|---|---|
 | 记罪 | `crime.commit(crime_id, amount[, 显示名])` | `null` | — |
 | 卖枪豁免 | `crime.exempt_guns(bool)` | `bool`（设置后的当前状态） | v1.7.0 |
+| 档案快照 | `crime.list()` | `dict`（见下） | v2.0.2 |
+| 清指定罪 | `crime.clear(crime_id)` | `int` 清除条数 | v2.0.2 |
+| 清全部 | `crime.clear_all()` | `null` | v2.0.2 |
+| 证据等级 | `crime.evidence([set 0..100])` | `int` 当前证据等级 | v2.0.2 |
 
 **`crime.commit(crime_id, amount[, 显示名])`**
 
@@ -104,6 +108,48 @@ on shop_opened():
 
 on day_wake():
     crime.exempt_guns(false)   # 新的一天重新判定
+```
+
+**`crime.list()`**（v2.0.2 新增）
+
+治安档案**全量快照**。原版 `secData` 里罪名、数量、累计值是三张**平行表**
+（`crimeTypes / crimeAmount / crimeAmountTotal` 同索引成组），`list` 把它们
+逐罪分组导出，其余字段直出原版显示/计算方法：
+
+| 返回键 | 含义 |
+|---|---|
+| `crimes` | `[{id, amount, total} ...]`——逐罪的罪类型 id、当前数量、累计总量 |
+| `evidence` / `evidence_display` | 证据等级数值 / 原版显示文案 |
+| `total_value` | 犯罪总值 |
+| `biggest` | 最大罪名 |
+| `sentence` / `fine` | 预计刑期 / 罚金 |
+
+需要存档场景且 `secData` 就绪（同 `crime.commit`）。psconsole 的
+`crime list` 指令即基于它。
+
+**`crime.clear(crime_id)`**（v2.0.2 新增）
+
+按罪名清除该罪**全部记录**：三张平行表按索引同删，罪 id **大小写不敏感**；
+返回清除的条数（`int`，没匹配到 = 0）。
+
+**`crime.clear_all()`**（v2.0.2 新增）
+
+一笔勾销——直调原版 `secData.ResetCrime` 清空整个治安档案，返回 `null`。
+
+**`crime.evidence([set])`**（v2.0.2 新增）
+
+调查/证据进度：**无参 = 读**当前证据等级；**带参 = 设**（0..100，
+超出两端钳制到边界），返回当前等级（`int`）。
+
+```pss
+var rec = crime.list()
+log.info("证据: {rec.evidence_display}, 预计刑期 {rec.sentence}, 罚金 {rec.fine}")
+for c in rec.crimes:
+    log.info("罪 {c.id}: 当前 {c.amount} / 累计 {c.total}")
+
+crime.clear("fencing")     # 洗掉全部销赃记录 → 返回清除条数
+crime.clear_all()          # 整份档案一笔勾销
+crime.evidence(0)          # 证据清零
 ```
 
 ## power：五势力数值
@@ -154,6 +200,10 @@ rep.add("ll", 20)                 # 声望加减
 
 crime.commit(id, amount[, name])  # 记罪
 crime.exempt_guns(bool)           # 今日卖枪豁免
+crime.list()                      # 档案快照 (v2.0.2)
+crime.clear(id)                   # 清指定罪, 返回条数 (v2.0.2)
+crime.clear_all()                 # 清空档案 (v2.0.2)
+crime.evidence([n])               # 读/设证据等级 0..100 (v2.0.2)
 
 power.get("rev")                  # 势力数值
 power.add("sec", -5)              # 势力数值加减

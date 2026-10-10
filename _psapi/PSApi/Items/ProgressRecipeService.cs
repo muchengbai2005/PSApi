@@ -486,7 +486,8 @@ namespace PSApi.Items
             try
             {
                 string loc = LocHelper.GetLocalizedItem($"item_{id}_name");
-                if (!string.IsNullOrWhiteSpace(loc) && loc != $"item_{id}_name") name = loc;
+                // v2.0.7: 未注册键原版返回 "Translation Error" 错误字符串而非抛异常, 须剔除
+                if (!string.IsNullOrWhiteSpace(loc) && loc != $"item_{id}_name" && !LocService.IsTranslationError(loc)) name = loc;
             }
             catch { }
             if (string.IsNullOrWhiteSpace(name)) name = id;

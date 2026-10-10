@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Il2Cpp;
+using MelonLoader;
 using PSApi.Items;
 
 namespace PSApi.Events.PsScript
@@ -13,17 +14,19 @@ namespace PSApi.Events.PsScript
     /// </summary>
     internal sealed class PsClientHandle : PsHandle
     {
-        /// <summary>say 通道 → StoreClient 对话字段(与 NpcManager 九通道一致)。</summary>
+        /// <summary>say 通道 → StoreClient 对话字段(与 NpcManager 九通道一致; v2.0.3 追加 accept_sell=9,
+        /// 无 StoreClient 字段 → 写 NpcService.SellAcceptChains 侧表)。</summary>
         private static readonly Dictionary<string, int> Channels = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
             ["main"] = 0, ["accept"] = 1, ["all_done"] = 2, ["repeat"] = 3,
             ["wrong_item"] = 4, ["right_item"] = 5, ["interogation"] = 6,
-            ["glasse"] = 7, ["on_arrest"] = 8,
+            ["glasse"] = 7, ["on_arrest"] = 8, ["accept_sell"] = 9,
         };
 
         private readonly StoreClient _sc;
+        private readonly MelonLogger.Instance _logger; // 可空: 仅 customer_generated 路径传入 (say 覆盖告警用)
 
-        internal PsClientHandle(StoreClient sc) { _sc = sc; }
+        internal PsClientHandle(StoreClient sc, MelonLogger.Instance logger = null) { _sc = sc; _logger = logger; }
 
         internal override string Kind => "client";
 
@@ -77,11 +80,26 @@ namespace PSApi.Events.PsScript
             }
         }
 
-        /// <summary>改对话通道文本(数组通道直接整段替换为单条; accept 同时写 LastLine 变体)。</summary>
-        private static void Say(StoreClient sc, int kind, string text, int line)
+        /// <summary>改对话通道文本(数组通道直接整段替换为单条; accept 同时写 LastLine 变体)。
+        /// v2.0.1: main 通道替换前查旧链尾选项 — 整段替换会连选项一起销毁(实测地雷: gunworks 老闫
+        /// customer_generated 里 say("main") 覆盖带选项的对话链 → 选项从未渲染), 命中即告警。</summary>
+        private void Say(StoreClient sc, int kind, string text, int line)
         {
             try
             {
+                if (kind == 0)
+                {
+                    try
+                    {
+                        Dialogue tail = sc.mainDialogue;
+                        while (tail != null && tail.nextDialogue != null) tail = tail.nextDialogue;
+                        int n = 0;
+                        try { n = tail?.choices?.Count ?? 0; } catch { }
+                        if (n > 0)
+                            PsApi.Warn(_logger, $"client.say('main') 覆盖了 '{sc.displayName}' 带 {n} 个选项的对话链, 选项已丢失 — 引导/问候文本请写进 npc.register 的 dialogues.main.texts, 或改用其他通道");
+                    }
+                    catch { }
+                }
                 var d = new Dialogue();
                 d.SetText(sc.displayName, text);
                 switch (kind)
@@ -99,6 +117,9 @@ namespace PSApi.Events.PsScript
                     case 6: sc.interogationDialogue = d; break;
                     case 7: sc.glasseDialogue = d; break;
                     case 8: sc.customOnArrestDialogue = d; break;
+                    case 9:
+                        try { NpcService.SellAcceptChains[sc.Pointer.ToInt64()] = d; } catch { }
+                        break;
                 }
             }
             catch (Exception e) { throw new PsRuntimeError("client.say 失败: " + e.Message, line); }

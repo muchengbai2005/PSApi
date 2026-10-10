@@ -12,7 +12,7 @@
 
 | 组件 | 版本 | 说明 |
 |---|---|---|
-| PSApi | v2.0.0 | 单宿主模组（`Mods/PSApi.dll`）：数据面（物品/机器/配方/品质/图标）+ 逻辑面（PSScript）+ 界面面（PSUI）+ NPC/注入/场景；v2.0.0 起原 PSApi.Items + PSApi.Events 双组件合并为单 dll，命名空间保留 `PSApi.Items.*` / `PSApi.Events.*` |
+| PSApi | v2.0.8 | 单宿主模组（`Mods/PSApi.dll`）：数据面（物品/机器/配方/品质/图标）+ 逻辑面（PSScript）+ 界面面（PSUI）+ NPC/注入/场景；v2.0.0 起原 PSApi.Items + PSApi.Events 双组件合并为单 dll，命名空间保留 `PSApi.Items.*` / `PSApi.Events.*` |
 | 适配游戏版本 | playtest | Probably Stolen Demo（Steam 商店名 *Probably Stolen Demo*） |
 
 ## 文档地图

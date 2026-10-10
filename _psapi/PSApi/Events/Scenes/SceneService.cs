@@ -1789,7 +1789,20 @@ namespace PSApi.Events.Scenes
 
         private void SetStatus(string msg)
         {
-            try { if (_statusTag != null) _statusTag.SetText(msg, 10000, RenderHandler.ColorPalette.White); } catch { }
+            try
+            {
+                if (_statusTag != null)
+                {
+                    // v2.0.5: 空文本直清 (原生钳制空文本双向累加)
+                    if (PsUI.PsUiPixelBackend.TagTextIsEmpty(msg)) PsUI.PsUiPixelBackend.ClearTagText(_statusTag, _logger, "scene:status");
+                    else
+                    {
+                        _statusTag.SetText(msg, 10000, RenderHandler.ColorPalette.White);
+                        PsUI.PsUiPixelBackend.ResetTagHeight(_statusTag, _logger, "scene:status"); // v2.0.4: 原生高度累加修复
+                    }
+                }
+            }
+            catch { }
             // v1.30.0: 标题 uGUI 面板状态行 (空串 = 不渲染, 无占位)
             try { if (_statusUgui is not null) _statusUgui.text = msg ?? ""; } catch { }
         }

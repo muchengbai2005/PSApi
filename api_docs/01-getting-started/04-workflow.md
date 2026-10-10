@@ -44,7 +44,7 @@ PS-API 当前没有热重载（源码中 `Rescan` 仅在启动时调用），所
 
 | 日志行（节选） | 含义 |
 |---|---|
-| `PSApi v2.0.0 loaded (统一宿主: items+events)` | 单宿主模组就绪 |
+| `PSApi v2.0.8 loaded (统一宿主: items+events)` | 单宿主模组就绪 |
 | `[items] 模块初始化完成 (PSApi v…). packs=N items=N qualities=N` | 数据面就绪，包/物品/品质计数 |
 | `rescan(init): N pack(s), N item def(s), … errors=0` | 数据面解析完成，`errors` 必须为 0 |
 | `[events] 模块初始化完成 (PSApi v…). packs=N` | 逻辑面就绪 |

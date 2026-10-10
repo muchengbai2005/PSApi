@@ -200,8 +200,11 @@ namespace PSApi.Events.PsUI
                 {
                     if (pixPanel.Labels.TryGetValue(pixElemId, out var tag) && !(tag is null))
                     {
+                        // v2.0.5: 空文本直清 (原生钳制对空文本双向累加)
+                        if (PsUiPixelBackend.TagTextIsEmpty(text)) { PsUiPixelBackend.ClearTagText(tag, _logger, $"{pixFullId}:{pixElemId}"); return; }
                         tag.SetText(text ?? "", 10000, RenderHandler.ColorPalette.White);
                         if (fs > 0f) PsUiPixelBackend.ApplyFontScale(tag.textNode, fs, pixPanel.FontBaseSizes, pixElemId, _logger, $"{pixFullId}:{pixElemId}");
+                        PsUiPixelBackend.ResetTagHeight(tag, _logger, $"{pixFullId}:{pixElemId}"); // v2.0.4: 原生高度累加修复
                         return;
                     }
                     if (pixPanel.Buttons.TryGetValue(pixElemId, out var btn) && !(btn is null))
@@ -595,15 +598,20 @@ namespace PSApi.Events.PsUI
             {
                 if (pp.Labels.TryGetValue(elemId, out var tag) && !(tag is null))
                 {
+                    // v2.0.5: 空文本直清 (原生钳制对空文本双向累加, 见 PsUiPixelBackend.ClearTagText)
+                    if (PsUiPixelBackend.TagTextIsEmpty(text)) { PsUiPixelBackend.ClearTagText(tag, _logger, $"{pp.FullId}:{elemId}"); return; }
                     tag.SetText(text ?? "", 10000, RenderHandler.ColorPalette.White);
                     if (fs > 0f) PsUiPixelBackend.ApplyFontScale(tag.textNode, fs, pp.FontBaseSizes, elemId, _logger, $"{pp.FullId}:{elemId}");
+                    PsUiPixelBackend.ResetTagHeight(tag, _logger, $"{pp.FullId}:{elemId}"); // v2.0.4: 原生高度累加修复
                     PsUiPixelBackend.ApplyTextColor(tag.textNode, cr, cg, cb, ca, _logger, $"{pp.FullId}:{elemId}");
                     return;
                 }
                 if (pp.RichLabels.TryGetValue(elemId, out var rt) && !(rt is null))
                 {
+                    if (PsUiPixelBackend.TagTextIsEmpty(text)) { PsUiPixelBackend.ClearRichText(rt, _logger, $"{pp.FullId}:{elemId}"); return; } // v2.0.5
                     rt.SetText(text ?? "", 10000, RenderHandler.ColorPalette.White);
                     if (fs > 0f) PsUiPixelBackend.ApplyFontScale(rt.handler, fs, pp.FontBaseSizes, elemId, _logger, $"{pp.FullId}:{elemId}");
+                    PsUiPixelBackend.ResetRichHeight(rt, _logger, $"{pp.FullId}:{elemId}"); // v2.0.4: 原生高度累加修复
                     PsUiPixelBackend.ApplyTextColor(rt.handler, cr, cg, cb, ca, _logger, $"{pp.FullId}:{elemId}");
                     return;
                 }
@@ -638,6 +646,20 @@ namespace PSApi.Events.PsUI
                 if (!pp.Slots.TryGetValue(slotId, out var slot) || slot == null) return null;
                 var items = PSApi.Items.ItemsFacade.SlotItems(slot);
                 return items != null && items.Count > 0 ? items[0] : null;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>v2.0.3: 非抛出机器槽位库存读取 — 场景能力服务救回外出栏背包
+        /// (grid.rescue_backpack 需对槽本体 UncheckedAccept) 用。机器未登记/槽位不存在/异常 = null
+        /// (调用方自记日志, 此处不告警)。</summary>
+        internal GameInventory TryMachineSlotInventory(GameItem machine, string slotId)
+        {
+            try
+            {
+                if (machine == null || string.IsNullOrEmpty(slotId)) return null;
+                if (!_machinePanels.TryGetValue(machine.Pointer, out var pp)) return null;
+                return pp.Slots.TryGetValue(slotId, out var slot) ? slot : null;
             }
             catch { return null; }
         }
@@ -770,6 +792,40 @@ namespace PSApi.Events.PsUI
             var pp = NeedMachinePanel(machine, "ui.machine_is_open", line);
             try { return !(pp.Window is null) && pp.Window.IsVisible(); }
             catch { return false; }
+        }
+
+        /// <summary>v2.0.5 诊断: ui.machine_dump_layout(machine [, tag="psui"]) — 输出面板窗口子元素数
+        /// + 全部 label/rich_label 的 widthPixels×heightPixels 一行日志 («[tag] refresh: children=N labels=[id=WxH ...]»)。
+        /// 诊断专用: 无头/句柄失效/无面板 = 打一行 «无面板» 并返回 null, 永不抛错。
+        /// 用途: 区分「元素数在涨 (孤儿累积)」还是「单元素尺寸在涨 (钳制累加)」——v0.49.1 预览黑块排查。</summary>
+        internal object MachineDumpLayout(GameItem machine, string logTag)
+        {
+            try
+            {
+                IntPtr ptr = machine is null ? IntPtr.Zero : machine.Pointer;
+                if (ptr == IntPtr.Zero || !_machinePanels.TryGetValue(ptr, out var pp) || pp is null)
+                {
+                    PsApi.Log(_logger, $"[{logTag}] refresh: 无面板 (无头或句柄失效)");
+                    return null;
+                }
+                int children = -1;
+                try
+                {
+                    var rt = pp.Window is null ? null : pp.Window.handler is null ? null : pp.Window.handler.rectTransform;
+                    if (!(rt is null)) children = rt.childCount;
+                }
+                catch { }
+                var sb = new System.Text.StringBuilder();
+                foreach (var kv in pp.Labels)
+                    try { sb.Append(kv.Key).Append('=').Append(kv.Value._widthPixels_k__BackingField).Append('x').Append(kv.Value._heightPixels_k__BackingField).Append(' '); }
+                    catch { sb.Append(kv.Key).Append("=? "); }
+                foreach (var kv in pp.RichLabels)
+                    try { sb.Append(kv.Key).Append("(rich)=").Append(kv.Value._widthPixels_k__BackingField).Append('x').Append(kv.Value._heightPixels_k__BackingField).Append(' '); }
+                    catch { sb.Append(kv.Key).Append("(rich)=? "); }
+                PsApi.Log(_logger, $"[{logTag}] refresh: children={children} labels=[{sb.ToString().TrimEnd()}]");
+            }
+            catch (Exception e) { PsApi.Warn(_logger, $"[{logTag}] dump 失败: {e.Message}"); }
+            return null;
         }
 
         /// <summary>ui.machine_find_uid(uid): 按 uniqueId (存档稳定) 找已登记的 psui 机器 → 物品句柄; 未找到 = null。

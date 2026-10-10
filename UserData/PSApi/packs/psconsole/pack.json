@@ -1,8 +1,8 @@
 {
   "id": "psconsole",
   "name": "PS 指令台（/ 键控制台）",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "authors": ["psapi"],
   "gameVersions": ["playtest"],
-  "//": "仿 Minecraft 指令系统: 按 / (Slash) 开关窗口, 上方大日志区 + 底部输入框 (回车或点「执行」提交)。指令: help/give/cash/rep/day/npc/item/state/echo/clear, 前导 / 可选。依赖 Events v1.17.0 (ui.bind_key / input on_submit / npc.list / items.give 的 to 落点与嵌套 data) 与 Items v0.9.8 (GrantToCounterMiddle)。系统工具包, 删除后 / 键控制台不可用。"
+  "//": "仿 Minecraft 指令系统: 按 / (Slash) 开关窗口, 上方大日志区 + 底部输入框 (回车或点「执行」提交), 前导 / 可选。v0.2.0: 指令大扩展 20 条 (提案 _docs/开发向/psconsole指令扩展提案.md 落地) — 犯罪系 crime list/add/clear/clearall/evidence; gunworks 系 raid maps/unlock/lock/cd/status + gw parts/repair/tank; 原版通用系 power/restock/showcase/attract/goto/bag clear/npc rep。依赖 PSApi ≥ v2.0.2 (新 builtin: crime.list/clear/clear_all/evidence · state.pget/pset/phas/pdel 跨包存档 · items.inventory)。系统工具包, 删除后 / 键控制台不可用。手册: _docs/开发向/psconsole指令手册.md。"
 }

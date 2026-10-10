@@ -132,6 +132,10 @@ namespace PSApi.Events
             ["main"] = 0, ["accept"] = 1, ["all_done"] = 2, ["repeat"] = 3,
             ["wrong_item"] = 4, ["right_item"] = 5, ["interogation"] = 6,
             ["glasse"] = 7, ["on_arrest"] = 8,
+            // v2.0.3: 成交台词方向感知 — accept_sell = 玩家卖出方向的成交台词 (accept 留给玩家买入方向);
+            // 链不入 StoreClient 字段 (原版无此字段), 存 SellAcceptChains 指针表, 由
+            // DialogueTradePatches 的 DialogUIManager.StartDialogue prefix 在卖出方向换播。
+            ["accept_sell"] = 9,
         };
 
         private static readonly HashSet<string> KnownKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -770,6 +774,21 @@ namespace PSApi.Events
         /// 场景销毁后指针失效, OnSceneLeft 清空。</summary>
         internal static readonly Dictionary<long, string> DialogueIds = new Dictionary<long, string>();
 
+        /// <summary>v2.0.3: accept_sell 通道对话链 — StoreClient 指针 → 链头 (原版无对应字段, 自建表;
+        /// DialogUIManager.StartDialogue prefix 在玩家卖出方向换播)。客户随场景销毁, OnSceneLeft 清空。</summary>
+        internal static readonly Dictionary<long, Dialogue> SellAcceptChains = new Dictionary<long, Dialogue>();
+
+        /// <summary>v2.0.3: 查某客户的卖出向成交台词链 (无注册/指针失效 = null)。</summary>
+        internal static Dialogue GetSellAcceptChain(StoreClient sc)
+        {
+            if (sc is null) return null;
+            try
+            {
+                return SellAcceptChains.TryGetValue(sc.Pointer.ToInt64(), out var d) ? d : null;
+            }
+            catch { return null; }
+        }
+
         /// <summary>三个默认选项身份键物品 (同 RevDeal: 不进背包, 仅作 Dialogue.choices 的键)。</summary>
         private static readonly string[] ChoiceKeyIds = { "newspaper", "paper_towel", "scrap_metal" };
 
@@ -929,6 +948,7 @@ namespace PSApi.Events
         {
             _choicePins.Clear();
             DialogueIds.Clear();
+            SellAcceptChains.Clear();   // v2.0.3
             _rolledByPtr.Clear();
             _rolledBuyPoolByPtr.Clear();
             _sellGoodPtrs.Clear();
@@ -998,7 +1018,7 @@ namespace PSApi.Events
         {
             _bus.Publish("psapi.customer.generated", new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                ["client"] = new PsClientHandle(sc),
+                ["client"] = new PsClientHandle(sc, _logger),
                 ["id"] = id,
                 ["name"] = name,
                 ["source"] = source,
@@ -1651,6 +1671,11 @@ namespace PSApi.Events
                         case 6: sc.interogationDialogue = head; break;
                         case 7: sc.glasseDialogue = head; break;
                         case 8: sc.customOnArrestDialogue = head; break;
+                        case 9:
+                            // v2.0.3: accept_sell 链入侧表 (不挂 endAction, 与 accept 同款;
+                            // 播放由 DialogUIManager.StartDialogue prefix 在卖出方向接管)
+                            try { SellAcceptChains[sc.Pointer.ToInt64()] = head; } catch { }
+                            break;
                     }
                 }
                 catch (Exception e) { PsApi.Warn(_logger, $"npc '{def.Id}' 对话通道 {kv.Key}: {e.Message}"); }

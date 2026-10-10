@@ -480,6 +480,43 @@ namespace PSApi.Events.PsScript
                 Store().Set(AsKey(a[0], "state.del", line), null);
                 return null;
             });
+            // v2.0.2: 跨包存档 KV (psconsole raid.* 读写 gunworks 的 ps_raid_unlocks/ps_raid_cd 等;
+            // pack 参数拒绝路径分隔符防越目录; 语义与同名单包版一致)
+            string PackId(object v, string api, int line)
+            {
+                string p = AsKey(v, api, line);
+                if (p.Contains("/") || p.Contains("\\") || p.Contains(":"))
+                    throw new PsRuntimeError($"{api} 的包 id 含非法字符 (只允许纯 id, 如 gunworks)", line);
+                return p;
+            }
+            ns.Members["pget"] = PsBuiltins.BF("state.pget", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 2, 3, "state.pget(pack, key[, 默认值]) — 跨包读存档 KV (v2.0.2)", line);
+                string pk = PackId(a[0], "state.pget", line);
+                string raw = SaveStates.For(pk, logger).Get(AsKey(a[1], "state.pget", line));
+                if (raw == null) return a.Count == 3 ? a[2] : null;
+                return ScriptJson.TryDecode(raw, out var v) ? v : raw;
+            });
+            ns.Members["pset"] = PsBuiltins.BF("state.pset", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 3, 3, "state.pset(pack, key, value) — 跨包写存档 KV (v2.0.2)", line);
+                string pk = PackId(a[0], "state.pset", line);
+                SaveStates.For(pk, logger).Set(AsKey(a[1], "state.pset", line), ScriptJson.Encode(a[2]));
+                return null;
+            });
+            ns.Members["phas"] = PsBuiltins.BF("state.phas", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 2, 2, "state.phas(pack, key) — 跨包键存在判定 (v2.0.2)", line);
+                string pk = PackId(a[0], "state.phas", line);
+                return SaveStates.For(pk, logger).Get(AsKey(a[1], "state.phas", line)) != null;
+            });
+            ns.Members["pdel"] = PsBuiltins.BF("state.pdel", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 2, 2, "state.pdel(pack, key) — 跨包删键 (v2.0.2)", line);
+                string pk = PackId(a[0], "state.pdel", line);
+                SaveStates.For(pk, logger).Set(AsKey(a[1], "state.pdel", line), null);
+                return null;
+            });
             env.Define("state", ns, true, 0);
         }
 
@@ -627,7 +664,147 @@ namespace PSApi.Events.PsScript
                 CrimeExemptState.FilterItp = itp;
                 return null;
             });
+            // v2.0.2: 治安档案读取 (psconsole crime list) — 三平行表 (crimeTypes/crimeAmount/crimeAmountTotal
+            // 同索引成组) + 证据等级 + 原版显示方法直出
+            ns.Members["list"] = PsBuiltins.BF("crime.list", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 0, 0, "crime.list() → {crimes=[{id,amount,total}...], evidence, evidence_display, total_value, biggest, sentence, fine}", line);
+                var ps = NeedStore("crime.list", line);
+                try
+                {
+                    var sd = ps.secData;
+                    if (sd == null) throw new PsRuntimeError("crime.list() 当前不可用(secData 为空)", line);
+                    var crimes = new List<object>();
+                    var types = sd.crimeTypes; var amounts = sd.crimeAmount; var totals = sd.crimeAmountTotal;
+                    int n = types?.Count ?? 0;
+                    for (int i = 0; i < n; i++)
+                    {
+                        crimes.Add(new Dictionary<string, object>(StringComparer.Ordinal)
+                        {
+                            ["id"] = types[i],
+                            ["amount"] = (long)((amounts != null && i < amounts.Count) ? amounts[i] : 0),
+                            ["total"] = (long)((totals != null && i < totals.Count) ? totals[i] : 0),
+                        });
+                    }
+                    return new Dictionary<string, object>(StringComparer.Ordinal)
+                    {
+                        ["crimes"] = crimes,
+                        ["evidence"] = (long)sd.evidenceLevel,
+                        ["evidence_display"] = sd.GetEvidenceLevelDisplay(),
+                        ["total_value"] = (long)sd.GetTotalCrimeValue(),
+                        ["biggest"] = sd.GetBiggestCrime(),
+                        ["sentence"] = sd.GetProjectedSentence(),
+                        ["fine"] = (long)sd.GetFineValue(),
+                    };
+                }
+                catch (PsRuntimeError) { throw; }
+                catch (Exception e) { throw new PsRuntimeError("crime.list() 失败: " + e.Message, line); }
+            });
+            // v2.0.2: 清除指定罪名 (psconsole crime clear) — 三平行表按索引同删, 大小写不敏感
+            ns.Members["clear"] = PsBuiltins.BF("crime.clear", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 1, 1, "crime.clear(crime_id) → 清除条数", line);
+                string id = AsKey(a[0], "crime.clear", line);
+                var ps = NeedStore("crime.clear", line);
+                try
+                {
+                    var sd = ps.secData;
+                    if (sd == null) throw new PsRuntimeError("crime.clear() 当前不可用(secData 为空)", line);
+                    // Il2Cpp List 不实现 System IList → 拷进托管表删完写回
+                    var types = CrimeCopyStrings(sd.crimeTypes);
+                    var amounts = CrimeCopyInts(sd.crimeAmount);
+                    var totals = CrimeCopyInts(sd.crimeAmountTotal);
+                    int removed = CrimeRemoveById(types, amounts, totals, id);
+                    if (removed > 0)
+                    {
+                        CrimeWriteStrings(sd.crimeTypes, types);
+                        CrimeWriteInts(sd.crimeAmount, amounts);
+                        CrimeWriteInts(sd.crimeAmountTotal, totals);
+                    }
+                    return (long)removed;
+                }
+                catch (PsRuntimeError) { throw; }
+                catch (Exception e) { throw new PsRuntimeError("crime.clear() 失败: " + e.Message, line); }
+            });
+            // v2.0.2: 清除全部犯罪记录 (psconsole crime clearall) — 原版 ResetCrime 直调
+            ns.Members["clear_all"] = PsBuiltins.BF("crime.clear_all", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 0, 0, "crime.clear_all() — 清空治安档案 (原版 SecData.ResetCrime)", line);
+                var ps = NeedStore("crime.clear_all", line);
+                try
+                {
+                    var sd = ps.secData;
+                    if (sd == null) throw new PsRuntimeError("crime.clear_all() 当前不可用(secData 为空)", line);
+                    sd.ResetCrime();
+                }
+                catch (PsRuntimeError) { throw; }
+                catch (Exception e) { throw new PsRuntimeError("crime.clear_all() 失败: " + e.Message, line); }
+                return null;
+            });
+            // v2.0.2: 调查/证据进度 (psconsole crime evidence) — 无参读, 带参设 (钳 0..100)
+            ns.Members["evidence"] = PsBuiltins.BF("crime.evidence", (itp, a, line) =>
+            {
+                PsBuiltins.Need(a, 0, 1, "crime.evidence([set 0..100]) → 当前证据等级", line);
+                var ps = NeedStore("crime.evidence", line);
+                try
+                {
+                    var sd = ps.secData;
+                    if (sd == null) throw new PsRuntimeError("crime.evidence() 当前不可用(secData 为空)", line);
+                    if (a.Count == 1)
+                        sd.evidenceLevel = (int)ClampEvidence(AsLong(a[0], "crime.evidence", line));
+                    return (long)sd.evidenceLevel;
+                }
+                catch (PsRuntimeError) { throw; }
+                catch (Exception e) { throw new PsRuntimeError("crime.evidence() 失败: " + e.Message, line); }
+            });
             env.Define("crime", ns, true, 0);
+        }
+
+        /// <summary>v2.0.2: 三平行表按罪名清除 (同索引同删, 大小写不敏感) — 抽纯函数供无头测试台直钉。</summary>
+        internal static int CrimeRemoveById(List<string> types, List<int> amount, List<int> total, string id)
+        {
+            if (types == null || string.IsNullOrEmpty(id)) return 0;
+            int removed = 0;
+            for (int i = types.Count - 1; i >= 0; i--)
+            {
+                if (!string.Equals(types[i], id, StringComparison.OrdinalIgnoreCase)) continue;
+                types.RemoveAt(i);
+                if (amount != null && i < amount.Count) amount.RemoveAt(i);
+                if (total != null && i < total.Count) total.RemoveAt(i);
+                removed++;
+            }
+            return removed;
+        }
+
+        /// <summary>v2.0.2: 证据等级写值钳制 (0..100)。</summary>
+        internal static long ClampEvidence(long n) => n < 0 ? 0 : n > 100 ? 100 : n;
+
+        private static List<string> CrimeCopyStrings(Il2CppSystem.Collections.Generic.List<string> src)
+        {
+            var r = new List<string>();
+            if (src != null) for (int i = 0; i < src.Count; i++) r.Add(src[i]);
+            return r;
+        }
+
+        private static List<int> CrimeCopyInts(Il2CppSystem.Collections.Generic.List<int> src)
+        {
+            var r = new List<int>();
+            if (src != null) for (int i = 0; i < src.Count; i++) r.Add(src[i]);
+            return r;
+        }
+
+        private static void CrimeWriteStrings(Il2CppSystem.Collections.Generic.List<string> dst, List<string> src)
+        {
+            if (dst == null) return;
+            dst.Clear();
+            foreach (var s in src) dst.Add(s);
+        }
+
+        private static void CrimeWriteInts(Il2CppSystem.Collections.Generic.List<int> dst, List<int> src)
+        {
+            if (dst == null) return;
+            dst.Clear();
+            foreach (var v in src) dst.Add(v);
         }
 
         // ---- power: 五势力数值 ----

@@ -26,6 +26,7 @@ if it != null:
 | 显示名 | `items.name(id)` | `string \| null`（未知 = `null`） | v1.11.0 |
 | 找一个 | `items.find(id)` | 物品句柄 \| `null` | — |
 | 找全部 | `items.find_all(id)` | `[物品句柄]` | v1.7.0 |
+| 全量枚举 | `items.inventory()` | `[物品句柄]` | v2.0.2 |
 | 消耗 | `items.consume(item_handle[, count])` | `bool` | count 参数 v1.39.0 |
 
 **发放与检索的范围**（源码保证）：
@@ -36,6 +37,8 @@ if it != null:
   剩余物品悬空（原生不处理，日志有警告）。
 - `items.has / find / find_all` 搜**随身背包 + 后仓**（含容器嵌套——包里有盒子、
   盒子里有物品也能搜到；`has` 计入堆叠数）。
+- `items.inventory()` 不按 id 过滤，**全量枚举**随身背包 + 后仓（v2.0.2；
+  psconsole 的 `bag clear` 清包指令即基于它）；无物品 = 空表。
 - `uses > 0`（1..9999）时发放的是**次数物品**（用完即毁，见下文"使用次数"）。
 
 ```pss

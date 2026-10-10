@@ -9,6 +9,7 @@ namespace PSApi.Events
     /// E7 补丁事件: dialogue_choice / trade_completed (官方 ModHook 无对应事件, 只能补丁)。
     /// 补丁点字节数经 Cpp2IL ISIL 反汇编核对 (UserData/cpp2il_isil/IsilDump/Assembly-CSharp/):
     ///   DialogUIManager.SelectChoice  数百字节(完整选项结算流程)   — 安全
+    ///   DialogUIManager.StartDialogue 数百字节                       — 安全 (v2.0.3 accept_sell 换链, 见下方注释)
     ///   PlayerStore.OnItemBought      数百字节                       — 安全 (玩家从客户买入; 内部转调 StoreClient.OnItemSold)
     ///   PlayerStore.SellItem          ~230 行 ISIL                   — 安全 (玩家卖给客户; 内部转调 StoreClient.OnItemBought)
     ///   StoreClient.OnItemBought      ~26 字节纯转发                 — 不 patch (40 字节红线), 走 PlayerStore.SellItem 代替
@@ -110,6 +111,58 @@ namespace PSApi.Events
         {
             private static void Prefix() => _fromTableDepth++;
             private static Exception Finalizer(Exception __exception) { _fromTableDepth--; return __exception; }
+        }
+
+        // ---- accept_sell 方向感知(v2.0.3): 成交台词按交易方向分链 ----
+        // PlayAcceptDealDialogueOnce 的播放已被内联进 NegociationUIManager 各成交方法(ISIL 实证站点:
+        // OnWholesaleClick / OnOfferAcceptClick×6 / BuyMultipleItem / BuyItem / SellMultiple), 无统一挂载点
+        // → 改在 DialogUIManager.StartDialogue 按指针识别"当前客户的成交台词"(== sc.acceptDealDialogue),
+        // 方向=玩家卖出时把 __0 换为 accept_sell 侧链(NpcService.SellAcceptChains); 原版照常执行,
+        // once 旗标(acceptDealDialoguePlayed)由原版自己置位, 语义不动。
+        // 方向取自当前客户意图(GetCurrentClientIntent 读 currentClientInstance.storeClient.intent):
+        //   BUY / WHOLESALE(整柜收购) = 客户买 = 玩家卖出 → 换链
+        //   SELLNBUY                  = 走原版 NegociationUIManager.IsSellNBuyBuying 判定
+        //   其余(SELL=玩家买入/BARTER/采购等) → 保持原 accept 链(兜底, 不误换)
+
+        [HarmonyPatch(typeof(DialogUIManager), "StartDialogue")]
+        private static class PatchSellAcceptDialogue
+        {
+            private static void Prefix(ref Dialogue __0)
+            {
+                try
+                {
+                    if (__0 is null) return;
+                    var ps = PlayerStore.instance; // 静态字段
+                    var sc = ps is null ? null : ps.currentClientInstance?.storeClient;
+                    if (sc is null) return;
+                    var accept = sc.acceptDealDialogue;
+                    if (accept is null || accept.Pointer != __0.Pointer) return;
+                    var sellChain = NpcService.GetSellAcceptChain(sc);
+                    if (sellChain is null) return;
+                    if (!IsPlayerSelling(ps, sc)) return;
+                    __0 = sellChain;
+                }
+                catch { }
+            }
+
+            private static bool IsPlayerSelling(PlayerStore ps, StoreClient sc)
+            {
+                try
+                {
+                    switch (ps.GetCurrentClientIntent())
+                    {
+                        case StoreClient.ClientIntent.BUY:
+                        case StoreClient.ClientIntent.WHOLESALE:
+                            return true;
+                        case StoreClient.ClientIntent.SELLNBUY:
+                            var nm = NegociationUIManager.Instance;
+                            return !(nm is null) && nm.IsSellNBuyBuying(sc);
+                        default:
+                            return false;
+                    }
+                }
+                catch { return false; }
+            }
         }
 
         // ---- 双发抑制 ----
